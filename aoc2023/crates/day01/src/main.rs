@@ -17,8 +17,8 @@ fn main() {
         .collect();
 
     println!("Day 01 part a test: {}", solve_a(a_test_lines));
+    println!("Day 01 part b test: {}", solve_b(b_test_lines));
     println!("Day 01 part a: {}", solve_a(lines.clone()));
-    println!("Day 01 part b: {}", solve_b(b_test_lines));
     println!("Day 01 part b: {}", solve_b(lines));
 }
 
