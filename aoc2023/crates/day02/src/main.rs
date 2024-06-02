@@ -1,16 +1,19 @@
 fn main() {
-    let a_test_lines: Vec<String> = include_str!("test-a.txt")
+    let test_txt: Vec<String> = include_str!("test.txt")
         .lines()
         .map(|l| l.chars().collect())
         .collect();
 
+    #[allow(unused)]
     let input_txt: Vec<String> = include_str!("input.txt")
         .lines()
         .map(|l| l.chars().collect())
         .collect();
 
-    println!("Day 01 part a test: {}", solve_a(a_test_lines));
-    println!("Day 01 part a: {}", solve_a(input_txt));
+    println!("Day 01 part a test: {}", solve_a(test_txt.clone())); // 8
+    println!("Day 01 part b test: {}", solve_b(test_txt)); // 2286
+    println!("Day 01 part a: {}", solve_a(input_txt.clone())); // 2265
+    println!("Day 01 part b: {}", solve_b(input_txt)); // 64097
 }
 
 #[derive(Debug)]
@@ -29,13 +32,9 @@ struct Game {
 }
 
 impl Game {
-    fn get_id(id_str: &str) -> u32 {
-        id_str.parse::<u32>().unwrap()
-    }
-
     fn new(line: &str) -> Game {
         let (id_part, color_part) = line.split_once(':').unwrap();
-        let id = Game::get_id(id_part.split_once(' ').unwrap().1);
+        let id = id_part.split_once(' ').unwrap().1.parse::<u32>().unwrap();
         let colors = get_colors(color_part);
 
         Game {
@@ -85,6 +84,7 @@ fn get_colors(str: &str) -> Colors {
     colors
 }
 
+#[allow(dead_code)]
 fn solve_a(lines: Vec<String>) -> u32 {
     let mut res: u32 = 0;
 
@@ -96,9 +96,19 @@ fn solve_a(lines: Vec<String>) -> u32 {
 
     for line in lines {
         let game = Game::new(&line);
-        if game.possible_game(&configuration).to_owned() {
+        if game.possible_game(&configuration) {
             res += game.id
         }
+    }
+
+    res
+}
+
+fn solve_b(lines: Vec<String>) -> u32 {
+    let mut res: u32 = 0;
+    for line in lines {
+        let game = Game::new(&line);
+        res += game.red * game.green * game.blue
     }
 
     res
