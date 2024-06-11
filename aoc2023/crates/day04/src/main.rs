@@ -1,6 +1,5 @@
 use std::collections::HashSet;
 
-#[allow(unused)]
 fn main() {
     let test: Vec<&str> = include_str!("test.txt").lines().collect();
     let lines: Vec<&str> = include_str!("input.txt").lines().collect();
@@ -11,15 +10,12 @@ fn main() {
     println!("Day 01 part b: {}", solve_b(&lines)); // 5744979
 }
 
-#[allow(unused)]
 fn solve_a(lines: &[&str]) -> usize {
     lines.iter().map(|l| Card::new(l)).map(|c| c.score()).sum()
 }
 
-#[allow(unused)]
 fn solve_b(lines: &[&str]) -> usize {
     let mut cards: Vec<Card> = lines.iter().map(|l| Card::new(l)).collect();
-    let mut updates: Vec<(usize, usize, usize)> = vec![];
 
     (0..cards.len()).for_each(|idx| {
         let matches = &cards[idx].find_matches().len();
@@ -35,7 +31,6 @@ fn solve_b(lines: &[&str]) -> usize {
     cards.iter().map(|c| c.count).sum()
 }
 
-#[allow(unused)]
 fn parse(str: &str) -> Vec<usize> {
     let mut nums: Vec<usize> = str
         .split(' ')
@@ -47,13 +42,11 @@ fn parse(str: &str) -> Vec<usize> {
     nums
 }
 
-#[allow(unused)]
 fn parse_nums(num_str: &str) -> (Vec<usize>, Vec<usize>) {
     let (win_str, elf_str) = num_str.split_once(" | ").unwrap();
     (parse(win_str), parse(elf_str))
 }
 
-#[allow(unused)]
 #[derive(Debug, Clone)]
 struct Card {
     win_nums: Vec<usize>,
@@ -61,7 +54,6 @@ struct Card {
     count: usize,
 }
 
-#[allow(unused)]
 impl Card {
     fn score(&self) -> usize {
         let len: usize = self.find_matches().len();
@@ -80,14 +72,7 @@ impl Card {
     }
 
     fn new(line: &str) -> Card {
-        let (id_part, num_part) = line.split_once(':').unwrap();
-        let id = id_part
-            .split_once(' ')
-            .unwrap()
-            .1
-            .trim()
-            .parse::<usize>()
-            .unwrap();
+        let (_, num_part) = line.split_once(':').unwrap();
         let (win_nums, elf_nums) = parse_nums(num_part);
 
         Card {
