@@ -20,6 +20,67 @@ impl fmt::Display for Kind {
     }
 }
 
+pub enum Day {
+    Day01,
+    Day02,
+    Day03,
+    Day04,
+    Day05,
+    Day06,
+    Day07,
+    Day08,
+    Day09,
+    Day10,
+    Day11,
+    Day12,
+    Day13,
+    Day14,
+    Day15,
+    Day16,
+    Day17,
+    Day18,
+    Day19,
+    Day20,
+    Day21,
+    Day22,
+    Day23,
+    Day24,
+    Day25,
+}
+
+impl fmt::Display for Day {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let day_str = match self {
+            Day::Day01 => "Day 01",
+            Day::Day02 => "Day 02",
+            Day::Day03 => "Day 03",
+            Day::Day04 => "Day 04",
+            Day::Day05 => "Day 05",
+            Day::Day06 => "Day 06",
+            Day::Day07 => "Day 07",
+            Day::Day08 => "Day 08",
+            Day::Day09 => "Day 09",
+            Day::Day10 => "Day 10",
+            Day::Day11 => "Day 11",
+            Day::Day12 => "Day 12",
+            Day::Day13 => "Day 13",
+            Day::Day14 => "Day 14",
+            Day::Day15 => "Day 15",
+            Day::Day16 => "Day 16",
+            Day::Day17 => "Day 17",
+            Day::Day18 => "Day 18",
+            Day::Day19 => "Day 19",
+            Day::Day20 => "Day 20",
+            Day::Day21 => "Day 21",
+            Day::Day22 => "Day 22",
+            Day::Day23 => "Day 23",
+            Day::Day24 => "Day 24",
+            Day::Day25 => "Day 25",
+        };
+        write!(f, "{}", day_str)
+    }
+}
+
 pub fn unsafe_index(x: isize) -> usize {
     usize::try_from(x).unwrap()
 }
@@ -65,27 +126,27 @@ pub fn quicksort<T: Copy + PartialOrd>(array: &mut [T]) {
     quicksort(right);
 }
 
-pub fn format_single_digit(digit: usize) -> String {
-    if digit < 10 {
-        return format!("0{}", digit);
-    }
-    digit.to_string()
-}
+// pub fn format_single_digit(digit: usize) -> String {
+//     if digit < 10 {
+//         return format!("0{}", digit);
+//     }
+//     digit.to_string()
+// }
 
-pub fn validate<T>(func: impl Fn() -> T, expected: T, day: usize, kind: Kind) -> Duration
+pub fn validate<T>(func: impl Fn() -> T, expected: T, day: Day, kind: Kind) -> Duration
 where
     T: PartialEq,
     T: fmt::Debug,
 {
-    let day_str = format!("Day {}", format_single_digit(day));
-    println!("Running {day_str} {}", kind.to_string().to_lowercase());
+    // let day_str = format!("Day {}", format_single_digit(day));
+    println!("Running {day} {}", kind.to_string().to_lowercase());
     let start = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
     let result = func();
     let end = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
     let total = end - start;
     assert_eq!(expected, result);
     println!("Expected: {:#?}, Result: {:#?}", expected, result);
-    println!("{day_str} {} solved in {:#?}\n", kind, total);
+    println!("{day} {} solved in {:#?}\n", kind, total);
     total
 }
 
