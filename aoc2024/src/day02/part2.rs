@@ -32,12 +32,11 @@ pub fn solve() -> usize {
         .fold(0, |acc, v| if is_safe(&v) { acc + 1 } else { acc })
 }
 
-#[allow(unused)]
 #[cfg(test)]
 mod test {
     use crate::day02::into_isize_vec;
 
-    use super::{expand, is_safe, solve, validate};
+    use super::is_safe;
 
     #[test]
     fn test_is_safe() {
