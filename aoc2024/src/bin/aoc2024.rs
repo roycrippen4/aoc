@@ -13,7 +13,7 @@ fn main() {
     total_time += validate(day02::part2::solve, 271, Day::Day02, Kind::Part2);
     total_time += validate(day03::part1::solve, 173731097, Day::Day03, Kind::Part1);
     total_time += validate(day03::part2::solve, 93729253, Day::Day03, Kind::Part2);
-    total_time += validate(day04::part1::solve, 93729253, Day::Day03, Kind::Part2);
+    total_time += validate(day04::part1::solve, 2483, Day::Day04, Kind::Part1);
 
     println!("Total elapsed time: {:#?}", total_time);
 }

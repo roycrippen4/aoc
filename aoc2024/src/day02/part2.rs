@@ -1,6 +1,6 @@
 use super::into_isize_vec;
 
-pub fn expand(values: &[isize]) -> Vec<Vec<isize>> {
+fn expand(values: &[isize]) -> Vec<Vec<isize>> {
     (0..values.len())
         .map(|i| {
             let mut minus_one = Vec::with_capacity(values.len() - 1);
@@ -11,7 +11,7 @@ pub fn expand(values: &[isize]) -> Vec<Vec<isize>> {
         .collect()
 }
 
-pub fn validate(values: &[isize]) -> bool {
+fn validate(values: &[isize]) -> bool {
     values.windows(2).all(|window| {
         let diff = window[0] - window[1];
         (-3..=-1).contains(&diff)
@@ -21,7 +21,7 @@ pub fn validate(values: &[isize]) -> bool {
     })
 }
 
-pub fn is_safe(values: &[isize]) -> bool {
+fn is_safe(values: &[isize]) -> bool {
     validate(values) || expand(values).iter().any(|v| validate(v))
 }
 

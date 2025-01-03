@@ -126,13 +126,6 @@ pub fn quicksort<T: Copy + PartialOrd>(array: &mut [T]) {
     quicksort(right);
 }
 
-// pub fn format_single_digit(digit: usize) -> String {
-//     if digit < 10 {
-//         return format!("0{}", digit);
-//     }
-//     digit.to_string()
-// }
-
 pub fn validate<T>(func: impl Fn() -> T, expected: T, day: Day, kind: Kind) -> Duration
 where
     T: PartialEq,
@@ -148,6 +141,40 @@ where
     println!("Expected: {:#?}, Result: {:#?}", expected, result);
     println!("{day} {} solved in {:#?}\n", kind, total);
     total
+}
+
+pub trait StringMethods {
+    fn to_char_vec(&self) -> Vec<char>;
+    fn pad_start(&mut self, n: usize, c: char);
+    fn pad_end(&mut self, n: usize, c: char);
+    fn pad(&mut self, n: usize, c: char);
+}
+
+impl StringMethods for String {
+    fn to_char_vec(&self) -> Vec<char> {
+        self.chars().collect::<Vec<_>>()
+    }
+
+    fn pad_start(&mut self, n: usize, ch: char) {
+        let mut n = n;
+        while n != 0 {
+            self.insert(0, ch);
+            n -= 1;
+        }
+    }
+
+    fn pad_end(&mut self, n: usize, ch: char) {
+        let mut n = n;
+        while n != 0 {
+            self.insert(self.len(), ch);
+            n -= 1;
+        }
+    }
+
+    fn pad(&mut self, n: usize, ch: char) {
+        self.pad_start(n, ch);
+        self.pad_end(n, ch);
+    }
 }
 
 #[cfg(test)]
@@ -174,6 +201,37 @@ mod test {
             quicksort(&mut input);
             assert_eq!(input, expected);
         }
+    }
+
+    #[test]
+    fn test_pad_start() {
+        let mut string = "string".to_string();
+        let expected = "...string";
+        string.pad_start(3, '.');
+        assert_eq!(string, expected)
+    }
+
+    #[test]
+    fn test_pad_end() {
+        let mut string = "string".to_string();
+        let expected = "string...";
+        string.pad_end(3, '.');
+        assert_eq!(string, expected)
+    }
+
+    #[test]
+    fn test_pad() {
+        let mut string = "string".to_string();
+        let expected = "...string...";
+        string.pad(3, '.');
+        assert_eq!(string, expected)
+    }
+
+    #[test]
+    fn test_to_char_vec() {
+        let string = "string".to_string();
+        let expected = ['s', 't', 'r', 'i', 'n', 'g'];
+        assert_eq!(string.to_char_vec(), expected)
     }
 
     fn generate_test_data() -> Vec<(Vec<isize>, Vec<isize>)> {

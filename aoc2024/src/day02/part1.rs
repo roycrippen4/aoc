@@ -34,7 +34,8 @@ pub fn solve() -> isize {
         .fold(0, |acc, v| if is_safe(&v) { acc + 1 } else { acc })
 }
 
-pub fn p1_example() -> usize {
+#[allow(unused)]
+fn p1_example() -> usize {
     include_str!("../data/day02/example.txt")
         .lines()
         .map(into_isize_vec)
