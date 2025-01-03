@@ -8,10 +8,10 @@ pub fn solve() -> usize {
 }
 
 pub fn p1_example() -> usize {
-    // include_str!("../data/day03/example.txt")
-    //     .lines()
-    //     .map(evaluate)
-    //     .sum()
+    include_str!("../data/day03/example.txt")
+        .lines()
+        .map(evaluate)
+        .sum()
     1
 }
 
