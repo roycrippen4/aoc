@@ -3,6 +3,20 @@ use std::{
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
 
+#[macro_export]
+macro_rules! debug {
+    () => {
+        if DEBUG {
+            println!()
+        }
+    };
+    ($($arg:tt)*) => {{
+        if DEBUG {
+            println!($($arg)*);
+        }
+    }};
+}
+
 pub enum Kind {
     Example,
     Part1,
