@@ -7,3 +7,4 @@ edition = "2021"
 name = "aoc2024"
 
 [dependencies]
+regex = "1.11.1"
