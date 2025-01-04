@@ -73,7 +73,7 @@ fn evaluate(update: &[usize], map: &OrderMap) -> usize {
 
 #[allow(unused)]
 fn example() -> usize {
-    let input: Vec<String> = include_str!("../data/day05/example.txt")
+    let input: Vec<String> = include_str!("data/example.txt")
         .split("\n\n")
         .map(String::from)
         .collect();
@@ -85,7 +85,7 @@ fn example() -> usize {
 }
 
 pub fn solve() -> usize {
-    let input: Vec<String> = include_str!("../data/day05/data.txt")
+    let input: Vec<String> = include_str!("data/data.txt")
         .split("\n\n")
         .map(String::from)
         .collect();

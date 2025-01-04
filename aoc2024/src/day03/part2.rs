@@ -32,7 +32,7 @@ impl TryFrom<&str> for Op {
 }
 
 pub fn solve() -> usize {
-    include_str!("../data/day03/data.txt")
+    include_str!("data/data.txt")
         .chars()
         .filter(|c| !c.is_whitespace())
         .collect::<String>()
@@ -40,7 +40,7 @@ pub fn solve() -> usize {
 }
 
 pub fn p2_example() -> usize {
-    include_str!("../data/day03/example-part2.txt")
+    include_str!("data/example-part2.txt")
         .lines()
         .map(evaluate)
         .sum()

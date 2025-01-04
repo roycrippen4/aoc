@@ -138,7 +138,7 @@ fn fix_order(update: &mut [usize], map: &OrderMap) -> Vec<usize> {
 
 #[allow(unused)]
 fn example() -> usize {
-    let input: Vec<String> = include_str!("../data/day05/example.txt")
+    let input: Vec<String> = include_str!("data/example.txt")
         .split("\n\n")
         .map(String::from)
         .collect();
@@ -153,7 +153,7 @@ fn example() -> usize {
 }
 
 pub fn solve() -> usize {
-    let input: Vec<String> = include_str!("../data/day05/data.txt")
+    let input: Vec<String> = include_str!("data/data.txt")
         .split("\n\n")
         .map(String::from)
         .collect();
@@ -248,7 +248,7 @@ mod test {
 
     fn get_map() -> OrderMap {
         parse_order_rules(
-            &include_str!("../data/day05/example.txt")
+            &include_str!("data/example.txt")
                 .split("\n\n")
                 .map(String::from)
                 .collect::<Vec<String>>()[0],

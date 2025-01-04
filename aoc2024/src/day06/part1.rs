@@ -147,8 +147,8 @@ impl fmt::Display for Grid {
 
 fn get_grid(example: bool) -> Grid {
     let input = match example {
-        true => include_str!("../data/day06/example.txt"),
-        false => include_str!("../data/day06/data.txt"),
+        true => include_str!("data/example.txt"),
+        false => include_str!("data/data.txt"),
     };
     Grid::new(input.lines().collect())
 }

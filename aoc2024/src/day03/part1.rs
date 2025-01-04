@@ -4,17 +4,11 @@ use std::sync::LazyLock;
 static RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"mul\(\d{1,3},\d{1,3}\)").unwrap());
 
 pub fn solve() -> usize {
-    include_str!("../data/day03/data.txt")
-        .lines()
-        .map(evaluate)
-        .sum()
+    include_str!("data/data.txt").lines().map(evaluate).sum()
 }
 
 pub fn p1_example() -> usize {
-    include_str!("../data/day03/example.txt")
-        .lines()
-        .map(evaluate)
-        .sum()
+    include_str!("data/example.txt").lines().map(evaluate).sum()
 }
 
 fn evaluate(line: &str) -> usize {

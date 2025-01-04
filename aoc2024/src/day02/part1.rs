@@ -28,7 +28,7 @@ fn is_safe(values: &[isize]) -> bool {
 }
 
 pub fn solve() -> isize {
-    include_str!("../data/day02/data.txt")
+    include_str!("data/data.txt")
         .lines()
         .map(into_isize_vec)
         .fold(0, |acc, v| if is_safe(&v) { acc + 1 } else { acc })
@@ -36,7 +36,7 @@ pub fn solve() -> isize {
 
 #[allow(unused)]
 fn p1_example() -> usize {
-    include_str!("../data/day02/example.txt")
+    include_str!("data/example.txt")
         .lines()
         .map(into_isize_vec)
         .map(|v| is_safe(&v))

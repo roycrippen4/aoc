@@ -14,7 +14,7 @@ fn create_lookup(arr: &[usize]) -> HashMap<usize, usize> {
 }
 
 pub fn solve() -> usize {
-    let (left, right): (Vec<_>, Vec<_>) = include_str!("../data/day01/data.txt")
+    let (left, right): (Vec<_>, Vec<_>) = include_str!("data/data.txt")
         .lines()
         .map(into_tuple)
         .unzip();

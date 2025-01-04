@@ -8,7 +8,7 @@ fn into_tuple(line: &str) -> (usize, usize) {
 }
 
 pub fn solve() -> usize {
-    let (mut left, mut right): (Vec<_>, Vec<_>) = include_str!("../data/day01/example.txt")
+    let (mut left, mut right): (Vec<_>, Vec<_>) = include_str!("data/example.txt")
         .lines()
         .map(into_tuple)
         .unzip();

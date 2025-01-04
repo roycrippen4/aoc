@@ -26,7 +26,7 @@ fn is_safe(values: &[isize]) -> bool {
 }
 
 pub fn solve() -> usize {
-    include_str!("../data/day02/data.txt")
+    include_str!("data/data.txt")
         .lines()
         .map(into_isize_vec)
         .fold(0, |acc, v| if is_safe(&v) { acc + 1 } else { acc })
@@ -40,7 +40,7 @@ mod test {
 
     #[test]
     fn test_is_safe() {
-        let result = include_str!("../data/day02/data.txt")
+        let result = include_str!("data/data.txt")
             .lines()
             .map(into_isize_vec)
             .filter(|v| is_safe(v))
