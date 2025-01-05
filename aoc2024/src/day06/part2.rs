@@ -182,7 +182,7 @@ mod test {
 
     #[test]
     fn test_solve() {
-        validate(solve, 1604, util::Day::Day06, util::Kind::Part1);
+        validate(solve, 1604, util::Day::Day06, util::Kind::Part2);
     }
 
     #[test]
