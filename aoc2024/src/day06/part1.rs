@@ -1,4 +1,3 @@
-#![allow(unused)]
 use std::fmt;
 
 use crate::util::StringMethods;
@@ -153,6 +152,7 @@ fn get_grid(example: bool) -> Grid {
     Grid::new(input.lines().collect())
 }
 
+#[allow(unused)]
 fn example() -> usize {
     get_grid(true).evaluate()
 }
