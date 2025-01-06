@@ -83,7 +83,7 @@ mod test {
 
     #[test]
     fn test_solve() {
-        validate(solve, 337041851384440, Day::Day07, Kind::Part1);
+        validate(solve, 337041851384440, Day::Day07, Kind::Part2);
     }
 
     #[test]
