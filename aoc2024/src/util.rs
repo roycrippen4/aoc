@@ -1,6 +1,6 @@
 use std::{
     fmt,
-    time::{Duration, SystemTime, UNIX_EPOCH},
+    time::{Duration, Instant, SystemTime, UNIX_EPOCH},
 };
 
 #[macro_export]
@@ -189,6 +189,14 @@ impl StringMethods for String {
         self.pad_start(n, ch);
         self.pad_end(n, ch);
     }
+}
+
+pub fn perf<T>(func: impl Fn() -> T, iterations: usize) {
+    let start = Instant::now();
+    (0..iterations).for_each(|_| {
+        func();
+    });
+    println!("Average: {:?}", start.elapsed() / iterations as u32);
 }
 
 #[cfg(test)]
