@@ -1,16 +1,6 @@
-use std::{fmt, iter};
+use std::fmt;
 
-use crate::util::StringMethods;
-
-fn create_pad(len: usize, character: char) -> String {
-    iter::repeat(character).take(len).collect()
-}
-
-fn into_padded_string(str: &&str) -> String {
-    let mut s = str.to_string();
-    s.pad(3, '.');
-    s
-}
+use crate::util::{create_pad, into_padded_string, StringMethods};
 
 #[allow(unused)]
 fn is_mas(chs: &[char]) -> bool {

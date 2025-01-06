@@ -1,7 +1,17 @@
 use std::{
-    fmt,
+    fmt, iter,
     time::{Duration, Instant, SystemTime, UNIX_EPOCH},
 };
+
+pub fn create_pad(len: usize, character: char) -> String {
+    iter::repeat(character).take(len).collect()
+}
+
+pub fn into_padded_string(str: &&str) -> String {
+    let mut s = str.to_string();
+    s.pad(4, '.');
+    s
+}
 
 #[macro_export]
 macro_rules! debug {
