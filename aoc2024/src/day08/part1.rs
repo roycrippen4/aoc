@@ -34,7 +34,7 @@ fn get_antennas(grid: &[Row]) -> Mapping {
     map
 }
 
-fn example(data: &str) -> usize {
+fn evaluate(data: &str) -> usize {
     let grid: Vec<_> = data.lines().map(|r| r.chars().collect()).collect();
     let antennas = get_antennas(&grid);
     let width = grid[0].len();
@@ -57,7 +57,7 @@ fn example(data: &str) -> usize {
 }
 
 pub fn solve() -> usize {
-    example(include_str!("data/data.txt"))
+    evaluate(include_str!("data/data.txt"))
 }
 
 #[cfg(test)]
@@ -65,7 +65,7 @@ mod test {
 
     use crate::util::{validate, Day, Kind};
 
-    use super::{example, solve};
+    use super::{evaluate, solve};
 
     #[test]
     fn test_solve() {
@@ -75,17 +75,17 @@ mod test {
     #[test]
     fn test_example() {
         let data = include_str!("data/example.txt");
-        assert_eq!(14, example(data));
+        assert_eq!(14, evaluate(data));
     }
 
     #[test]
     fn test_simple_example() {
         let data = include_str!("./data/example-simple.txt");
-        assert_eq!(2, example(data))
+        assert_eq!(2, evaluate(data))
     }
     #[test]
     fn test_simple_example2() {
         let data = include_str!("./data/example-simple2.txt");
-        assert_eq!(4, example(data));
+        assert_eq!(4, evaluate(data));
     }
 }

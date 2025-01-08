@@ -1,5 +1,6 @@
 use std::{
     fmt, iter,
+    str::FromStr,
     time::{Duration, Instant, SystemTime, UNIX_EPOCH},
 };
 
@@ -172,6 +173,10 @@ pub trait StringMethods {
     fn pad_start(&mut self, n: usize, c: char);
     fn pad_end(&mut self, n: usize, c: char);
     fn pad(&mut self, n: usize, c: char);
+    fn trim_split_filter(self, pat: &str) -> Vec<String>;
+    fn tsfp<F: FromStr>(self, pat: &str) -> Vec<F>
+    where
+        <F as FromStr>::Err: std::fmt::Debug;
 }
 
 impl StringMethods for String {
@@ -198,6 +203,27 @@ impl StringMethods for String {
     fn pad(&mut self, n: usize, ch: char) {
         self.pad_start(n, ch);
         self.pad_end(n, ch);
+    }
+
+    fn trim_split_filter(self, pat: &str) -> Vec<String> {
+        self.trim()
+            .split(pat)
+            .filter(|&s| !s.is_empty())
+            .map(String::from)
+            .collect()
+    }
+
+    /// Trims whitespace, splits the string at `pat`, filters out empty entries, and parses via
+    /// `FromStr`
+    fn tsfp<F: FromStr>(self, pat: &str) -> Vec<F>
+    where
+        <F as FromStr>::Err: std::fmt::Debug,
+    {
+        self.trim()
+            .split(pat)
+            .filter(|&s| !s.is_empty())
+            .map(|s| s.to_string().parse().expect("Failed to parse"))
+            .collect()
     }
 }
 
@@ -275,5 +301,17 @@ mod test {
             (vec![42], vec![42]),
             (vec![-10, -2, 0, 3, 5], vec![0, -2, 5, 3, -10]),
         ]
+    }
+
+    #[test]
+    fn test_trim_split_filter() {
+        let s = "12345".to_string();
+        assert_eq!(vec!["1", "2", "3", "4", "5"], s.trim_split_filter(""));
+    }
+
+    #[test]
+    fn test_trim_split_filter_parse() {
+        let s = String::from("12345");
+        assert_eq!(vec![1_usize, 2, 3, 4, 5], s.tsfp(""));
     }
 }
