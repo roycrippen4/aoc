@@ -98,18 +98,13 @@ pub fn solve() -> usize {
 
 #[cfg(test)]
 mod test {
-    use crate::util::validate;
+    use crate::util::{validate, Day::Day05, Part::Part1};
 
     use super::{example, get_middle, parse_order_rules, parse_updates, solve};
 
     #[test]
     fn test_solve() {
-        validate(
-            solve,
-            7198,
-            crate::util::Day::Day05,
-            crate::util::Kind::Part1,
-        );
+        validate(solve, 7198, Day05(Part1));
     }
 
     #[test]

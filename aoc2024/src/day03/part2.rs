@@ -84,13 +84,13 @@ fn parse_mul(s: &str) -> usize {
 #[allow(unused)]
 #[cfg(test)]
 mod test {
-    use crate::util::{validate, Day, Kind};
+    use crate::util::{validate, Day::Day03, Part::Part2};
 
     use super::{evaluate, p2_example, parse_mul, solve, RE};
 
     #[test]
     fn test_solve() {
-        validate(solve, 93729253, Day::Day03, Kind::Part1);
+        validate(solve, 93729253, Day03(Part2));
     }
 
     #[test]

@@ -28,79 +28,94 @@ macro_rules! debug {
     }};
 }
 
-pub enum Kind {
-    Example,
+// pub enum Kind {
+//     Example,
+//     Part1,
+//     Part2,
+// }
+
+// impl fmt::Display for Kind {
+//     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+//         let res = match self {
+//             Kind::Example => "Example",
+//             Kind::Part1 => "Part 1",
+//             Kind::Part2 => "Part 2",
+//         };
+//         write!(f, "{res}")
+//     }
+// }
+
+pub enum Part {
     Part1,
     Part2,
 }
 
-impl fmt::Display for Kind {
+impl fmt::Display for Part {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let res = match self {
-            Kind::Example => "Example",
-            Kind::Part1 => "Part 1",
-            Kind::Part2 => "Part 2",
+        let s = match self {
+            Part::Part1 => "Part 1",
+            Part::Part2 => "Part 2",
         };
-        write!(f, "{res}")
+        write!(f, "{s}")
     }
 }
 
 pub enum Day {
-    Day01,
-    Day02,
-    Day03,
-    Day04,
-    Day05,
-    Day06,
-    Day07,
-    Day08,
-    Day09,
-    Day10,
-    Day11,
-    Day12,
-    Day13,
-    Day14,
-    Day15,
-    Day16,
-    Day17,
-    Day18,
-    Day19,
-    Day20,
-    Day21,
-    Day22,
-    Day23,
-    Day24,
-    Day25,
+    Day01(Part),
+    Day02(Part),
+    Day03(Part),
+    Day04(Part),
+    Day05(Part),
+    Day06(Part),
+    Day07(Part),
+    Day08(Part),
+    Day09(Part),
+    Day10(Part),
+    Day11(Part),
+    Day12(Part),
+    Day13(Part),
+    Day14(Part),
+    Day15(Part),
+    Day16(Part),
+    Day17(Part),
+    Day18(Part),
+    Day19(Part),
+    Day20(Part),
+    Day21(Part),
+    Day22(Part),
+    Day23(Part),
+    Day24(Part),
+    Day25(Part),
 }
 
 impl fmt::Display for Day {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let day_str = match self {
-            Day::Day01 => "Day 01",
-            Day::Day02 => "Day 02",
-            Day::Day03 => "Day 03",
-            Day::Day04 => "Day 04",
-            Day::Day05 => "Day 05",
-            Day::Day06 => "Day 06",
-            Day::Day07 => "Day 07",
-            Day::Day08 => "Day 08",
-            Day::Day09 => "Day 09",
-            Day::Day10 => "Day 10",
-            Day::Day11 => "Day 11",
-            Day::Day12 => "Day 12",
-            Day::Day13 => "Day 13",
-            Day::Day14 => "Day 14",
-            Day::Day15 => "Day 15",
-            Day::Day16 => "Day 16",
-            Day::Day17 => "Day 17",
-            Day::Day18 => "Day 18",
-            Day::Day19 => "Day 19",
-            Day::Day20 => "Day 20",
-            Day::Day21 => "Day 21",
-            Day::Day22 => "Day 22",
-            Day::Day23 => "Day 23",
-            Day::Day24 => "Day 24",
-            Day::Day25 => "Day 25",
+            Day::Day01(part) => format!("Day 01 {part}"),
+            Day::Day02(part) => format!("Day 02 {part}"),
+            Day::Day03(part) => format!("Day 03 {part}"),
+            Day::Day04(part) => format!("Day 04 {part}"),
+            Day::Day05(part) => format!("Day 05 {part}"),
+            Day::Day06(part) => format!("Day 06 {part}"),
+            Day::Day07(part) => format!("Day 07 {part}"),
+            Day::Day08(part) => format!("Day 08 {part}"),
+            Day::Day09(part) => format!("Day 09 {part}"),
+            Day::Day10(part) => format!("Day 10 {part}"),
+            Day::Day11(part) => format!("Day 11 {part}"),
+            Day::Day12(part) => format!("Day 12 {part}"),
+            Day::Day13(part) => format!("Day 13 {part}"),
+            Day::Day14(part) => format!("Day 14 {part}"),
+            Day::Day15(part) => format!("Day 15 {part}"),
+            Day::Day16(part) => format!("Day 16 {part}"),
+            Day::Day17(part) => format!("Day 17 {part}"),
+            Day::Day18(part) => format!("Day 18 {part}"),
+            Day::Day19(part) => format!("Day 19 {part}"),
+            Day::Day20(part) => format!("Day 20 {part}"),
+            Day::Day21(part) => format!("Day 21 {part}"),
+            Day::Day22(part) => format!("Day 22 {part}"),
+            Day::Day23(part) => format!("Day 23 {part}"),
+            Day::Day24(part) => format!("Day 24 {part}"),
+            Day::Day25(part) => format!("Day 25 {part}"),
         };
         write!(f, "{}", day_str)
     }
@@ -151,20 +166,17 @@ pub fn quicksort<T: Copy + PartialOrd>(array: &mut [T]) {
     quicksort(right);
 }
 
-pub fn validate<T>(func: impl Fn() -> T, expected: T, day: Day, kind: Kind) -> Duration
+pub fn validate<T>(func: impl Fn() -> T, expected: T, day: Day) -> Duration
 where
     T: PartialEq,
     T: fmt::Debug,
 {
-    // let day_str = format!("Day {}", format_single_digit(day));
-    println!("Running {day} {}", kind.to_string().to_lowercase());
     let start = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
     let result = func();
     let end = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
     let total = end - start;
     assert_eq!(expected, result);
-    println!("Expected: {:#?}, Result: {:#?}", expected, result);
-    println!("{day} {} solved in {:#?}\n", kind, total);
+    println!("{day} solved in {:#?}", total);
     total
 }
 

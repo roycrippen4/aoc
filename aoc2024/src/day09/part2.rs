@@ -105,7 +105,7 @@ pub fn solve() -> usize {
 
 #[cfg(test)]
 mod test {
-    use crate::util::{validate, Day, Kind};
+    use crate::util::{validate, Day::Day09, Part::Part2};
 
     use super::{collect_files, collect_gaps, evaluate, expand, solve};
 
@@ -113,7 +113,7 @@ mod test {
 
     #[test]
     fn test_solve() {
-        validate(solve, 6476642796832, Day::Day09, Kind::Part2);
+        validate(solve, 6476642796832, Day09(Part2));
     }
 
     #[test]

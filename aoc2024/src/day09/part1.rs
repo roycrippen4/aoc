@@ -60,14 +60,14 @@ mod test {
 
     use crate::{
         day09::part1::expand,
-        util::{validate, Day, Kind},
+        util::{validate, Day::Day09, Part::Part1},
     };
 
     use super::{evaluate, solve};
 
     #[test]
     fn test_solve() {
-        validate(solve, 6448989155953, Day::Day09, Kind::Part1);
+        validate(solve, 6448989155953, Day09(Part1));
     }
 
     #[test]

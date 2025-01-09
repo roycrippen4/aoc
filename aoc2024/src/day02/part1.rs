@@ -45,12 +45,12 @@ fn p1_example() -> usize {
 
 #[cfg(test)]
 mod test {
-    use crate::util::{validate, Day, Kind};
+    use crate::util::{validate, Day::Day02, Part::Part1};
 
     use super::solve;
 
     #[test]
     fn test_solve() {
-        validate(solve, 202, Day::Day02, Kind::Part1);
+        validate(solve, 202, Day02(Part1));
     }
 }
