@@ -22,7 +22,6 @@ fn collect_files(data: &[Option<usize>]) -> Vec<(usize, usize)> {
             end = start - 1;
         }
     }
-    files.reverse();
     files
 }
 
@@ -47,7 +46,7 @@ fn collect_gaps(data: &[Option<usize>]) -> Vec<(usize, usize)> {
 fn shift(data: &mut [Option<usize>]) {
     let files = collect_files(data);
     let mut gaps = collect_gaps(data);
-    for &(file_start, file_end) in files.iter().rev() {
+    for &(file_start, file_end) in files.iter() {
         let file_size = file_end - file_start + 1;
 
         if let Some(gap_idx) = gaps
@@ -92,88 +91,6 @@ fn expand(data: &str) -> Vec<Option<usize>> {
     result
 }
 
-// fn expand(data: &str) -> Vec<Option<usize>> {
-//     let now = std::time::Instant::now();
-//     let digits: Vec<usize> = data
-//         .trim()
-//         .bytes()
-//         .filter(|b| b.is_ascii_digit())
-//         .map(|b| (b - b'0') as usize)
-//         .collect();
-
-//     let mut result = Vec::with_capacity(digits.iter().sum());
-//     for (i, &n) in digits.iter().enumerate() {
-//         if i % 2 == 0 {
-//             for _ in 0..n {
-//                 result.push(Some(i / 2));
-//             }
-//         } else {
-//             for _ in 0..n {
-//                 result.push(None);
-//             }
-//         }
-//     }
-//     println!("expand: {:?}", now.elapsed());
-//     shift(&mut result);
-//     result
-// }
-
-// fn get_file_start(end: usize, data: &[Option<usize>]) -> usize {
-//     let value = data[end].unwrap();
-//     let mut start = end;
-//     while start > 0 && data[start - 1] == Some(value) {
-//         start -= 1;
-//     }
-//     start
-// }
-
-// fn find_gap(
-//     data: &[Option<usize>],
-//     from: usize,
-//     to: usize,
-//     needed_size: usize,
-// ) -> Option<(usize, usize)> {
-//     let mut i = from;
-//     while i < to {
-//         if data[i].is_none() {
-//             let gap_start = i;
-//             while i < to && data[i].is_none() {
-//                 i += 1;
-//             }
-//             let gap_end = i;
-//             let gap_len = gap_end - gap_start;
-//             if gap_len >= needed_size {
-//                 return Some((gap_start, gap_start + needed_size));
-//             }
-//         } else {
-//             i += 1;
-//         }
-//     }
-//     None
-// }
-
-// fn shift(data: &mut [Option<usize>]) {
-//     let now = std::time::Instant::now();
-//     let mut file_end = data.len() - 1;
-//     while file_end > 0 {
-//         if data[file_end].is_none() {
-//             file_end -= 1;
-//             continue;
-//         }
-
-//         let file_start = get_file_start(file_end, data);
-//         let size = file_end - file_start + 1;
-//         if let Some((gap_start, gap_end)) = find_gap(data, 0, file_start, size) {
-//             let (left, right) = data.split_at_mut(file_start);
-//             left[gap_start..gap_end].swap_with_slice(&mut right[0..size]);
-//         }
-
-//         file_end = file_start.saturating_sub(1);
-//     }
-//     println!("shift: {:?}", now.elapsed());
-// }
-
-#[allow(unused)]
 fn evaluate(input: &str) -> usize {
     let accumulate = |acc: usize, (i, v): (usize, &Option<usize>)| match v {
         Some(v) => acc + (v * i),
@@ -186,7 +103,6 @@ pub fn solve() -> usize {
     evaluate(include_str!("data/data.txt"))
 }
 
-#[allow(unused)]
 #[cfg(test)]
 mod test {
     use crate::util::{validate, Day, Kind};
