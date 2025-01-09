@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use aoc2024::{
-    day01, day02, day03, day04, day05, day06, day07 as d7, day08,
+    day01, day02, day03, day04, day05, day06, day07 as d7, day08, day09,
     util::{validate, Day::*, Kind::*},
 };
 
@@ -23,6 +23,8 @@ fn main() {
     total_time += validate(d7::part2::solve, 337041851384440, Day07, Part2);
     total_time += validate(day08::part1::solve, 244, Day08, Part1);
     total_time += validate(day08::part2::solve, 912, Day08, Part2);
+    total_time += validate(day09::part1::solve, 6448989155953, Day08, Part1);
+    total_time += validate(day09::part2::solve, 6476642796832, Day08, Part2);
 
     println!("Total elapsed time: {:#?}", total_time);
 }

@@ -1,35 +1,35 @@
-use std::iter;
+fn expand(data: &str) -> Vec<Option<usize>> {
+    let digits: Vec<usize> = data
+        .trim()
+        .bytes()
+        .filter(|b| b.is_ascii_digit())
+        .map(|b| (b - b'0') as usize)
+        .collect();
 
-use crate::util::StringMethods;
+    let capacity = digits.iter().sum();
+    let mut result = Vec::with_capacity(capacity);
 
-#[allow(unused)]
-fn pretty_print(values: &[Option<usize>]) {
-    let to_string = |v: &Option<usize>| match v {
-        Some(v) => v.to_string(),
-        None => ".".to_string(),
-    };
-    println!("{}", values.iter().map(to_string).collect::<String>());
-}
-
-fn expand(data: Vec<usize>) -> Vec<Option<usize>> {
-    data.iter()
-        .enumerate()
-        .flat_map(|(i, &n)| {
-            if i % 2 == 0 {
-                iter::repeat_n(Some(i / 2), n).collect::<Vec<_>>()
-            } else {
-                iter::repeat_n(None, n).collect::<Vec<_>>()
+    for (i, &n) in digits.iter().enumerate() {
+        if i % 2 == 0 {
+            let value = Some(i / 2);
+            for _ in 0..n {
+                result.push(value);
             }
-        })
-        .collect()
+        } else {
+            for _ in 0..n {
+                result.push(None);
+            }
+        }
+    }
+
+    result
 }
 
 fn evaluate(data: &str) -> usize {
-    let data = expand(data.to_string().tsfp(""));
+    let data = expand(data);
     let mut id = 0;
     let mut result = 0;
-    let mut i = 0;
-    let mut j = data.len() - 1;
+    let (mut i, mut j) = (0, data.len() - 1);
 
     while i <= j {
         if let Some(next) = data[i] {
@@ -55,13 +55,12 @@ pub fn solve() -> usize {
     evaluate(include_str!("data/data.txt"))
 }
 
-#[allow(unused)]
 #[cfg(test)]
 mod test {
 
     use crate::{
-        day09::part1::{expand, pretty_print},
-        util::{validate, Day, Kind, StringMethods},
+        day09::part1::expand,
+        util::{validate, Day, Kind},
     };
 
     use super::{evaluate, solve};
@@ -86,8 +85,7 @@ mod test {
 
     #[test]
     fn test_expand() {
-        let input = "12345".to_string().tsfp("");
-        let result = expand(input);
+        let result = expand("12345");
         let expected = [
             Some(0),
             None,
@@ -107,8 +105,7 @@ mod test {
         ];
         assert_eq!(result, expected);
 
-        let input = "2333133121414131402".to_string().tsfp("");
-        let result = expand(input);
+        let result = expand("2333133121414131402");
         let expected = [
             Some(0),
             Some(0),
