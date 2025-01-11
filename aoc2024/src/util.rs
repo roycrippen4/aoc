@@ -9,9 +9,7 @@ pub fn create_pad(len: usize, character: char) -> String {
 }
 
 pub fn into_padded_string(str: &&str) -> String {
-    let mut s = str.to_string();
-    s.pad(4, '.');
-    s
+    str.to_string().pad(4, '.')
 }
 
 #[macro_export]
@@ -27,23 +25,6 @@ macro_rules! debug {
         }
     }};
 }
-
-// pub enum Kind {
-//     Example,
-//     Part1,
-//     Part2,
-// }
-
-// impl fmt::Display for Kind {
-//     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-//         let res = match self {
-//             Kind::Example => "Example",
-//             Kind::Part1 => "Part 1",
-//             Kind::Part2 => "Part 2",
-//         };
-//         write!(f, "{res}")
-//     }
-// }
 
 pub enum Part {
     Part1,
@@ -182,11 +163,10 @@ where
 
 pub trait StringMethods {
     fn to_char_vec(&self) -> Vec<char>;
-    fn pad_start(&mut self, n: usize, c: char);
-    fn pad_end(&mut self, n: usize, c: char);
-    fn pad(&mut self, n: usize, c: char);
-    fn trim_split_filter(self, pat: &str) -> Vec<String>;
-    fn tsfp<F: FromStr>(self, pat: &str) -> Vec<F>
+    fn pad_start(&self, n: usize, c: char) -> String;
+    fn pad_end(&self, n: usize, c: char) -> String;
+    fn pad(&self, n: usize, c: char) -> String;
+    fn to_row<F: FromStr>(&self) -> Vec<F>
     where
         <F as FromStr>::Err: std::fmt::Debug;
 }
@@ -196,46 +176,66 @@ impl StringMethods for String {
         self.chars().collect::<Vec<_>>()
     }
 
-    fn pad_start(&mut self, n: usize, ch: char) {
+    fn pad_start(&self, n: usize, ch: char) -> String {
+        let mut s = self.clone();
         let mut n = n;
         while n != 0 {
-            self.insert(0, ch);
+            s.insert(0, ch);
             n -= 1;
         }
+        s
     }
 
-    fn pad_end(&mut self, n: usize, ch: char) {
+    fn pad_end(&self, n: usize, ch: char) -> String {
+        let mut s = self.clone();
         let mut n = n;
         while n != 0 {
-            self.insert(self.len(), ch);
+            s.insert(self.len(), ch);
             n -= 1;
         }
+        s
     }
 
-    fn pad(&mut self, n: usize, ch: char) {
-        self.pad_start(n, ch);
-        self.pad_end(n, ch);
-    }
-
-    fn trim_split_filter(self, pat: &str) -> Vec<String> {
-        self.trim()
-            .split(pat)
-            .filter(|&s| !s.is_empty())
-            .map(String::from)
-            .collect()
+    fn pad(&self, n: usize, ch: char) -> String {
+        self.pad_start(n, ch).pad_end(n, ch)
     }
 
     /// Trims whitespace, splits the string at `pat`, filters out empty entries, and parses via
     /// `FromStr`
-    fn tsfp<F: FromStr>(self, pat: &str) -> Vec<F>
+    fn to_row<F: FromStr>(&self) -> Vec<F>
     where
         <F as FromStr>::Err: std::fmt::Debug,
     {
         self.trim()
-            .split(pat)
-            .filter(|&s| !s.is_empty())
+            .split("")
+            .filter(|s| !s.trim().is_empty())
             .map(|s| s.to_string().parse().expect("Failed to parse"))
             .collect()
+    }
+}
+
+impl StringMethods for &str {
+    fn to_char_vec(&self) -> Vec<char> {
+        self.to_string().to_char_vec()
+    }
+
+    fn pad_start(&self, n: usize, c: char) -> String {
+        self.to_string().pad_start(n, c)
+    }
+
+    fn pad_end(&self, n: usize, c: char) -> String {
+        self.to_string().pad_end(n, c)
+    }
+
+    fn pad(&self, n: usize, c: char) -> String {
+        self.to_string().pad(n, c)
+    }
+
+    fn to_row<F: FromStr>(&self) -> Vec<F>
+    where
+        <F as FromStr>::Err: std::fmt::Debug,
+    {
+        self.to_string().to_row()
     }
 }
 
@@ -275,7 +275,7 @@ mod test {
 
     #[test]
     fn test_pad_start() {
-        let mut string = "string".to_string();
+        let string = "string".to_string();
         let expected = "...string";
         string.pad_start(3, '.');
         assert_eq!(string, expected)
@@ -283,7 +283,7 @@ mod test {
 
     #[test]
     fn test_pad_end() {
-        let mut string = "string".to_string();
+        let string = "string".to_string();
         let expected = "string...";
         string.pad_end(3, '.');
         assert_eq!(string, expected)
@@ -291,7 +291,7 @@ mod test {
 
     #[test]
     fn test_pad() {
-        let mut string = "string".to_string();
+        let string = "string".to_string();
         let expected = "...string...";
         string.pad(3, '.');
         assert_eq!(string, expected)
@@ -316,14 +316,10 @@ mod test {
     }
 
     #[test]
-    fn test_trim_split_filter() {
-        let s = "12345".to_string();
-        assert_eq!(vec!["1", "2", "3", "4", "5"], s.trim_split_filter(""));
-    }
-
-    #[test]
     fn test_trim_split_filter_parse() {
         let s = String::from("12345");
-        assert_eq!(vec![1_usize, 2, 3, 4, 5], s.tsfp(""));
+        assert_eq!(vec![1_usize, 2, 3, 4, 5], s.to_row());
+        let s = String::from("1234 5");
+        assert_eq!(vec![1_usize, 2, 3, 4, 5], s.to_row());
     }
 }
