@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 
+use crate::data;
+
 fn into_tuple(line: &str) -> (usize, usize) {
     let mut pair = line.split("  ");
     let left = pair.next().unwrap().trim().parse().unwrap();
@@ -14,10 +16,7 @@ fn create_lookup(arr: &[usize]) -> HashMap<usize, usize> {
 }
 
 pub fn solve() -> usize {
-    let (left, right): (Vec<_>, Vec<_>) = include_str!("data/data.txt")
-        .lines()
-        .map(into_tuple)
-        .unzip();
+    let (left, right): (Vec<_>, Vec<_>) = data!().lines().map(into_tuple).unzip();
 
     let left = create_lookup(&left);
     let right = create_lookup(&right);

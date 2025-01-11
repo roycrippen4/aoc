@@ -1,14 +1,16 @@
 use regex::Regex;
 use std::sync::LazyLock;
 
+use crate::{data, example};
+
 static RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"mul\(\d{1,3},\d{1,3}\)").unwrap());
 
 pub fn solve() -> usize {
-    include_str!("data/data.txt").lines().map(evaluate).sum()
+    data!().lines().map(evaluate).sum()
 }
 
 pub fn p1_example() -> usize {
-    include_str!("data/example.txt").lines().map(evaluate).sum()
+    example!().lines().map(evaluate).sum()
 }
 
 fn evaluate(line: &str) -> usize {
@@ -58,6 +60,5 @@ mod test {
                 acc
             });
         assert_eq!(161, result)
-        // validate(func, expected, day, kind)
     }
 }

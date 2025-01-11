@@ -1,5 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
+use crate::data;
+
 type Row = Vec<char>;
 type Mapping = HashMap<char, Vec<(usize, usize)>>;
 type Point = (usize, usize);
@@ -74,13 +76,16 @@ fn evaluate(data: &str) -> usize {
 }
 
 pub fn solve() -> usize {
-    evaluate(include_str!("data/data.txt"))
+    evaluate(data!())
 }
 
 #[cfg(test)]
 mod test {
 
-    use crate::util::{validate, Day::Day08, Part::Part2};
+    use crate::{
+        example,
+        util::{validate, Day::Day08, Part::Part2},
+    };
 
     use super::{evaluate, solve};
 
@@ -91,7 +96,7 @@ mod test {
 
     #[test]
     fn test_example() {
-        let data = include_str!("data/example.txt");
+        let data = example!();
         assert_eq!(34, evaluate(data));
     }
 

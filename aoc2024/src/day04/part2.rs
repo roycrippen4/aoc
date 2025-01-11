@@ -1,8 +1,10 @@
 use std::fmt;
 
-use crate::util::{create_pad, into_padded_string, StringMethods};
+use crate::{
+    data, example,
+    util::{create_pad, into_padded_string, StringMethods},
+};
 
-#[allow(unused)]
 fn is_mas(chs: &[char]) -> bool {
     let s: String = chs.iter().collect();
     let r: String = chs.iter().rev().collect();
@@ -63,16 +65,8 @@ impl fmt::Display for Grid {
     }
 }
 
-fn get_grid(example: bool) -> Grid {
-    let input = match example {
-        true => include_str!("data/example.txt"),
-        false => include_str!("data/data.txt"),
-    };
-    Grid::new(input.lines().collect())
-}
-
 pub fn solve() -> usize {
-    let grid = get_grid(false);
+    let grid = Grid::new(data!().lines().collect());
     let mut count = 0;
 
     for y in 4..grid.data.len() - 4 {
@@ -85,7 +79,7 @@ pub fn solve() -> usize {
 }
 
 pub fn p1_example() -> usize {
-    let grid = get_grid(true);
+    let grid = Grid::new(example!().lines().collect());
     let mut count = 0;
 
     for y in 4..grid.data.len() - 4 {

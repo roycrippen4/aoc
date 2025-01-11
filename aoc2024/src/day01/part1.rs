@@ -1,4 +1,4 @@
-use crate::util::quicksort;
+use crate::{data, util::quicksort};
 
 fn into_tuple(line: &str) -> (usize, usize) {
     let mut pair = line.split("  ");
@@ -8,10 +8,7 @@ fn into_tuple(line: &str) -> (usize, usize) {
 }
 
 pub fn solve() -> usize {
-    let (mut left, mut right): (Vec<_>, Vec<_>) = include_str!("data/data.txt")
-        .lines()
-        .map(into_tuple)
-        .unzip();
+    let (mut left, mut right): (Vec<_>, Vec<_>) = data!().lines().map(into_tuple).unzip();
     quicksort(&mut left);
     quicksort(&mut right);
 

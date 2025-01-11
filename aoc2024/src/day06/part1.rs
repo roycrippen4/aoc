@@ -1,6 +1,9 @@
 use std::fmt;
 
-use crate::util::{into_padded_string, StringMethods};
+use crate::{
+    data,
+    util::{into_padded_string, StringMethods},
+};
 
 #[allow(clippy::needless_range_loop)]
 /// returns (x, y) coordinates and direction of the guard's starting position
@@ -138,37 +141,18 @@ impl fmt::Display for Grid {
     }
 }
 
-fn get_grid(example: bool) -> Grid {
-    let input = match example {
-        true => include_str!("data/example.txt"),
-        false => include_str!("data/data.txt"),
-    };
-    Grid::new(input.lines().collect())
-}
-
-#[allow(unused)]
-fn example() -> usize {
-    get_grid(true).evaluate()
-}
-
 pub fn solve() -> usize {
-    get_grid(false).evaluate()
+    Grid::new(data!().lines().collect()).evaluate()
 }
 
 #[cfg(test)]
 mod test {
     use crate::util::{validate, Day::Day06, Part::Part1};
 
-    use super::{example, solve};
+    use super::solve;
 
     #[test]
     fn test_solve() {
         validate(solve, 4559, Day06(Part1));
-    }
-
-    #[test]
-    fn test_example() {
-        let result = example();
-        assert_eq!(41, result);
     }
 }

@@ -1,3 +1,5 @@
+use crate::data;
+
 fn expand(data: &str) -> Vec<Option<usize>> {
     let digits: Vec<usize> = data
         .trim()
@@ -52,18 +54,18 @@ fn evaluate(data: &str) -> usize {
 }
 
 pub fn solve() -> usize {
-    evaluate(include_str!("data/data.txt"))
+    evaluate(data!())
 }
 
 #[cfg(test)]
 mod test {
 
     use crate::{
-        day09::part1::expand,
+        example,
         util::{validate, Day::Day09, Part::Part1},
     };
 
-    use super::{evaluate, solve};
+    use super::{evaluate, expand, solve};
 
     #[test]
     fn test_solve() {
@@ -74,13 +76,11 @@ mod test {
     fn test_evaluate_simple() {
         let data = "12345";
         dbg!(evaluate(data));
-        // assert_eq!(14, evaluate(data));
     }
 
     #[test]
     fn test_evaluate() {
-        let data = include_str!("data/example.txt");
-        dbg!(evaluate(data));
+        dbg!(evaluate(example!()));
     }
 
     #[test]

@@ -1,3 +1,5 @@
+use crate::{data, example};
+
 type Mapping = (usize, Vec<usize>);
 
 fn parse_line(l: &str) -> Mapping {
@@ -34,7 +36,7 @@ fn evaluate(root_value: usize, target: usize, idx: usize, values: &[usize]) -> b
 }
 
 #[allow(unused)]
-fn example() -> usize {
+fn aoc_example() -> usize {
     fn sum(acc: usize, (target, values): &(usize, Vec<usize>)) -> usize {
         match evaluate(values[0], *target, 1, values) {
             true => acc + target,
@@ -42,7 +44,7 @@ fn example() -> usize {
         }
     }
 
-    parse(include_str!("data/example.txt")).iter().fold(0, sum)
+    parse(example!()).iter().fold(0, sum)
 }
 
 pub fn solve() -> usize {
@@ -52,14 +54,14 @@ pub fn solve() -> usize {
             false => acc,
         }
     }
-    parse(include_str!("data/data.txt")).iter().fold(0, sum)
+    parse(data!()).iter().fold(0, sum)
 }
 
 #[cfg(test)]
 mod test {
     use crate::util::{validate, Day::Day07, Part::Part1};
 
-    use super::{evaluate, example, solve};
+    use super::{aoc_example, evaluate, solve};
 
     #[test]
     fn test_solve() {
@@ -68,7 +70,7 @@ mod test {
 
     #[test]
     fn test_example() {
-        assert_eq!(3749, example());
+        assert_eq!(3749, aoc_example());
     }
 
     #[test]

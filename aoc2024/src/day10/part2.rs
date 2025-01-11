@@ -1,6 +1,6 @@
 use rayon::prelude::*;
 
-use crate::util::StringMethods;
+use crate::{data, util::StringMethods};
 
 type Point = (usize, usize, usize);
 
@@ -61,18 +61,18 @@ fn evaluate(data: &str) -> usize {
 }
 
 pub fn solve() -> usize {
-    evaluate(include_str!("data/data.txt"))
+    evaluate(data!())
 }
 
 #[allow(unused)]
 #[cfg(test)]
 mod test {
     use crate::{
-        day10::part2::score_path,
+        example,
         util::{validate, Day::Day10, Part::Part2},
     };
 
-    use super::{create_grid, evaluate, neighbors, solve};
+    use super::{create_grid, evaluate, neighbors, score_path, solve};
 
     #[test]
     fn test_solve() {
@@ -81,7 +81,7 @@ mod test {
 
     #[test]
     fn test_evaluate() {
-        let data = include_str!("data/example.txt");
+        let data = example!();
         let result = evaluate(data);
         assert_eq!(81, result);
     }
@@ -92,7 +92,7 @@ mod test {
         let result = score_path((0, 0, 0), &grid);
         assert_eq!(227, result);
 
-        let grid = create_grid(include_str!("data/example.txt"));
+        let grid = create_grid(example!());
         let result = score_path((2, 0, 0), &grid);
         assert_eq!(20, result);
     }

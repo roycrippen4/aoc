@@ -1,3 +1,5 @@
+use crate::data;
+
 fn collect_files(data: &[Option<usize>]) -> Vec<(usize, usize)> {
     let mut files = Vec::new();
     let mut end = data.len() - 1;
@@ -100,7 +102,7 @@ fn evaluate(input: &str) -> usize {
 }
 
 pub fn solve() -> usize {
-    evaluate(include_str!("data/data.txt"))
+    evaluate(data!())
 }
 
 #[cfg(test)]

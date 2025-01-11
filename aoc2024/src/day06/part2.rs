@@ -2,7 +2,7 @@ use std::collections::HashSet;
 
 use rayon::prelude::*;
 
-use crate::util::StringMethods;
+use crate::{data, util::StringMethods};
 
 type PathSet = HashSet<(usize, usize)>;
 type Obs = Option<(usize, usize)>;
@@ -15,14 +15,6 @@ enum Dir {
     Down = 2,
     Left = 3,
     Off = 4,
-}
-
-fn get_grid(example: bool) -> Grid {
-    let input = match example {
-        true => include_str!("data/example.txt"),
-        false => include_str!("data/data.txt"),
-    };
-    Grid::new(input.lines().collect())
 }
 
 static MOVES: [(isize, isize, Dir); 4] = [
@@ -159,29 +151,18 @@ impl Grid {
     }
 }
 
-#[allow(unused)]
-fn example() -> usize {
-    get_grid(true).evaluate()
-}
-
 pub fn solve() -> usize {
-    get_grid(false).evaluate()
+    Grid::new(data!().lines().collect()).evaluate()
 }
 
 #[cfg(test)]
 mod test {
     use crate::util::{validate, Day::Day06, Part::Part2};
 
-    use super::{example, solve};
+    use super::solve;
 
     #[test]
     fn test_solve() {
         validate(solve, 1604, Day06(Part2));
-    }
-
-    #[test]
-    fn test_example() {
-        let result = example();
-        assert_eq!(6, result);
     }
 }

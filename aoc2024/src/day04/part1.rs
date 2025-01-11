@@ -1,6 +1,9 @@
 use std::fmt;
 
-use crate::util::{create_pad, into_padded_string, StringMethods};
+use crate::{
+    data, example,
+    util::{create_pad, into_padded_string, StringMethods},
+};
 
 fn is_xmas(chs: &[char]) -> bool {
     let s: String = chs.iter().collect();
@@ -134,8 +137,8 @@ impl fmt::Display for Grid {
 
 fn get_grid(example: bool) -> Grid {
     let input = match example {
-        true => include_str!("data/example.txt"),
-        false => include_str!("data/data.txt"),
+        true => example!(),
+        false => data!(),
     };
     Grid::new(input.lines().collect())
 }

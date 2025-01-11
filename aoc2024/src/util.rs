@@ -247,6 +247,20 @@ pub fn perf<T>(func: impl Fn() -> T, iterations: usize) {
     println!("Average: {:?}", start.elapsed() / iterations as u32);
 }
 
+#[macro_export]
+macro_rules! example {
+    () => {
+        include_str!("data/example.txt")
+    };
+}
+
+#[macro_export]
+macro_rules! data {
+    () => {
+        include_str!("data/data.txt")
+    };
+}
+
 #[cfg(test)]
 mod test {
     use super::*;

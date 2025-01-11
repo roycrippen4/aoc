@@ -1,3 +1,5 @@
+use crate::{data, example};
+
 use super::into_isize_vec;
 
 /// determines if a given string is safe
@@ -28,7 +30,7 @@ fn is_safe(values: &[isize]) -> bool {
 }
 
 pub fn solve() -> isize {
-    include_str!("data/data.txt")
+    data!()
         .lines()
         .map(into_isize_vec)
         .fold(0, |acc, v| if is_safe(&v) { acc + 1 } else { acc })
@@ -36,7 +38,7 @@ pub fn solve() -> isize {
 
 #[allow(unused)]
 fn p1_example() -> usize {
-    include_str!("data/example.txt")
+    example!()
         .lines()
         .map(into_isize_vec)
         .map(|v| is_safe(&v))

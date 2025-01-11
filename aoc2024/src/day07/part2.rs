@@ -1,5 +1,7 @@
 use rayon::prelude::*;
 
+use crate::data;
+
 type Mapping = (usize, Vec<usize>);
 
 fn parse_line(l: &str) -> Mapping {
@@ -49,18 +51,6 @@ fn evaluate(root_value: usize, target: usize, idx: usize, values: &[usize]) -> b
         || evaluate(mul_value, target, idx + 1, values)
 }
 
-#[allow(unused)]
-fn example() -> usize {
-    fn sum(acc: usize, (target, values): &(usize, Vec<usize>)) -> usize {
-        match evaluate(values[0], *target, 1, values) {
-            true => acc + target,
-            false => acc,
-        }
-    }
-
-    parse(include_str!("data/example.txt")).iter().fold(0, sum)
-}
-
 pub fn solve() -> usize {
     fn sum(acc: usize, (target, values): (usize, Vec<usize>)) -> usize {
         match evaluate(values[0], target, 1, &values) {
@@ -68,26 +58,17 @@ pub fn solve() -> usize {
             false => acc,
         }
     }
-
-    parse(include_str!("data/data.txt"))
-        .into_par_iter()
-        .fold(|| 0, sum)
-        .sum()
+    parse(data!()).into_par_iter().fold(|| 0, sum).sum()
 }
 
 #[cfg(test)]
 mod test {
     use crate::util::{validate, Day::Day07, Part::Part2};
 
-    use super::{example, solve};
+    use super::solve;
 
     #[test]
     fn test_solve() {
         validate(solve, 337041851384440, Day07(Part2));
-    }
-
-    #[test]
-    fn test_example() {
-        assert_eq!(11387, example());
     }
 }

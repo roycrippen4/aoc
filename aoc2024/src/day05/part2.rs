@@ -1,10 +1,8 @@
 use std::collections::{hash_map::Entry, HashMap};
 
-// use crate::debug;
+use crate::{data, example};
 
 type OrderMap = HashMap<usize, Vec<usize>>;
-
-// static DEBUG: bool = false;
 
 /// will panic if values does not have an odd length
 fn get_middle<T: Copy>(values: &[T]) -> T {
@@ -137,11 +135,8 @@ fn fix_order(update: &mut [usize], map: &OrderMap) -> Vec<usize> {
 }
 
 #[allow(unused)]
-fn example() -> usize {
-    let input: Vec<String> = include_str!("data/example.txt")
-        .split("\n\n")
-        .map(String::from)
-        .collect();
+fn aoc_example() -> usize {
+    let input: Vec<String> = example!().split("\n\n").map(String::from).collect();
 
     let [rules_raw, order_raw] = [&input[0], &input[1]];
     let map = parse_order_rules(rules_raw);
@@ -153,10 +148,7 @@ fn example() -> usize {
 }
 
 pub fn solve() -> usize {
-    let input: Vec<String> = include_str!("data/data.txt")
-        .split("\n\n")
-        .map(String::from)
-        .collect();
+    let input: Vec<String> = data!().split("\n\n").map(String::from).collect();
 
     let [rules_raw, order_raw] = [&input[0], &input[1]];
     let map = parse_order_rules(rules_raw);
@@ -169,10 +161,13 @@ pub fn solve() -> usize {
 
 #[cfg(test)]
 mod test {
-    use crate::util::{validate, Day::Day05, Part::Part2};
+    use crate::{
+        example,
+        util::{validate, Day::Day05, Part::Part2},
+    };
 
     use super::{
-        example, fix_order, get_middle, parse_order_rules, parse_updates, solve, OrderMap,
+        aoc_example, fix_order, get_middle, parse_order_rules, parse_updates, solve, OrderMap,
     };
 
     #[test]
@@ -182,8 +177,7 @@ mod test {
 
     #[test]
     fn test_example() {
-        let result = example();
-        assert_eq!(123, result);
+        assert_eq!(123, aoc_example());
     }
 
     #[test]
@@ -243,7 +237,7 @@ mod test {
 
     fn get_map() -> OrderMap {
         parse_order_rules(
-            &include_str!("data/example.txt")
+            &example!()
                 .split("\n\n")
                 .map(String::from)
                 .collect::<Vec<String>>()[0],

@@ -1,6 +1,6 @@
 use std::collections::{hash_map::Entry, HashMap};
 
-use crate::debug;
+use crate::{data, debug};
 
 type OrderMap = HashMap<usize, Vec<usize>>;
 
@@ -71,25 +71,8 @@ fn evaluate(update: &[usize], map: &OrderMap) -> usize {
     middle
 }
 
-#[allow(unused)]
-fn example() -> usize {
-    let input: Vec<String> = include_str!("data/example.txt")
-        .split("\n\n")
-        .map(String::from)
-        .collect();
-
-    let [rules_raw, order_raw] = [&input[0], &input[1]];
-    let map = parse_order_rules(rules_raw);
-    let updates = parse_updates(order_raw);
-    updates.iter().map(|update| evaluate(update, &map)).sum()
-}
-
 pub fn solve() -> usize {
-    let input: Vec<String> = include_str!("data/data.txt")
-        .split("\n\n")
-        .map(String::from)
-        .collect();
-
+    let input: Vec<String> = data!().split("\n\n").map(String::from).collect();
     let [rules_raw, order_raw] = [&input[0], &input[1]];
     let map = parse_order_rules(rules_raw);
     let updates = parse_updates(order_raw);
@@ -100,17 +83,11 @@ pub fn solve() -> usize {
 mod test {
     use crate::util::{validate, Day::Day05, Part::Part1};
 
-    use super::{example, get_middle, parse_order_rules, parse_updates, solve};
+    use super::{get_middle, parse_order_rules, parse_updates, solve};
 
     #[test]
     fn test_solve() {
         validate(solve, 7198, Day05(Part1));
-    }
-
-    #[test]
-    fn test_example() {
-        let result = example();
-        assert_eq!(143, result);
     }
 
     #[test]

@@ -1,6 +1,8 @@
 use regex::Regex;
 use std::sync::LazyLock;
 
+use crate::data;
+
 static RE: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"do\(\)|don't\(\)|mul\(\d{1,3},\d{1,3}\)").unwrap());
 
@@ -32,7 +34,7 @@ impl TryFrom<&str> for Op {
 }
 
 pub fn solve() -> usize {
-    include_str!("data/data.txt")
+    data!()
         .chars()
         .filter(|c| !c.is_whitespace())
         .collect::<String>()
