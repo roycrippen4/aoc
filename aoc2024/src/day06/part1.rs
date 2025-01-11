@@ -1,12 +1,6 @@
 use std::fmt;
 
-use crate::util::StringMethods;
-
-fn into_padded_string(str: &&str) -> String {
-    let mut s = str.to_string();
-    s.pad(1, 'O');
-    s
-}
+use crate::util::{into_padded_string, StringMethods};
 
 #[allow(clippy::needless_range_loop)]
 /// returns (x, y) coordinates and direction of the guard's starting position

@@ -8,12 +8,6 @@ type PathSet = HashSet<(usize, usize)>;
 type Obs = Option<(usize, usize)>;
 type Pos = (usize, usize, Dir);
 
-fn into_padded_string(str: &&str) -> String {
-    let mut s = str.to_string();
-    s.pad(1, 'O');
-    s
-}
-
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 enum Dir {
     Up = 0,
@@ -124,7 +118,7 @@ struct Grid {
 
 impl Grid {
     pub fn new(data: Vec<&str>) -> Self {
-        let mut data: Vec<_> = data.iter().map(into_padded_string).collect();
+        let mut data: Vec<_> = data.iter().map(|s| s.to_string().pad(1, 'O')).collect();
         data.insert(0, "O".repeat(data[0].len()));
         data.insert(data.len(), "O".repeat(data[0].len()));
 
