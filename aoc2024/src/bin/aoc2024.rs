@@ -26,5 +26,6 @@ fn main() {
     total_time += validate(day09::part1::solve, 6448989155953, Day09(Part1));
     total_time += validate(day09::part2::solve, 6476642796832, Day09(Part2));
     total_time += validate(day10::part1::solve, 517, Day10(Part1));
+    total_time += validate(day10::part2::solve, 1116, Day10(Part2));
     println!("Total elapsed time: {:#?}", total_time);
 }

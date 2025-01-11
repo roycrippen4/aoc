@@ -7,17 +7,6 @@ use crate::util::StringMethods;
 type Visited = HashSet<(usize, usize)>;
 type Point = (usize, usize, usize);
 
-#[allow(unused)]
-fn print_grid(grid: &[Vec<usize>]) {
-    for y in 0..grid.len() {
-        let mut s = String::new();
-        for x in 0..grid[0].len() {
-            s.push_str(&grid[y][x].to_string());
-        }
-        println!("{s}");
-    }
-}
-
 fn neighbors(point: Point, grid: &[Vec<usize>]) -> Vec<Point> {
     let (x, y, v) = point;
     let max_height = grid.len();
