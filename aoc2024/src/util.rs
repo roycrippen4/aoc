@@ -275,26 +275,23 @@ mod test {
 
     #[test]
     fn test_pad_start() {
-        let string = "string".to_string();
+        let result = "string".to_string().pad_start(3, '.');
         let expected = "...string";
-        string.pad_start(3, '.');
-        assert_eq!(string, expected)
+        assert_eq!(expected, result)
     }
 
     #[test]
     fn test_pad_end() {
-        let string = "string".to_string();
+        let result = "string".to_string().pad_end(3, '.');
         let expected = "string...";
-        string.pad_end(3, '.');
-        assert_eq!(string, expected)
+        assert_eq!(expected, result)
     }
 
     #[test]
     fn test_pad() {
-        let string = "string".to_string();
+        let result = "string".to_string().pad(3, '.');
         let expected = "...string...";
-        string.pad(3, '.');
-        assert_eq!(string, expected)
+        assert_eq!(expected, result)
     }
 
     #[test]

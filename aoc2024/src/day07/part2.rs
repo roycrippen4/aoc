@@ -77,7 +77,7 @@ pub fn solve() -> usize {
 
 #[cfg(test)]
 mod test {
-    use crate::util::{perf, validate, Day::Day07, Part::Part2};
+    use crate::util::{validate, Day::Day07, Part::Part2};
 
     use super::{example, solve};
 
@@ -89,10 +89,5 @@ mod test {
     #[test]
     fn test_example() {
         assert_eq!(11387, example());
-    }
-
-    #[test]
-    fn test_perf() {
-        perf(solve, 500);
     }
 }

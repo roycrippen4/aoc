@@ -1,13 +1,13 @@
-#![allow(unused)]
-
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 
 use rayon::prelude::*;
 
 use crate::util::StringMethods;
 
+type Visited = HashSet<(usize, usize)>;
 type Point = (usize, usize, usize);
 
+#[allow(unused)]
 fn print_grid(grid: &[Vec<usize>]) {
     for y in 0..grid.len() {
         let mut s = String::new();
@@ -58,19 +58,6 @@ fn find_starting_points(grid: &[Vec<usize>]) -> Vec<Point> {
     points
 }
 
-// fn create_visited(grid: &[Vec<usize>]) -> HashMap<(usize, usize), bool> {
-//     let mut map = HashMap::new();
-//     for y in 0..grid.len() {
-//         for x in 0..grid[0].len() {
-//             map.insert((x, y), false);
-//         }
-//     }
-
-//     map
-// }
-
-type Visited = HashSet<(usize, usize)>;
-
 fn score_path(start: Point, grid: &[Vec<usize>], visited: Option<&mut Visited>) -> usize {
     let visited = match visited {
         Some(v) => v,
@@ -108,16 +95,14 @@ pub fn solve() -> usize {
     evaluate(include_str!("data/data.txt"))
 }
 
-#[allow(unused)]
 #[cfg(test)]
 mod test {
-
     use crate::{
         day10::part1::score_path,
         util::{validate, Day::Day10, Part::Part1},
     };
 
-    use super::{create_grid, evaluate, neighbors, print_grid, solve, Point};
+    use super::{create_grid, evaluate, neighbors, solve};
 
     #[test]
     fn test_solve() {
@@ -127,7 +112,8 @@ mod test {
     #[test]
     fn test_evaluate() {
         let data = include_str!("data/example.txt");
-        dbg!(evaluate(data));
+        let result = evaluate(data);
+        assert_eq!(36, result);
     }
 
     #[test]
