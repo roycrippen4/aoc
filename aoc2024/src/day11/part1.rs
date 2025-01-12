@@ -54,15 +54,10 @@ pub fn solve() -> usize {
     evaluate(data!(), 25)
 }
 
-#[allow(unused)]
 #[cfg(test)]
 mod test {
-    use std::collections::HashMap;
 
-    use crate::{
-        data, example,
-        util::{perf, validate, Day::Day11, Part::Part1},
-    };
+    use crate::util::{validate, Day::Day11, Part::Part1};
 
     use super::{evaluate, solve};
 

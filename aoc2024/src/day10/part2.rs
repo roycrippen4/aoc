@@ -64,7 +64,6 @@ pub fn solve() -> usize {
     evaluate(data!())
 }
 
-#[allow(unused)]
 #[cfg(test)]
 mod test {
     use crate::{
@@ -72,7 +71,7 @@ mod test {
         util::{validate, Day::Day10, Part::Part2},
     };
 
-    use super::{create_grid, evaluate, neighbors, score_path, solve};
+    use super::{create_grid, evaluate, score_path, solve};
 
     #[test]
     fn test_solve() {

@@ -1,6 +1,6 @@
 use std::collections::{hash_map::Entry, HashMap};
 
-use crate::{data, example};
+use crate::data;
 
 type OrderMap = HashMap<usize, Vec<usize>>;
 
@@ -115,7 +115,6 @@ fn is_in_order(update: &[usize], map: &OrderMap) -> bool {
 //12. 47 --> 29
 //13. 29 --> 13
 // DONE. 97, 75, [47], 29, 13
-#[allow(unused)]
 fn fix_order(update: &mut [usize], map: &OrderMap) -> Vec<usize> {
     for i in 0..update.len() - 1 {
         if let Some(mapping) = map.get(&update[i]) {
@@ -132,19 +131,6 @@ fn fix_order(update: &mut [usize], map: &OrderMap) -> Vec<usize> {
     }
 
     fix_order(update, map) // my tail always be recursing
-}
-
-#[allow(unused)]
-fn aoc_example() -> usize {
-    let input: Vec<String> = example!().split("\n\n").map(String::from).collect();
-
-    let [rules_raw, order_raw] = [&input[0], &input[1]];
-    let map = parse_order_rules(rules_raw);
-    parse_updates(order_raw)
-        .iter_mut()
-        .filter(|u| !is_in_order(u, &map))
-        .map(|u| get_middle(&fix_order(u, &map)))
-        .sum()
 }
 
 pub fn solve() -> usize {
@@ -166,18 +152,11 @@ mod test {
         util::{validate, Day::Day05, Part::Part2},
     };
 
-    use super::{
-        aoc_example, fix_order, get_middle, parse_order_rules, parse_updates, solve, OrderMap,
-    };
+    use super::{fix_order, get_middle, parse_order_rules, parse_updates, solve, OrderMap};
 
     #[test]
     fn test_solve() {
         validate(solve, 4230, Day05(Part2));
-    }
-
-    #[test]
-    fn test_example() {
-        assert_eq!(123, aoc_example());
     }
 
     #[test]

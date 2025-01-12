@@ -1,4 +1,4 @@
-use crate::{data, example};
+use crate::data;
 
 type Mapping = (usize, Vec<usize>);
 
@@ -35,18 +35,6 @@ fn evaluate(root_value: usize, target: usize, idx: usize, values: &[usize]) -> b
     evaluate(left_value, target, idx + 1, values) || evaluate(right_value, target, idx + 1, values)
 }
 
-#[allow(unused)]
-fn aoc_example() -> usize {
-    fn sum(acc: usize, (target, values): &(usize, Vec<usize>)) -> usize {
-        match evaluate(values[0], *target, 1, values) {
-            true => acc + target,
-            false => acc,
-        }
-    }
-
-    parse(example!()).iter().fold(0, sum)
-}
-
 pub fn solve() -> usize {
     fn sum(acc: usize, (target, values): &(usize, Vec<usize>)) -> usize {
         match evaluate(values[0], *target, 1, values) {
@@ -61,16 +49,11 @@ pub fn solve() -> usize {
 mod test {
     use crate::util::{validate, Day::Day07, Part::Part1};
 
-    use super::{aoc_example, evaluate, solve};
+    use super::{evaluate, solve};
 
     #[test]
     fn test_solve() {
         validate(solve, 303766880536, Day07(Part1));
-    }
-
-    #[test]
-    fn test_example() {
-        assert_eq!(3749, aoc_example());
     }
 
     #[test]

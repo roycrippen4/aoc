@@ -1,4 +1,4 @@
-use crate::{data, example};
+use crate::data;
 
 use super::into_isize_vec;
 
@@ -34,15 +34,6 @@ pub fn solve() -> isize {
         .lines()
         .map(into_isize_vec)
         .fold(0, |acc, v| if is_safe(&v) { acc + 1 } else { acc })
-}
-
-#[allow(unused)]
-fn p1_example() -> usize {
-    example!()
-        .lines()
-        .map(into_isize_vec)
-        .map(|v| is_safe(&v))
-        .fold(0, |acc, safe| if safe { acc + 1 } else { acc })
 }
 
 #[cfg(test)]
