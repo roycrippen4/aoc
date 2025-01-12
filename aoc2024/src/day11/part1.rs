@@ -1,71 +1,79 @@
-use crate::example;
+use std::collections::HashMap;
 
-const fn even_digits(n: usize) -> bool {
-    match n {
-        0..=9 => false,                      // 1 digit
-        10..=99 => true,                     // 2 digits
-        100..=999 => false,                  // 3 digits
-        1000..=9999 => true,                 // 4 digits
-        10000..=99999 => false,              // 5 digits
-        100000..=999999 => true,             // 6 digits
-        1000000..=9999999 => false,          // 7 digits
-        10000000..=99999999 => true,         // 8 digits
-        100000000..=999999999 => false,      // 9 digits
-        1000000000..=9999999999 => true,     // 10 digits
-        10000000000..=99999999999 => true,   // 11 digits
-        100000000000..=999999999999 => true, // 12 digits
-        _ => unreachable!(),                 // Fallback for extremely large numbers
+use crate::data;
+
+fn num_digits(mut n: usize) -> usize {
+    if n == 0 {
+        return 1;
     }
+    let mut digits = 0;
+    while n > 0 {
+        n /= 10;
+        digits += 1;
+    }
+    digits
 }
 
-fn parse_data(data: &str) -> Vec<usize> {
-    data.split_whitespace()
-        .filter_map(|s| s.parse().ok())
-        .collect()
+fn split_in_half(n: usize) -> (usize, usize) {
+    let half = num_digits(n) / 2;
+    let divisor = 10_usize.pow(half as u32);
+    (n / divisor, n % divisor)
 }
 
-fn evaluate(data: &str) -> usize {
-    dbg!(data);
-    0
+fn evaluate(data: &str, iterations: usize) -> usize {
+    let mut stones: HashMap<usize, usize> = HashMap::new();
+
+    for s in data.split_whitespace() {
+        let val = s.parse::<usize>().unwrap();
+        *stones.entry(val).or_insert(0) += 1;
+    }
+
+    for _ in 0..iterations {
+        let mut new_stones: HashMap<usize, usize> = HashMap::new();
+        for (&val, &amount) in stones.iter() {
+            if val == 0 {
+                *new_stones.entry(1).or_insert(0) += amount;
+            } else {
+                let d = num_digits(val);
+                if d % 2 == 0 {
+                    let (first, second) = split_in_half(val);
+                    *new_stones.entry(first).or_insert(0) += amount;
+                    *new_stones.entry(second).or_insert(0) += amount;
+                } else {
+                    *new_stones.entry(val * 2024).or_insert(0) += amount;
+                }
+            }
+        }
+        stones = new_stones
+    }
+
+    stones.values().sum()
 }
 
 pub fn solve() -> usize {
-    evaluate(example!())
+    evaluate(data!(), 25)
 }
 
 #[allow(unused)]
 #[cfg(test)]
 mod test {
+    use std::collections::HashMap;
+
     use crate::{
-        example,
-        util::{validate, Day::Day11, Part::Part1},
+        data, example,
+        util::{perf, validate, Day::Day11, Part::Part1},
     };
 
-    use super::{evaluate, even_digits, solve};
+    use super::{evaluate, solve};
 
     #[test]
     fn test_solve() {
-        dbg!(solve());
-        // validate(solve, 517, Day11(Part1));
-    }
-
-    #[test]
-    fn test_parse_data() {
-        let data = example!();
+        validate(solve, 220999, Day11(Part1));
     }
 
     #[test]
     fn test_evaluate() {
-        let data = example!();
-        let result = evaluate(data);
+        let result = evaluate("125 17", 25);
         dbg!(result);
-        // assert_eq!(36, result);
-    }
-
-    #[test]
-    fn test_even_digits() {
-        assert!(!even_digits(101));
-        assert!(even_digits(1010));
-        assert!(!even_digits(10101));
     }
 }
