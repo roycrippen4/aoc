@@ -18,7 +18,7 @@ fn main() {
     total_time += validate(day05::part1::solve, 7198, Day05(Part1));
     total_time += validate(day05::part2::solve, 4230, Day05(Part2));
     total_time += validate(day06::part1::solve, 4559, Day06(Part1));
-    total_time += validate(day06::part2::solve, 1604, Day06(Part1));
+    total_time += validate(day06::part2::solve, 1604, Day06(Part2));
     total_time += validate(day07::part1::solve, 303766880536, Day07(Part1));
     total_time += validate(day07::part2::solve, 337041851384440, Day07(Part2));
     total_time += validate(day08::part1::solve, 244, Day08(Part1));

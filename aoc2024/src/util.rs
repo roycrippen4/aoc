@@ -1,8 +1,41 @@
 use std::{
     fmt, iter,
     str::FromStr,
-    time::{Duration, Instant, SystemTime, UNIX_EPOCH},
+    time::{Duration, Instant},
 };
+
+#[macro_export]
+macro_rules! example {
+    () => {
+        include_str!("data/example.txt")
+    };
+}
+
+#[macro_export]
+macro_rules! data {
+    () => {
+        include_str!("data/data.txt")
+    };
+}
+
+/// Colors string `s` fg color with `r`, `g`, `b` values using ansci escape codes.
+/// `r`, `g`, and `b` values range from 0 to 255;
+///
+/// # Example
+/// ```
+/// use aoc2024::rgb;
+///
+/// println!("{}", rgb!("Red 255", 255, 0, 0));
+/// println!("{}", rgb!("Red 200", 200, 0, 0));
+/// println!("{}", rgb!("gray", 100, 100, 100));
+/// println!("{}", rgb!("orange", 255, 140, 0));
+/// ```
+#[macro_export]
+macro_rules! rgb {
+    ($s:expr, $r:expr, $g:expr, $b:expr) => {
+        format!("\x1b[38;2;{};{};{}m{}\x1b[0m", $r, $g, $b, $s)
+    };
+}
 
 pub fn create_pad(len: usize, character: char) -> String {
     iter::repeat(character).take(len).collect()
@@ -147,18 +180,51 @@ pub fn quicksort<T: Copy + PartialOrd>(array: &mut [T]) {
     quicksort(right);
 }
 
+enum TimeRange {
+    Seconds,
+    MillisecondsSlow,
+    MillisecondsMedium,
+    MillisecondsFast,
+    Nanoseconds,
+}
+
+fn get_time_range(t: &Duration) -> TimeRange {
+    if t.as_secs() > 0 {
+        TimeRange::Seconds
+    } else if t.subsec_millis() > 100 {
+        TimeRange::MillisecondsSlow
+    } else if t.subsec_millis() > 10 {
+        TimeRange::MillisecondsMedium
+    } else if t.subsec_millis() > 0 {
+        TimeRange::MillisecondsFast
+    } else {
+        TimeRange::Nanoseconds
+    }
+}
+
+fn colorize_time(t: &Duration) -> String {
+    let range = get_time_range(t);
+    match range {
+        TimeRange::Nanoseconds => rgb!(format!("{:#?}", t), 0, 255, 0),
+        TimeRange::MillisecondsFast => rgb!(format!("{:#?}", t), 127, 210, 0),
+        TimeRange::MillisecondsMedium => rgb!(format!("{:#?}", t), 255, 165, 0),
+        TimeRange::MillisecondsSlow => rgb!(format!("{:#?}", t), 255, 82, 0),
+        TimeRange::Seconds => rgb!(format!("{:#?}", t), 255, 0, 0),
+    }
+}
+
 pub fn validate<T>(func: impl Fn() -> T, expected: T, day: Day) -> Duration
 where
     T: PartialEq,
     T: fmt::Debug,
 {
-    let start = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
+    let start = Instant::now();
     let result = func();
-    let end = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
-    let total = end - start;
+    let total_time = start.elapsed();
+    let colored_time = colorize_time(&total_time);
     assert_eq!(expected, result);
-    println!("{day} solved in {:#?}", total);
-    total
+    println!("{day} solved in {colored_time}");
+    total_time
 }
 
 pub trait StringMethods {
@@ -247,20 +313,6 @@ pub fn perf<T>(func: impl Fn() -> T, iterations: usize) {
     println!("Average: {:?}", start.elapsed() / iterations as u32);
 }
 
-#[macro_export]
-macro_rules! example {
-    () => {
-        include_str!("data/example.txt")
-    };
-}
-
-#[macro_export]
-macro_rules! data {
-    () => {
-        include_str!("data/data.txt")
-    };
-}
-
 #[cfg(test)]
 mod test {
     use super::*;
@@ -332,5 +384,22 @@ mod test {
         assert_eq!(vec![1_usize, 2, 3, 4, 5], s.to_row());
         let s = String::from("1234 5");
         assert_eq!(vec![1_usize, 2, 3, 4, 5], s.to_row());
+    }
+
+    #[test]
+    fn test_rgb() {
+        println!("{}", rgb!("Red 255", 255, 0, 0));
+        println!("{}", rgb!("Red 200", 200, 0, 0));
+        println!("{}", rgb!("gray", 100, 100, 100));
+        println!("{}", rgb!("orange", 255, 140, 0));
+    }
+
+    #[test]
+    fn test_colorize_time() {
+        println!("time: {}", colorize_time(&Duration::from_secs(1)));
+        println!("time: {}", colorize_time(&Duration::from_millis(500)));
+        println!("time: {}", colorize_time(&Duration::from_millis(50)));
+        println!("time: {}", colorize_time(&Duration::from_millis(5)));
+        println!("time: {}", colorize_time(&Duration::from_nanos(500)));
     }
 }

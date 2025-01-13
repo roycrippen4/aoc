@@ -51,10 +51,18 @@ fn shift(data: &mut [Option<usize>]) {
     for &(file_start, file_end) in files.iter() {
         let file_size = file_end - file_start + 1;
 
-        if let Some(gap_idx) = gaps
-            .iter()
-            .position(|&(gstart, glen)| gstart + glen <= file_start && glen >= file_size)
-        {
+        let mut found = None;
+        for (gidx, &(gstart, glen)) in gaps.iter().enumerate() {
+            if gstart > file_start {
+                break;
+            }
+            if gstart + glen <= file_start && glen >= file_size {
+                found = Some(gidx);
+                break;
+            }
+        }
+
+        if let Some(gap_idx) = found {
             let (gstart, glen) = gaps[gap_idx];
             let (left, right) = data.split_at_mut(file_start);
             left[gstart..gstart + file_size].swap_with_slice(&mut right[0..file_size]);
@@ -109,19 +117,13 @@ pub fn solve() -> usize {
 mod test {
     use crate::util::{validate, Day::Day09, Part::Part2};
 
-    use super::{collect_files, collect_gaps, evaluate, expand, solve};
+    use super::{collect_files, evaluate, expand, solve};
 
     static EXAMPLE: &str = "2333133121414131402";
 
     #[test]
     fn test_solve() {
         validate(solve, 6476642796832, Day09(Part2));
-    }
-
-    #[test]
-    fn test_collect_gaps() {
-        let gaps = collect_gaps(&DATA);
-        dbg!(gaps);
     }
 
     #[test]
