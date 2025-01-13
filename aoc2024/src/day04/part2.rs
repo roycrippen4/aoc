@@ -1,15 +1,12 @@
-use crate::{
-    data,
-    util::{create_pad, into_padded_string, StringMethods},
-};
+use crate::{data, util::StringMethods};
 
 static MAS: [char; 3] = ['M', 'A', 'S'];
 static SAM: [char; 3] = ['S', 'A', 'M'];
 
 fn create_grid(input: &str) -> Vec<Vec<char>> {
-    let mut data: Vec<String> = input.lines().map(|s| into_padded_string(&s)).collect();
+    let mut data: Vec<String> = input.lines().map(String::into_padded).collect();
     let row_len = data[0].len();
-    let pad = create_pad(row_len, '.');
+    let pad = String::create_pad(row_len, '.');
     (0..4).for_each(|_| data.insert(0, pad.clone()));
     let col_len = data.len();
     (0..4).for_each(|_| data.insert(col_len, pad.clone()));

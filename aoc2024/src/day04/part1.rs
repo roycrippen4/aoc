@@ -1,12 +1,9 @@
-use crate::{
-    data,
-    util::{create_pad, into_padded_string, StringMethods},
-};
+use crate::{data, util::StringMethods};
 
 fn create_grid(input: &str) -> Vec<Vec<char>> {
-    let mut data: Vec<String> = input.lines().map(|s| into_padded_string(&s)).collect();
+    let mut data: Vec<String> = input.lines().map(String::into_padded).collect();
     let row_len = data[0].len();
-    let pad = create_pad(row_len, '.');
+    let pad = String::create_pad(row_len, '.');
     let pad_rows = vec![pad.clone(); 4];
     data.splice(0..0, pad_rows.clone());
     data.extend(pad_rows);
@@ -58,15 +55,10 @@ mod test {
 
     use super::solve;
 
-    use crate::util::{perf, validate, Day::Day04, Part::Part1};
+    use crate::util::{validate, Day::Day04, Part::Part1};
 
     #[test]
     fn test_solve() {
         validate(solve, 2483, Day04(Part1));
-    }
-
-    #[test]
-    fn bench() {
-        perf(solve, 500);
     }
 }

@@ -1,9 +1,6 @@
 use std::fmt;
 
-use crate::{
-    data,
-    util::{into_padded_string, StringMethods},
-};
+use crate::{data, util::StringMethods};
 
 #[allow(clippy::needless_range_loop)]
 /// returns (x, y) coordinates and direction of the guard's starting position
@@ -61,7 +58,7 @@ struct Grid {
 
 impl Grid {
     pub fn new(data: Vec<&str>) -> Self {
-        let mut data: Vec<_> = data.iter().map(into_padded_string).collect();
+        let mut data: Vec<_> = data.into_iter().map(String::into_padded).collect();
         data.insert(0, "O".repeat(data[0].len()));
         data.insert(data.len(), "O".repeat(data[0].len()));
         let grid: Vec<_> = data.iter().map(|r| r.to_char_vec()).collect();

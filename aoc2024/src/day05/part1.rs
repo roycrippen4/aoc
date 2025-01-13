@@ -1,10 +1,8 @@
 use std::collections::{hash_map::Entry, HashMap};
 
-use crate::{data, debug};
+use crate::data;
 
 type OrderMap = HashMap<usize, Vec<usize>>;
-
-static DEBUG: bool = false;
 
 /// will panic if values does not have an odd length
 fn get_middle<T: Copy>(values: &[T]) -> T {
@@ -46,29 +44,19 @@ fn parse_order_rules(s: &str) -> OrderMap {
 }
 
 fn evaluate(update: &[usize], map: &OrderMap) -> usize {
-    debug!("{:?}", update);
     for i in 0..update.len() - 1 {
         let key = update[i];
         let value = update[i + 1];
-        debug!("{} -> {}", key, value);
 
         if let Some(mapping) = map.get(&key) {
             if !mapping.contains(&value) {
-                debug!("{:?} does not contain {value}\n", mapping);
                 return 0;
             }
         } else {
-            debug!("Map does not contain key {key}\n");
             return 0;
         }
     }
-
-    let middle = get_middle(update);
-    debug!(
-        "Order rules followed for {:?}\nReturning {middle}\n",
-        update
-    );
-    middle
+    get_middle(update)
 }
 
 pub fn solve() -> usize {
