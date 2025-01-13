@@ -1,114 +1,61 @@
-use std::fmt;
-
 use crate::{
-    data, example,
+    data,
     util::{create_pad, into_padded_string, StringMethods},
 };
 
-fn is_mas(chs: &[char]) -> bool {
-    let s: String = chs.iter().collect();
-    let r: String = chs.iter().rev().collect();
-    s == "MAS" || r == "MAS"
-}
+static MAS: [char; 3] = ['M', 'A', 'S'];
+static SAM: [char; 3] = ['S', 'A', 'M'];
 
-#[derive(Debug)]
-struct Grid {
-    data: Vec<Vec<char>>,
-}
-
-impl Grid {
-    pub fn new(data: Vec<&str>) -> Self {
-        let mut data: Vec<String> = data.iter().map(into_padded_string).collect();
-        let row_len = data[0].len();
-        let pad = create_pad(row_len, '.');
-        (0..3).for_each(|_| data.insert(0, pad.clone()));
-        let col_len = data.len();
-        (0..3).for_each(|_| data.insert(col_len, pad.clone()));
-        Self {
-            data: data.iter().map(|r| r.to_char_vec()).collect(),
-        }
-    }
-
-    fn get_cross(&self, x: usize, y: usize) -> (Vec<char>, Vec<char>) {
-        (
-            vec![
-                self.data[y - 1][x - 1],
-                self.data[y][x],
-                self.data[y + 1][x + 1],
-            ],
-            vec![
-                self.data[y - 1][x + 1],
-                self.data[y][x],
-                self.data[y + 1][x - 1],
-            ],
-        )
-    }
-
-    pub fn evaluate(&self, x: usize, y: usize) -> usize {
-        let (cross0, cross1) = self.get_cross(x, y);
-        match is_mas(&cross0) && is_mas(&cross1) {
-            true => 1,
-            false => 0,
-        }
-    }
-}
-
-impl fmt::Display for Grid {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let printable: String = self
-            .data
-            .iter()
-            .map(|v| v.iter().collect::<String>())
-            .collect::<Vec<_>>()
-            .join("\n");
-        write!(f, "{printable}")
-    }
+fn create_grid(input: &str) -> Vec<Vec<char>> {
+    let mut data: Vec<String> = input.lines().map(|s| into_padded_string(&s)).collect();
+    let row_len = data[0].len();
+    let pad = create_pad(row_len, '.');
+    (0..4).for_each(|_| data.insert(0, pad.clone()));
+    let col_len = data.len();
+    (0..4).for_each(|_| data.insert(col_len, pad.clone()));
+    data.iter().map(|r| r.to_char_vec()).collect()
 }
 
 pub fn solve() -> usize {
-    let grid = Grid::new(data!().lines().collect());
-    let mut count = 0;
-
-    for y in 4..grid.data.len() - 4 {
-        for x in 4..grid.data[0].len() - 4 {
-            count += grid.evaluate(x, y);
-        }
-    }
-
-    count
-}
-
-pub fn p1_example() -> usize {
-    let grid = Grid::new(example!().lines().collect());
-    let mut count = 0;
-
-    for y in 4..grid.data.len() - 4 {
-        for x in 4..grid.data[0].len() - 4 {
-            count += grid.evaluate(x, y);
-        }
-    }
-
-    count
+    let grid = create_grid(data!());
+    (4..grid.len() - 4)
+        .map(|y| {
+            (4..grid[0].len() - 4)
+                .map(|x| {
+                    let cross1 = unsafe {
+                        [
+                            *grid.get_unchecked(y - 1).get_unchecked(x - 1),
+                            *grid.get_unchecked(y).get_unchecked(x),
+                            *grid.get_unchecked(y + 1).get_unchecked(x + 1),
+                        ]
+                    };
+                    let cross2 = unsafe {
+                        [
+                            *grid.get_unchecked(y - 1).get_unchecked(x + 1),
+                            *grid.get_unchecked(y).get_unchecked(x),
+                            *grid.get_unchecked(y + 1).get_unchecked(x - 1),
+                        ]
+                    };
+                    if (cross1 == SAM || cross1 == MAS) && (cross2 == SAM || cross2 == MAS) {
+                        1
+                    } else {
+                        0
+                    }
+                })
+                .sum::<usize>()
+        })
+        .sum()
 }
 
 #[cfg(test)]
 mod test {
-    use crate::day04::part2::{is_mas, p1_example, solve};
+
+    use super::solve;
+
+    use crate::util::{validate, Day::Day04, Part::Part2};
 
     #[test]
     fn test_solve() {
-        dbg!(solve());
-    }
-
-    #[test]
-    fn test_example() {
-        let result = p1_example();
-        assert_eq!(9, result);
-    }
-
-    #[test]
-    fn test_is_mas() {
-        assert!(is_mas(&['M', 'A', 'S']));
-        assert!(!is_mas(&['X', 'A', 'S']));
+        validate(solve, 1925, Day04(Part2));
     }
 }

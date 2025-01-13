@@ -310,7 +310,8 @@ pub fn perf<T>(func: impl Fn() -> T, iterations: usize) {
     (0..iterations).for_each(|_| {
         func();
     });
-    println!("Average: {:?}", start.elapsed() / iterations as u32);
+    let colorized_time = colorize_time(&(start.elapsed() / iterations as u32));
+    println!("Average: {colorized_time}");
 }
 
 #[cfg(test)]
