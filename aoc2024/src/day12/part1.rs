@@ -2,7 +2,10 @@
 
 use core::fmt;
 
+use itertools::Itertools;
 use rayon::array::IntoIter;
+
+use crate::{rgb, util::StringMethods};
 
 struct Grid {
     data: Vec<char>,
@@ -39,92 +42,19 @@ impl Grid {
         self.data[idx]
     }
 
-    pub fn neighbors(&self, point: Point) -> [Option<Point>; 8] {
+    #[inline]
+    pub fn neighbors(&self, point: Point) -> [Point; 8] {
         let (x, y, v) = point;
-        let mut neighbors = [None, None, None, None, None, None, None, None];
-
-        // right
-        if x < self.width - 1 {
-            let p = (x + 1, y, self.idx(x + 1, y));
-            neighbors[0] = Some(p);
-        }
-        // left
-        if x != 0 {
-            let p = (x - 1, y, self.idx(x - 1, y));
-            neighbors[1] = Some(p)
-        }
-        // up
-        if y != 0 {
-            let p = (x, y - 1, self.idx(x, y - 1));
-            neighbors[2] = Some(p)
-        }
-        // down
-        if y < self.height - 1 {
-            let p = (x, y + 1, self.idx(x, y + 1));
-            neighbors[3] = Some(p)
-        }
-        // up-left
-        if y != 0 && x != 0 {
-            let p = (x - 1, y - 1, self.idx(x - 1, y - 1));
-            neighbors[4] = Some(p)
-        }
-        // up-right
-        if y != 0 && x < self.width - 1 {
-            let p = (x + 1, y - 1, self.idx(x + 1, y - 1));
-            neighbors[5] = Some(p)
-        }
-        // down-left
-        if y < self.height - 1 && x != 0 {
-            let p = (x - 1, y + 1, self.idx(x - 1, y + 1));
-            neighbors[6] = Some(p)
-        }
-        // down-right
-        if y < self.height - 1 && x < self.width - 1 {
-            let p = (x + 1, y + 1, self.idx(x + 1, y + 1));
-            neighbors[7] = Some(p)
-        }
-
-        neighbors
-    }
-}
-
-pub struct GridPointsIter<'a> {
-    grid: &'a Grid,
-    x: usize,
-    y: usize,
-}
-
-impl Iterator for GridPointsIter<'_> {
-    type Item = (usize, usize, char);
-
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.y >= self.grid.height {
-            return None;
-        }
-
-        let value = self.grid.idx(self.x, self.y);
-        let current = (self.x, self.y, value);
-
-        self.x += 1;
-        if self.x >= self.grid.width {
-            self.x = 0;
-            self.y += 1;
-        }
-
-        Some(current)
-    }
-}
-
-impl<'a> IntoIterator for &'a Grid {
-    type Item = (usize, usize, char);
-    type IntoIter = GridPointsIter<'a>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        GridPointsIter {
-            grid: self,
-            x: 0,
-            y: 0,
-        }
+        [
+            (x + 1, y, self.idx(x + 1, y)),         // right
+            (x - 1, y, self.idx(x - 1, y)),         // left
+            (x, y - 1, self.idx(x, y - 1)),         // up
+            (x, y + 1, self.idx(x, y + 1)),         // down
+            (x - 1, y - 1, self.idx(x - 1, y - 1)), // up-left
+            (x + 1, y - 1, self.idx(x + 1, y - 1)), // up-right
+            (x - 1, y + 1, self.idx(x - 1, y + 1)), // down-left
+            (x + 1, y + 1, self.idx(x + 1, y + 1)), // down-right
+        ]
     }
 }
 
@@ -143,17 +73,42 @@ impl fmt::Display for Grid {
     }
 }
 
+fn show_neighbor_window(p: Point, grid: &Grid) {
+    let (px, py, pv) = p;
+    let mut values: Vec<Vec<_>> = grid
+        .to_string()
+        .split("\n")
+        .map(|s| {
+            s.split("")
+                .filter(|s| !s.is_empty())
+                .map(|s| s.to_string())
+                .collect::<Vec<_>>()
+        })
+        .filter(|s| !s.is_empty())
+        .collect();
+
+    grid.neighbors(p).iter().for_each(|(x, y, v)| {
+        values[*y][*x] = rgb!(v, 255, 0, 0);
+    });
+    values[py][px] = rgb!(pv, 255, 0, 0);
+
+    (0..values.len()).for_each(|y| {
+        let mut s = String::new();
+        (0..values[0].len()).for_each(|x| {
+            s.push_str(&values[y][x]);
+        });
+        println!("{s}");
+    });
+}
+
 fn evaluate(data: &str) -> usize {
     let grid = Grid::new(data);
     (1..grid.height - 1).for_each(|y| {
         (1..grid.width - 1).for_each(|x| {
-            let p = (x, y, grid.idx(x, y));
-            println!("{:?} -> {:?}", p, grid.neighbors(p))
+            println!();
+            show_neighbor_window((x, y, grid.idx(x, y)), &grid);
         });
     });
-    // grid.into_iter()
-    //     .for_each(|p| println!("{:?} -> {:?}", p, grid.neighbors(p)));
-    println!("{grid}");
     0
 }
 
@@ -178,8 +133,7 @@ mod test {
 
     #[test]
     fn test_evaluate() {
-        let data = include_str!("data/example.txt");
-        let result = evaluate(data);
+        let result = evaluate(SIMPLE);
         dbg!(result);
     }
 
@@ -188,4 +142,9 @@ mod test {
         let grid = Grid::new(example!());
         println!("{grid}");
     }
+
+    static SIMPLE: &str = r"AAAA
+BBCD
+BBCC
+EEEC";
 }
