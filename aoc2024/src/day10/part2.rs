@@ -1,10 +1,8 @@
 use rayon::prelude::*;
 
-use crate::{data, util::StringMethods};
+use crate::{data, util::StringMethods, DIRECTIONS};
 
 type Point = (usize, usize, usize);
-
-static DIRECTIONS: [(isize, isize); 4] = [(1, 0), (-1, 0), (0, 1), (0, -1)];
 
 fn neighbors(point: Point, grid: &[Vec<usize>]) -> Vec<Point> {
     let (x, y, v) = point;

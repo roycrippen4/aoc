@@ -1,34 +1,23 @@
-#![allow(unused)]
+use crate::DIRECTIONS;
 
-use core::fmt;
-
-use itertools::Itertools;
-use rayon::array::IntoIter;
-
-use crate::{rgb, util::StringMethods};
-
+#[derive(Debug, Default)]
 struct Grid {
-    data: Vec<char>,
+    data: Vec<u8>,
     height: usize,
     width: usize,
 }
 
-/// (x, y, value)
-type Point = (usize, usize, char);
-/// x, y
-type Coordinate = (usize, usize);
-
 impl Grid {
     pub fn new(input: &str) -> Self {
-        let data: Vec<Vec<char>> = input
+        let data: Vec<Vec<u8>> = input
             .trim()
             .split('\n')
-            .map(|s| s.chars().collect())
+            .map(|s| s.chars().map(|c| c as u8).collect())
             .collect();
 
         let height = data.len();
         let width = data[0].len();
-        let data = data.into_iter().flatten().collect();
+        let data: Vec<u8> = data.into_iter().flatten().collect();
 
         Self {
             height,
@@ -37,86 +26,68 @@ impl Grid {
         }
     }
 
-    pub fn idx(&self, x: usize, y: usize) -> char {
-        let idx = self.width * y + x;
-        self.data[idx]
+    #[inline(always)]
+    pub fn idx(&self, x: usize, y: usize) -> u8 {
+        self.data[self.width * y + x]
     }
-
-    #[inline]
-    pub fn neighbors(&self, point: Point) -> [Point; 8] {
-        let (x, y, v) = point;
-        [
-            (x + 1, y, self.idx(x + 1, y)),         // right
-            (x - 1, y, self.idx(x - 1, y)),         // left
-            (x, y - 1, self.idx(x, y - 1)),         // up
-            (x, y + 1, self.idx(x, y + 1)),         // down
-            (x - 1, y - 1, self.idx(x - 1, y - 1)), // up-left
-            (x + 1, y - 1, self.idx(x + 1, y - 1)), // up-right
-            (x - 1, y + 1, self.idx(x - 1, y + 1)), // down-left
-            (x + 1, y + 1, self.idx(x + 1, y + 1)), // down-right
-        ]
-    }
-}
-
-impl fmt::Display for Grid {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut s = String::new();
-
-        (0..self.height).for_each(|y| {
-            (0..self.width).for_each(|x| {
-                s.push(self.idx(x, y));
-            });
-            s.push('\n');
-        });
-
-        write!(f, "{s}")
-    }
-}
-
-fn show_neighbor_window(p: Point, grid: &Grid) {
-    let (px, py, pv) = p;
-    let mut values: Vec<Vec<_>> = grid
-        .to_string()
-        .split("\n")
-        .map(|s| {
-            s.split("")
-                .filter(|s| !s.is_empty())
-                .map(|s| s.to_string())
-                .collect::<Vec<_>>()
-        })
-        .filter(|s| !s.is_empty())
-        .collect();
-
-    grid.neighbors(p).iter().for_each(|(x, y, v)| {
-        values[*y][*x] = rgb!(v, 255, 0, 0);
-    });
-    values[py][px] = rgb!(pv, 255, 0, 0);
-
-    (0..values.len()).for_each(|y| {
-        let mut s = String::new();
-        (0..values[0].len()).for_each(|x| {
-            s.push_str(&values[y][x]);
-        });
-        println!("{s}");
-    });
 }
 
 fn evaluate(data: &str) -> usize {
     let grid = Grid::new(data);
-    (1..grid.height - 1).for_each(|y| {
-        (1..grid.width - 1).for_each(|x| {
-            println!();
-            show_neighbor_window((x, y, grid.idx(x, y)), &grid);
-        });
-    });
-    0
+    let mut visited = vec![false; grid.width * grid.height];
+    let mut total_price = 0;
+
+    for y in 0..grid.height {
+        for x in 0..grid.width {
+            if visited[y * grid.width + x] {
+                continue;
+            }
+
+            let current = grid.idx(x, y);
+            let mut area = 0;
+            let mut perimiter = 0;
+            let mut q = Vec::from([(x, y)]);
+            visited[y * grid.width + x] = true;
+
+            while let Some((cx, cy)) = q.pop() {
+                area += 1;
+
+                for &(dx, dy) in &DIRECTIONS {
+                    let nx = cx as isize + dx;
+                    let ny = cy as isize + dy;
+                    let out_of_bounds =
+                        nx < 0 || nx >= grid.width as isize || ny < 0 || ny >= grid.height as isize;
+
+                    if out_of_bounds {
+                        perimiter += 1;
+                        continue;
+                    }
+
+                    let nx = nx as usize;
+                    let ny = ny as usize;
+
+                    if grid.idx(nx, ny) != current {
+                        perimiter += 1;
+                    } else {
+                        let idx = ny * grid.width + nx;
+                        if !visited[idx] {
+                            visited[idx] = true;
+                            q.push((nx, ny));
+                        }
+                    }
+                }
+            }
+            total_price += area * perimiter
+        }
+    }
+
+    total_price
 }
 
 pub fn solve() -> usize {
     evaluate(include_str!("data/data.txt"))
 }
 
-#[allow(unused)]
 #[cfg(test)]
 mod test {
     use crate::{
@@ -124,24 +95,25 @@ mod test {
         util::{validate, Day::Day12, Part::Part1},
     };
 
-    use super::{evaluate, solve, Grid};
+    use super::{evaluate, solve};
 
     #[test]
     fn test_solve() {
-        dbg!(solve());
+        validate(solve, 1361494, Day12(Part1));
     }
 
     #[test]
     fn test_evaluate() {
-        let result = evaluate(SIMPLE);
-        dbg!(result);
+        assert_eq!(evaluate(SIMPLE), 140);
+        assert_eq!(evaluate(HARDER), 772);
+        assert_eq!(evaluate(example!()), 1930);
     }
 
-    #[test]
-    fn test_grid_display() {
-        let grid = Grid::new(example!());
-        println!("{grid}");
-    }
+    static HARDER: &str = r"OOOOO
+OXOXO
+OOOOO
+OXOXO
+OOOOO";
 
     static SIMPLE: &str = r"AAAA
 BBCD
