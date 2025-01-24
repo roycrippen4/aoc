@@ -62,17 +62,16 @@ fn shift(data: &mut [Option<usize>]) {
             }
         }
 
-        if let Some(gap_idx) = found {
-            let (gstart, glen) = gaps[gap_idx];
-            let (left, right) = data.split_at_mut(file_start);
-            left[gstart..gstart + file_size].swap_with_slice(&mut right[0..file_size]);
-            let new_gstart = gstart + file_size;
-            let new_glen = glen - file_size;
-            if new_glen == 0 {
-                gaps.remove(gap_idx);
-            } else {
-                gaps[gap_idx] = (new_gstart, new_glen);
-            }
+        let Some(gap_idx) = found else { continue };
+        let (gstart, glen) = gaps[gap_idx];
+        let (left, right) = data.split_at_mut(file_start);
+        left[gstart..gstart + file_size].swap_with_slice(&mut right[0..file_size]);
+        let new_gstart = gstart + file_size;
+        let new_glen = glen - file_size;
+        if new_glen == 0 {
+            gaps.remove(gap_idx);
+        } else {
+            gaps[gap_idx] = (new_gstart, new_glen);
         }
     }
 }
