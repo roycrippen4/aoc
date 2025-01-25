@@ -94,7 +94,7 @@ mod test {
         assert_eq!(20, result);
     }
 
-    static SIMPLE1: &str = "012345
+    const SIMPLE1: &str = "012345
 123456
 234567
 345678

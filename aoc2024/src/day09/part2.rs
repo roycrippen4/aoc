@@ -118,7 +118,7 @@ mod test {
 
     use super::{collect_files, evaluate, expand, solve};
 
-    static EXAMPLE: &str = "2333133121414131402";
+    const EXAMPLE: &str = "2333133121414131402";
 
     #[test]
     fn test_solve() {
@@ -143,7 +143,7 @@ mod test {
         assert_eq!("00992111777.44.333....5555.6666.....8888..", result);
     }
 
-    static DATA: [Option<usize>; 42] = [
+    const DATA: [Option<usize>; 42] = [
         Some(0),
         Some(0),
         None,

@@ -123,7 +123,7 @@ mod test {
         assert_eq!(1, neighbors.len());
     }
 
-    static SIMPLE: &str = r"9990999
+    const SIMPLE: &str = r"9990999
 9991999
 9992999
 6543456

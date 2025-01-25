@@ -35,7 +35,7 @@ enum Dir {
     Off = 4,
 }
 
-static MOVES: [(isize, isize, Dir); 4] = [
+const MOVES: [(isize, isize, Dir); 4] = [
     (0, -1, Dir::Right),
     (1, 0, Dir::Down),
     (0, 1, Dir::Left),

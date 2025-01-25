@@ -10,7 +10,7 @@ fn create_grid(input: &str) -> Vec<Vec<char>> {
     data.into_iter().map(|r| r.to_char_vec()).collect()
 }
 
-static XMAS: [char; 4] = ['X', 'M', 'A', 'S'];
+const XMAS: [char; 4] = ['X', 'M', 'A', 'S'];
 
 pub fn solve() -> usize {
     let g = create_grid(data!());

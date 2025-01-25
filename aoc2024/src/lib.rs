@@ -13,6 +13,6 @@ pub mod day12;
 pub mod day13;
 pub mod day14;
 
-pub static DIRECTIONS: [(isize, isize); 4] = [(1, 0), (-1, 0), (0, 1), (0, -1)];
+pub const DIRECTIONS: [(isize, isize); 4] = [(1, 0), (-1, 0), (0, 1), (0, -1)];
 
 pub mod util;

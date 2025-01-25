@@ -109,13 +109,13 @@ mod test {
         assert_eq!(evaluate(example!()), 1930);
     }
 
-    static HARDER: &str = r"OOOOO
+    const HARDER: &str = r"OOOOO
 OXOXO
 OOOOO
 OXOXO
 OOOOO";
 
-    static SIMPLE: &str = r"AAAA
+    const SIMPLE: &str = r"AAAA
 BBCD
 BBCC
 EEEC";

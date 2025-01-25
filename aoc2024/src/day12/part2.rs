@@ -181,19 +181,19 @@ mod test {
         assert_eq!(sides, 8);
     }
 
-    static LINE: &str = "
+    const LINE: &str = "
 OOO
 XXX
 OOO
 ";
 
-    static L_SHAPE: &str = "
+    const L_SHAPE: &str = "
 OXO
 XXO
 OOO
 ";
 
-    static BOX: &str = "
+    const BOX: &str = "
 OOOOO
 OXXOO
 OXXOO
@@ -201,13 +201,13 @@ OOOOO
 OOOOO
 ";
 
-    static SINGLETON: &str = "
+    const SINGLETON: &str = "
 OOO
 OXO
 OOO
 ";
 
-    static S_SHAPE: &str = "
+    const S_SHAPE: &str = "
 OOOOO
 OXOOO
 OXXOO
@@ -215,20 +215,20 @@ OOXOO
 OOOOO
 ";
 
-    static SIMPLE: &str = "
+    const SIMPLE: &str = "
 AAAA
 BBCD
 BBCC
 EEEC
 ";
-    static E: &str = "
+    const E: &str = "
 EEEEE
 EXXXX
 EEEEE
 EXXXX
 EEEEE
 ";
-    static HARD: &str = "
+    const HARD: &str = "
 AAAAAA
 AAABBA
 AAABBA

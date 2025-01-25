@@ -1,7 +1,7 @@
 use crate::{data, util::StringMethods};
 
-static MAS: [char; 3] = ['M', 'A', 'S'];
-static SAM: [char; 3] = ['S', 'A', 'M'];
+const MAS: [char; 3] = ['M', 'A', 'S'];
+const SAM: [char; 3] = ['S', 'A', 'M'];
 
 fn create_grid(input: &str) -> Vec<Vec<char>> {
     let mut data: Vec<String> = input.lines().map(String::into_padded).collect();
