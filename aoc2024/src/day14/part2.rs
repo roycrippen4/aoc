@@ -1,127 +1,52 @@
-#![allow(unused)]
-use crate::util::StringMethods;
+use rayon::prelude::*;
 
 use crate::data;
 
-use super::Robot;
-
-// fn show_board(robots: &[Robot], width: usize, height: usize, step: usize) {
-//     use crate::util::StringMethods;
-
-//     println!();
-
-//     let mut grid: Vec<Vec<char>> = Vec::with_capacity(height);
-//     (0..height).for_each(|_| grid.push(String::create_pad(width, ' ').chars().collect::<Vec<_>>()));
-
-//     robots.iter().for_each(|r| {
-//         let px = r.pos_x as usize;
-//         let py = r.pos_y as usize;
-
-//         let c = grid[py][px];
-
-//         if c == ' ' {
-//             grid[py][px] = '1';
-//         } else {
-//             let mut val = c.to_digit(10).unwrap();
-//             val += 1;
-//             grid[py][px] = char::from_digit(val, 10).unwrap();
-//         }
-//     });
-
-//     println!("-----------------------------------------------------------------------------------------------------\nStep {step}");
-//     grid.iter().for_each(|v| {
-//         println!("{}", v.iter().map(|&c| String::from(c)).join(""));
-//     });
-// }
-
-fn show_board<W: std::io::Write>(
-    writer: &mut W,
-    robots: &[Robot],
-    width: usize,
-    height: usize,
-    step: usize,
-) {
-    let mut grid: Vec<Vec<char>> = Vec::with_capacity(height);
-    (0..height).for_each(|_| {
-        let row = String::create_pad(width, '.').chars().collect::<Vec<_>>();
-        grid.push(row);
-    });
-
-    // Mark each robot position on the grid
-    robots.iter().for_each(|r| {
-        let px = r.pos_x as usize;
-        let py = r.pos_y as usize;
-
-        let current_char = grid[py][px];
-        if current_char == '.' {
-            grid[py][px] = '#';
-        }
-        // else {
-        //     let mut val = current_char.to_digit(10).unwrap();
-        //     val += 1;
-        //     grid[py][px] = char::from_digit(val, 10).unwrap();
-        // }
-    });
-
-    writeln!(writer).unwrap();
-    writeln!(
-        writer,
-        "-----------------------------------------------------------------------------------------------------"
-    ).unwrap();
-    writeln!(writer, "Step {step}").unwrap();
-
-    // Write the grid rows
-    for row in &grid {
-        let line: String = row.iter().collect();
-        writeln!(writer, "{}", line).unwrap();
-    }
-}
-
-fn parse_input(input: &str) -> Vec<Robot> {
-    input.trim().split('\n').map(Robot::from).collect()
-}
-
-fn evaluate(data: &str, width: usize, height: usize, steps: usize) -> usize {
-    let mut file = std::fs::File::create("output.txt").unwrap();
-    let mut robots: Vec<_> = parse_input(data);
-
-    for _ in 1..steps {
-        robots
-            .iter_mut()
-            .for_each(|r| r.move_to_final_pos(width, height, 1));
-
-        show_board(&mut file, &robots, width, height, 1);
-    }
-
-    0
-}
+use super::{parse_input, HEIGHT, WIDTH};
 
 pub fn solve() -> usize {
-    println!("I cheesed this problem...");
-    6532
-    // evaluate(data!(), 101, 103, 10000)
+    let robots = parse_input(data!());
+
+    (1..WIDTH * HEIGHT)
+        .into_par_iter()
+        .filter_map(|i| {
+            let mut occupied = [[false; WIDTH as usize]; HEIGHT as usize];
+            for robot in robots.iter().map(|r| r.update(i)) {
+                occupied[robot.pos_y as usize][robot.pos_x as usize] = true;
+            }
+
+            for row in &occupied {
+                let mut run_length = 0;
+                for &cell in row {
+                    if cell {
+                        run_length += 1;
+                    } else {
+                        run_length = 0;
+                    }
+
+                    if run_length >= 11 {
+                        return Some(i);
+                    }
+                }
+            }
+
+            None
+        })
+        .collect::<Vec<_>>()[0] as usize
 }
 
-#[allow(unused)]
 #[cfg(test)]
 mod test {
     use crate::{
-        example,
-        util::{validate, Day::Day14, Part::Part1},
+        day14::Robot,
+        util::{validate, Day::Day14, Part::Part2},
     };
 
-    use super::{evaluate, solve, Robot};
+    use super::solve;
 
     #[test]
     fn test_solve() {
-        solve();
-        // validate(solve, 230900224, Day14(Part1));
-    }
-
-    #[test]
-    fn test_evaluate() {
-        let result = evaluate(example!(), 11, 7, 100);
-        assert_eq!(result, 12);
+        validate(solve, 6532, Day14(Part2));
     }
 
     #[test]

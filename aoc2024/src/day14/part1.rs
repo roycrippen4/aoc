@@ -1,52 +1,30 @@
-use super::Robot;
+use super::{calculate_safty, parse_input, HEIGHT, WIDTH};
 use crate::data;
 
-fn parse_input(input: &str) -> Vec<Robot> {
-    input.trim().split('\n').map(Robot::from).collect()
-}
-
-fn evaluate(data: &str, width: usize, height: usize, steps: usize) -> usize {
+pub fn evaluate(data: &str, steps: isize, width: Option<isize>, height: Option<isize>) -> usize {
     let mut robots: Vec<_> = parse_input(data);
+    let width = width.unwrap_or(WIDTH);
+    let height = height.unwrap_or(HEIGHT);
     robots
         .iter_mut()
         .for_each(|r| r.move_to_final_pos(width, height, steps));
 
-    let skip_x = width / 2;
-    let skip_y = height / 2;
-    let mut top_left_count = 0;
-    let mut top_right_count = 0;
-    let mut bot_left_count = 0;
-    let mut bot_right_count = 0;
-
-    for robot in robots {
-        let (x, y) = robot.get_position();
-        if x == skip_x || y == skip_y {
-            continue;
-        }
-
-        match (x < skip_x, y < skip_y) {
-            (true, true) => top_left_count += 1,
-            (true, false) => bot_left_count += 1,
-            (false, true) => top_right_count += 1,
-            (false, false) => bot_right_count += 1,
-        };
-    }
-
-    top_left_count * top_right_count * bot_left_count * bot_right_count
+    calculate_safty(&robots, width, height)
 }
 
 pub fn solve() -> usize {
-    evaluate(data!(), 101, 103, 100)
+    evaluate(data!(), 100, None, None)
 }
 
 #[cfg(test)]
 mod test {
     use crate::{
+        day14::Robot,
         example,
         util::{validate, Day::Day14, Part::Part1},
     };
 
-    use super::{evaluate, solve, Robot};
+    use super::{evaluate, solve};
 
     #[test]
     fn test_solve() {
@@ -55,8 +33,7 @@ mod test {
 
     #[test]
     fn test_evaluate() {
-        let result = evaluate(example!(), 11, 7, 100);
-        assert_eq!(result, 12);
+        assert_eq!(evaluate(example!(), 100, Some(11), Some(7)), 12);
     }
 
     #[test]
