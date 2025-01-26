@@ -29,7 +29,7 @@ fn get_time_range(t: &Duration) -> TimeRange {
     }
 }
 
-fn colorize_time(t: &Duration) -> String {
+pub fn colorize_time(t: &Duration) -> String {
     let range = get_time_range(t);
     match range {
         TimeRange::Nanoseconds => rgb!(format!("{:#?}", t), 0, 255, 0),

@@ -9,4 +9,4 @@ pub use aoc::{Day, Part};
 pub use point::Point;
 pub use quicksort::quicksort;
 pub use string_methods::StringMethods;
-pub use timing::{perf, validate};
+pub use timing::{colorize_time, perf, validate};

@@ -1,5 +1,6 @@
 use core::fmt;
 
+#[derive(Debug, Clone, Copy)]
 pub enum Part {
     Part1,
     Part2,
@@ -15,6 +16,7 @@ impl fmt::Display for Part {
     }
 }
 
+#[derive(Debug, Clone, Copy)]
 pub enum Day {
     Day01(Part),
     Day02(Part),

@@ -29,7 +29,7 @@ fn is_safe(values: &[isize]) -> bool {
     true
 }
 
-pub fn solve() -> isize {
+pub fn solve() -> usize {
     data!()
         .lines()
         .map(into_isize_vec)
