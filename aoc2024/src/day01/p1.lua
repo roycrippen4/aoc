@@ -20,27 +20,6 @@ local function now()
 	return tonumber(tv.tv_sec) * 1000000 + tonumber(tv.tv_usec)
 end
 
----Print contents of `tbl`, with indentation.
----`indent` sets the initial level of indentation.
----@param tbl table
----@param indent number?
-local function tprint(tbl, indent)
-	indent = indent or 0
-
-	for k, v in pairs(tbl) do
-		local formatting = ("  "):rep(indent) .. k .. ": "
-
-		if type(v) == "table" then
-			print(formatting .. "{")
-			tprint(v, indent + 1)
-			print(("  "):rep(indent) .. "}")
-		else
-			local value = type(v) == "boolean" and tostring(v) or v
-			print(formatting .. tostring(value))
-		end
-	end
-end
-
 ---Reads text from an absolute path into a string array by line
 ---@param path string
 ---@return string[]
