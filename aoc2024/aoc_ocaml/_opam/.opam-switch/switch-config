@@ -1,0 +1,11 @@
+opam-version: "2.0"
+synopsis: "ocaml-base-compiler = 5.3.0 | ocaml-system = 5.3.0"
+opam-root: "/home/roy/.opam"
+invariant: ["ocaml-base-compiler" {= "5.3.0"} | "ocaml-system" {= "5.3.0"}]
+paths {
+  
+}
+variables {
+  user: "roy"
+  group: "roy"
+}
