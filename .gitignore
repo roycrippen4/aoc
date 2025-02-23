@@ -2,3 +2,4 @@
 **/Cargo.lock
 **/.idea/
 **/.zig-cache/
+**/_build/**
