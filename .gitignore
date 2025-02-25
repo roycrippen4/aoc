@@ -3,3 +3,4 @@
 **/.idea/
 **/.zig-cache/
 **/_build/**
+**/_build_lsp/**
