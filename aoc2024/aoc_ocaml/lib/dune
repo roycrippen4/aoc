@@ -1,2 +1,6 @@
 (library
- (name lib))
+ (name lib)
+ (libraries unix)
+ (inline_tests)
+ (preprocess
+  (pps ppx_inline_test)))
