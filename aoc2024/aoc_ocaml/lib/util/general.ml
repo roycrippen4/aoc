@@ -1,6 +1,9 @@
 (** Returns [string array] from the file contents located at [filepath] separated by newlines *)
-let readlines (filepath : string) : string array =
-  In_channel.with_open_text filepath In_channel.input_lines |> Array.of_list
+let read_to_lines filepath =
+  In_channel.with_open_text filepath In_channel.input_lines
+
+let read_to_string filepath =
+  In_channel.with_open_text filepath In_channel.input_all
 
 (** Split the string [str] by character [delim] and filter empty results out  *)
 let split delim str =

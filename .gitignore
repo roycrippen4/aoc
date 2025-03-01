@@ -2,5 +2,6 @@
 **/Cargo.lock
 **/.idea/
 **/.zig-cache/
-**/_build/**
-**/_build_lsp/**
+**/_build
+**/_build_lsp
+**/_opam
