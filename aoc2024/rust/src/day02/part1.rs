@@ -4,25 +4,11 @@ use super::into_isize_vec;
 
 /// determines if a given string is safe
 fn is_safe(values: &[isize]) -> bool {
-    let mut direction = None;
+    let direction = values[1] - values[0] > 0;
     for w in values.windows(2) {
         let diff = w[1] - w[0];
-        if diff == 0 {
+        if diff == 0 || diff.abs() > 3 || (diff > 0) != direction {
             return false;
-        }
-
-        if direction.is_none() {
-            if diff > 0 {
-                direction = Some(true);
-            } else {
-                direction = Some(false);
-            }
-        }
-
-        match direction {
-            Some(true) if !(1..=3).contains(&diff) => return false,
-            Some(false) if !(-3..=-1).contains(&diff) => return false,
-            _ => {}
         }
     }
 
