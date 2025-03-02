@@ -6,8 +6,14 @@ let read_to_string filepath =
   In_channel.with_open_text filepath In_channel.input_all
 
 (** Split the string [str] by character [delim] and filter empty results out  *)
-let split delim str =
+let split_to_string delim str =
   String.split_on_char delim str |> List.filter (fun s -> s <> "")
+
+(** Split the string [str] by character [delim] and filter empty results out  *)
+let split_to_int delim str =
+  String.split_on_char delim str
+  |> List.filter (fun s -> s <> "")
+  |> List.map int_of_string
 
 (** applies function [f] to the tuple [(a, b)] as [(f a, f b)] *)
 let map_tuple f (a, b) = (f a, f b)
