@@ -22,51 +22,21 @@ let parse_line (left, right) line =
   | [ l; r ] -> (left @ [ int_of_string l ], right @ [ int_of_string r ])
   | _ -> failwith "split failure"
 
-type entry = { mutable l_count : int; mutable r_count : int }
-
-let count_occurances right n = List.length (List.filter (fun x -> x = n) right)
-
-let insert_new_entry hash right left_n =
-  Hashtbl.add hash left_n
-    { l_count = 1; r_count = count_occurances right left_n }
-
-let update_entry hash left_n =
-  let entry = Hashtbl.find hash left_n in
-  entry.l_count <- entry.l_count + 1
-
-let update_hash hash right left_n =
-  match Hashtbl.mem hash left_n with
-  | false -> insert_new_entry hash right left_n
-  | true -> update_entry hash left_n
+let lookup table n right =
+  match Hashtbl.find_opt table n with
+  | Some item -> n * item
+  | None ->
+      let count = List.filter (fun x -> x = n) right |> List.length in
+      let () = Hashtbl.add table n count in
+      n * count
 
 let solve2 () =
   let left, right = List.fold_left parse_line ([], []) lines in
   let hash = Hashtbl.create 1000 in
-  let () = List.iter (fun n -> update_hash hash right n) left in
-  let result = ref 0 in
-  let () =
-    Hashtbl.iter
-      (fun key { l_count; r_count } ->
-        result := !result + (key * l_count * r_count))
-      hash
-  in
-  !result
+  List.fold_left (fun acc n -> acc + lookup hash n right) 0 left
 
 let part2 () = validate solve2 23126924 "01" Two
 let solution : solution = { part1; part2 }
-
-let%test "test solve2" =
-  let left, right = List.fold_left parse_line ([], []) lines in
-  let hash = Hashtbl.create 1000 in
-  let () = List.iter (fun n -> update_hash hash right n) left in
-  let result = ref 0 in
-  let () =
-    Hashtbl.iter
-      (fun key { l_count; r_count } ->
-        result := !result + (key * l_count * r_count))
-      hash
-  in
-  !result = 23126924
 
 let%test "test parse_line" =
   let lefts, rights = parse_line ([], []) "60236   87497" in
