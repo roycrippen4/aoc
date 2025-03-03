@@ -2,4 +2,5 @@ open Lib
 
 let _ = day01.part1 ()
 let _ = day01.part2 ()
-let _ = day02 ()
+let _ = day02.part1 ()
+let _ = day02.part2 ()
