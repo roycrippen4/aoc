@@ -4,22 +4,18 @@
 
 (generate_opam_files true)
 
-(source
- (github username/reponame))
+(homepage "www.example.com")
+(bug_reports "www.example.com")
+(authors "Roy E. Crippen IV")
+(maintainers "Roy E. Crippen IV")
 
-(authors "Author Name <author@example.com>")
-
-(maintainers "Maintainer Name <maintainer@example.com>")
-
-(license LICENSE)
-
-(documentation https://url/to/documentation)
+(license MIT)
 
 (package
  (name aoc_ocaml)
- (synopsis "A short synopsis")
+ (synopsis "Advent of code 2024 Solutions in Ocaml")
  (description "A longer description")
- (depends ocaml)
+ (depends ocaml ppx_inline_test re)
  (tags
   ("add topics" "to describe" your project)))
 
