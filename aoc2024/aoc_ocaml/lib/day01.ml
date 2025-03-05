@@ -1,6 +1,6 @@
 open Util
 
-let lines = read_to_lines "../data/day01/data.txt"
+let lines = read_to_lines "/home/roy/dev/aoc/aoc2024/data/day01/data.txt"
 
 let split_to_side (left, right) line =
   let split_line = split_to_string ' ' line |> Array.of_list in

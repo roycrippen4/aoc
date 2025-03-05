@@ -1,7 +1,8 @@
 open Util
 
 let input =
-  read_to_lines "../data/day02/data.txt" |> List.map (split_to_int ' ')
+  read_to_lines "/home/roy/dev/aoc/aoc2024/data/day02/data.txt"
+  |> List.map (split_to_int ' ')
 
 let pair_is_safe (x, y) d =
   let diff = x - y in
