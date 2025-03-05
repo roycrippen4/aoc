@@ -22,6 +22,11 @@ let map_tuple f (a, b) = (f a, f b)
    `r`, `g`, and `b` values range from 0 to 255; *)
 let rgb str r g b = Printf.sprintf "\x1b[38;2;%d;%d;%dm%s\x1b[0m" r g b str
 
+let destructure_list_pair = function
+  | [] -> assert false
+  | [ _ ] -> assert false
+  | x :: y :: _ -> (x, y)
+
 let windows n lst =
   let rec build_window n acc = function
     | [] -> None
