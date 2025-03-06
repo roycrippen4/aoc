@@ -1,6 +1,7 @@
 open Util
 
 let lines = read_to_lines "/home/roy/dev/aoc/aoc2024/data/day01/data.txt"
+let example = read_to_lines "/home/roy/dev/aoc/aoc2024/data/day01/example.txt"
 
 let split_to_side (left, right) line =
   let split_line = split_to_string ' ' line |> Array.of_list in
@@ -15,26 +16,18 @@ let solve1 () =
   Array.init (Array.length left) (fun i -> abs (left.(i) - right.(i)))
   |> Array.fold_left ( + ) 0
 
-let part1 () = validate solve1 1506483 "01" One
-
 let parse_line (left, right) line =
   match split_to_string ' ' line with
   | [ l; r ] -> (left @ [ int_of_string l ], right @ [ int_of_string r ])
-  | _ -> failwith "split failure"
+  | _ -> assert false
 
-let lookup table n right =
-  match Hashtbl.find_opt table n with
-  | Some item -> n * item
-  | None ->
-      let count = List.filter (fun x -> x = n) right |> List.length in
-      let () = Hashtbl.add table n count in
-      n * count
+let count_elems lst n = n * (List.filter (fun x -> x = n) lst |> List.length)
 
 let solve2 () =
   let left, right = List.fold_left parse_line ([], []) lines in
-  let hash = Hashtbl.create 1000 in
-  List.fold_left (fun acc n -> acc + lookup hash n right) 0 left
+  List.fold_left (fun acc l -> acc + count_elems right l) 0 left
 
+let part1 () = validate solve1 1506483 "01" One
 let part2 () = validate solve2 23126924 "01" Two
 let solution : solution = { part1; part2 }
 
