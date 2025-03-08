@@ -5,8 +5,11 @@
 (generate_opam_files true)
 
 (homepage "www.example.com")
+
 (bug_reports "www.example.com")
+
 (authors "Roy E. Crippen IV")
+
 (maintainers "Roy E. Crippen IV")
 
 (license MIT)
@@ -15,7 +18,12 @@
  (name aoc_ocaml)
  (synopsis "Advent of code 2024 Solutions in Ocaml")
  (description "A longer description")
- (depends ocaml ppx_inline_test re)
+ (depends
+  ocaml
+  dune
+  (ppx_inline_test :with-test)
+  re
+  batteries)
  (tags
   ("add topics" "to describe" your project)))
 

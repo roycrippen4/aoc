@@ -9,10 +9,11 @@ tags: ["add topics" "to describe" "your" "project"]
 homepage: "www.example.com"
 bug-reports: "www.example.com"
 depends: [
-  "dune" {>= "3.17"}
   "ocaml"
-  "ppx_inline_test"
+  "dune" {>= "3.17"}
+  "ppx_inline_test" {with-test}
   "re"
+  "batteries"
   "odoc" {with-doc}
 ]
 build: [
