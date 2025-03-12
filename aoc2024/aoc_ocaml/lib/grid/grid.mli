@@ -56,9 +56,17 @@ val get : 'a t -> position -> 'a
 (** [get g p] returns the value at position [p]. Raises [Invalid_argument] if
     the position is out of bounds. *)
 
+val get_opt : 'a t -> position -> 'a option
+(** [get_opt g p] returns [Some] value at position [p]. Returns [None] if the
+    position is out of bounds. *)
+
 val set : 'a t -> position -> 'a -> unit
 (** [set g p v] sets the value at position [p], with [v]. Raises
     [Invalid_argument] if the position is out of bounds. *)
+
+val set_opt : 'a t -> position -> 'a -> unit option
+(** [set g p v] sets the value at position [p], with [v]. Returns [Some unit] if
+    the value at [p] is updated. Otherwise returns [None] *)
 
 val inside : 'a t -> position -> bool
 (** [inside g p] indicates whether position [p] is a legal position in [g] *)
@@ -134,6 +142,9 @@ val fold8 : (position -> 'a -> 'acc -> 'acc) -> 'a t -> position -> 'acc -> 'acc
 (** {e [iter] and [fold] both begin at the top left of the grid and move left to
        right in each row from top to bottom.} *)
 
+val flatten : 'a t -> 'a array
+val enumerate : 'a t -> (int * int * 'a) array array
+
 val iter : (position -> 'a -> unit) -> 'a t -> unit
 (** [iter f g] applies function [f] at each position of the grid [g] *)
 
@@ -143,6 +154,10 @@ val fold : (position -> 'a -> 'acc -> 'acc) -> 'a t -> 'acc -> 'acc
 val find : (position -> 'a -> bool) -> 'a t -> position
 (** [find f g] returns a position in [g] where [f] holds, or raises [Not_found]
     if there is none *)
+
+val find_opt : (position -> 'a -> bool) -> 'a t -> position option
+(** [find f g] returns [Some] position in [g] where [f] holds, or returns [None]
+*)
 
 val print :
   ?bol:(Format.formatter -> int -> unit) ->
@@ -170,5 +185,15 @@ val print_chars : Format.formatter -> char t -> unit
 
 val read : in_channel -> char t
 (** [read c] reads a grid of characters from the input channel [c]. Raises
+    [Invalid_argument] if the lines do not have the same length, or there is no
+    line at all. *)
+
+val from_file : string -> char t
+(** [read path] creates an input channel [c] from filepath [p] and reads a grid
+    of characters from [c]. Raises [Invalid_argument] if the lines do not have
+    the same length, or there is no line at all. *)
+
+val of_string : string -> char t
+(** [grid_of_string s] reads a grid of characters from [s]. Raises
     [Invalid_argument] if the lines do not have the same length, or there is no
     line at all. *)

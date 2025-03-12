@@ -16,7 +16,14 @@ let init h w f =
 let copy g = init (height g) (width g) (fun (i, j) -> g.(i).(j))
 let inside g (i, j) = 0 <= i && i < height g && 0 <= j && j < width g
 let get g (i, j) = g.(i).(j)
+let get_opt g (i, j) = try Some g.(i).(j) with Invalid_argument _ -> None
 let set g (i, j) v = g.(i).(j) <- v
+
+let set_opt g (i, j) v =
+  try
+    g.(i).(j) <- v;
+    Some ()
+  with Invalid_argument _ -> None
 
 type direction = N | NW | W | SW | S | SE | E | NE
 
@@ -91,6 +98,12 @@ let iter f g =
     done
   done
 
+let flatten g = Array.fold_left Array.append [||] g
+
+let enumerate g =
+  g
+  |> Array.mapi (fun i row -> row |> Array.mapi (fun j value -> (i, j, value)))
+
 let fold f g acc =
   let rec fold ((i, j) as p) acc =
     if i = height g then acc
@@ -98,6 +111,13 @@ let fold f g acc =
     else fold (i, j + 1) (f p g.(i).(j) acc)
   in
   fold (0, 0) acc
+
+let find_opt f g =
+  let exception Found of position in
+  try
+    iter (fun p c -> if f p c then raise (Found p)) g;
+    None
+  with Found p -> Some p
 
 let find f g =
   let exception Found of position in
@@ -121,6 +141,21 @@ let read c =
         g
   in
   scan []
+
+let of_string str =
+  let g =
+    String.split_on_char '\n' str
+    |> Array.of_list
+    |> Array.map (fun s -> Array.of_list (Batteries.String.explode s))
+  in
+  if Array.length g = 0 then invalid_arg "Grid.read";
+  let w = Array.length g.(0) in
+  for i = 1 to height g - 1 do
+    if Array.length g.(i) <> w then invalid_arg "Grid.read"
+  done;
+  g
+
+let from_file path = In_channel.with_open_text path (fun ic -> read ic)
 
 let print ?(bol = fun _fmt _i -> ())
     ?(eol = fun fmt _i -> Format.pp_print_newline fmt ())
