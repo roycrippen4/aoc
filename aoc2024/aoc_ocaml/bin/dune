@@ -1,4 +1,4 @@
 (executable
  (public_name aoc_ocaml)
  (name main)
- (libraries lib unix))
+ (libraries lib))
