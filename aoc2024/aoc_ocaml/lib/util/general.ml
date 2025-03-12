@@ -1,32 +1,18 @@
-(** Returns [string list] from the file contents located at [filepath] separated
-    by newlines *)
 let read_to_lines filepath =
   In_channel.with_open_text filepath In_channel.input_lines
 
 let read_to_string filepath =
   In_channel.with_open_text filepath In_channel.input_all
 
-(** Split the string [str] by character [delim] and filter empty results out *)
 let split_to_string delim str =
   String.split_on_char delim str |> List.filter (fun s -> s <> "")
 
-(** Split the string [str] by character [delim] and filter empty results out *)
 let split_to_int delim str =
   String.split_on_char delim str
   |> List.filter (fun s -> s <> "")
   |> List.map int_of_string
 
-(** applies function [f] to the tuple [(a, b)] as [(f a, f b)] *)
 let map_tuple f (a, b) = (f a, f b)
-
-(** Colors string `s` fg color with `r`, `g`, `b` values using ansci escape
-    codes. `r`, `g`, and `b` values range from 0 to 255; *)
-let rgb str r g b = Printf.sprintf "\x1b[38;2;%d;%d;%dm%s\x1b[0m" r g b str
-
-let destructure_list_pair = function
-  | [] -> assert false
-  | [ _ ] -> assert false
-  | x :: y :: _ -> (x, y)
 
 let windows n lst =
   let rec build_window n acc = function
@@ -42,6 +28,13 @@ let windows n lst =
   in
   aux [] lst
 
+let enumerate_list lst =
+  List.mapi (fun i x -> (i, x)) lst
+
+let enumerate_array arr =
+  Array.mapi (fun i x -> (i, x)) arr
+  
+
 let ( /.. ) i j =
   let rec aux n acc = if n <= i then acc else aux (n - 1) ((n - 1) :: acc) in
   aux j []
@@ -50,6 +43,31 @@ let ( /..= ) i j =
   let rec aux n acc = if n < i then acc else aux (n - 1) (n :: acc) in
   aux j []
 
+let ( += ) x y = x := !x + y
+let ( +=. ) x y = x := !x +. y
+let ( -= ) x y = x := !x - y
+let ( -=. ) x y = x := !x -. y
+let ( /= ) x y = x := !x / y
+let ( /=. ) x y = x := !x /. y
+let ( % ) x y = x mod y
+let ( %= ) x y = x := !x mod y
+
+let%test _ =
+  let x = ref 5 in
+  x += 5;
+  !x = 10
+
+let%test _ =
+  let x = ref 5 in
+  x -= 5;
+  !x = 0
+
+let%test _ =
+  let x = ref 6 in
+  x /= 5;
+  !x = 1
+
+let%test _ = 6 % 5 = 1
 let%test _ = windows 3 [] = []
 let%test _ = windows 1 [ 1; 2; 3 ] = [ [ 1 ]; [ 2 ]; [ 3 ] ]
 let%test _ = windows 2 [ 1; 2 ] = [ [ 1; 2 ] ]

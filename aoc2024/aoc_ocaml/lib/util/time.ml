@@ -1,5 +1,6 @@
 type timerange = Sec | MilSlow | MilMed | MilFast | Micro
 
+let rgb str r g b = Printf.sprintf "\x1b[38;2;%d;%d;%dm%s\x1b[0m" r g b str
 let string_of_timerange = function Sec -> "s" | Micro -> "µs" | _ -> "ms"
 
 (** [get_time_range t] takes a time [t] in microseconds and categorizes it. *)
@@ -11,11 +12,11 @@ let get_time_range t =
   | t when t > 0.001 -> MilFast
   | _ -> Micro
 
-let color_seconds t = General.rgb (t ^ string_of_timerange Sec) 255 0 0
-let color_mil_slow t = General.rgb (t ^ string_of_timerange MilSlow) 255 82 0
-let color_mil_med t = General.rgb (t ^ string_of_timerange MilMed) 255 165 0
-let color_mil_fast t = General.rgb (t ^ string_of_timerange MilFast) 127 210 0
-let color_micro t = General.rgb (t ^ string_of_timerange Micro) 0 255 0
+let color_seconds t = rgb (t ^ string_of_timerange Sec) 255 0 0
+let color_mil_slow t = rgb (t ^ string_of_timerange MilSlow) 255 82 0
+let color_mil_med t = rgb (t ^ string_of_timerange MilMed) 255 165 0
+let color_mil_fast t = rgb (t ^ string_of_timerange MilFast) 127 210 0
+let color_micro t = rgb (t ^ string_of_timerange Micro) 0 255 0
 
 let colorize_time t =
   let range = get_time_range t in

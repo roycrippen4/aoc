@@ -3,6 +3,14 @@ type part = Solution.part
 
 let ( /.. ) = General.( /.. )
 let ( /..= ) = General.( /..= )
+let ( += ) = General.( += )
+let ( +=. ) = General.( +=. )
+let ( -= ) = General.( -= )
+let ( -=. ) = General.( -=. )
+let ( /= ) = General.( /= )
+let ( /=. ) = General.( /=. )
+let ( % ) = General.( % )
+let ( %= ) = General.( %= )
 let map_tuple = General.map_tuple
 let pp_int_list = Fmt.pp_int_list
 let pp_int_list_list = Fmt.pp_int_list_list
@@ -15,4 +23,3 @@ let split_to_int = General.split_to_int
 let split_to_string = General.split_to_string
 let validate = Solution.validate
 let windows = General.windows
-let destructure_list_pair = General.destructure_list_pair
