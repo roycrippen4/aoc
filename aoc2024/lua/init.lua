@@ -1,7 +1,7 @@
 package.path = package.path .. ";./?/init.lua"
+_G.utils = require("utils")
 
-local utils = require("utils")
 local day01 = require("day01")
 
-utils.time_fn(day01.part1)
-utils.time_fn(day01.part2)
+utils.time(day01.part1, 1, 1)
+utils.time(day01.part2, 1, 2)
