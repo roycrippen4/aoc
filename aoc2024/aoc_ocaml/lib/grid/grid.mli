@@ -149,7 +149,11 @@ val iter : (position -> 'a -> unit) -> 'a t -> unit
 (** [iter f g] applies function [f] at each position of the grid [g] *)
 
 val fold : (position -> 'a -> 'acc -> 'acc) -> 'a t -> 'acc -> 'acc
-(** [fold f g] folds function [f] over each position of the grid [g] *)
+(** [fold f g] folds function [f] over each position of [g] *)
+
+val filter : (int * int -> 'a -> bool) -> 'a array array -> (int * int) list
+(** [filter f g] Returns the positions of elements that satisfy the predicate
+    [f] over each element of [g] *)
 
 val find : (position -> 'a -> bool) -> 'a t -> position
 (** [find f g] returns a position in [g] where [f] holds, or raises [Not_found]

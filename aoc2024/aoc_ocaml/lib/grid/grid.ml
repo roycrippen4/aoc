@@ -112,6 +112,10 @@ let fold f g acc =
   in
   fold (0, 0) acc
 
+let filter f g =
+  let f' p v acc = if f p v then p :: acc else acc in
+  fold f' g []
+
 let find_opt f g =
   let exception Found of position in
   try
