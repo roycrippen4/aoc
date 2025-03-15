@@ -174,3 +174,6 @@ let print ?(bol = fun _fmt _i -> ())
   done
 
 let print_chars = print (fun fmt _ c -> Format.pp_print_char fmt c)
+
+let%test _ =
+  "XMX\nMXA\nAMX" |> of_string |> filter (fun _ v -> v = 'X') |> List.length = 4

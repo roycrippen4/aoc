@@ -38,6 +38,8 @@ val pp_int_list : int list -> unit
 val pp_int_list_list : int list list -> unit
 val pp_string_list : string list -> unit
 val pp_string_list_list : string list list -> unit
+val pp_char_list : char list -> unit
+val pp_char_list_list : char list list -> unit
 
 val read_to_lines : string -> string list
 (** Returns [string list] from the file contents located at [filepath] separated

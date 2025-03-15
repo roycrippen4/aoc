@@ -35,6 +35,22 @@ let _pp_string_list fmt lst =
   fprintf fmt " ]";
   pp_close_box fmt ()
 
+let _pp_char_list fmt lst =
+  pp_open_box fmt 2;
+  fprintf fmt "[ @,";
+
+  let rec loop = function
+    | [] -> ()
+    | [ x ] -> pp_char fmt x
+    | x :: xs ->
+        fprintf fmt "%c; @," x;
+        loop xs
+  in
+
+  loop lst;
+  fprintf fmt " ]";
+  pp_close_box fmt ()
+
 let _pp_array pp_elt fmt arr =
   Format.fprintf fmt "[|";
   Array.iteri
@@ -46,6 +62,8 @@ let _pp_array pp_elt fmt arr =
 
 let pp_int_list lst = printf "%a@." _pp_int_list lst
 let pp_int_list_list lst = List.iter pp_int_list lst
+let pp_char_list lst = printf "%a@." _pp_char_list lst
+let pp_char_list_list lst = List.iter pp_char_list lst
 let pp_string_list lst = printf "%a@." _pp_string_list lst
 let pp_string_list_list lst = List.iter pp_string_list lst
 let pp_array pp_elt arr = printf "%a\n" (_pp_array pp_elt) arr

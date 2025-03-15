@@ -185,7 +185,8 @@ val print :
     nothing. *)
 
 val print_chars : Format.formatter -> char t -> unit
-(** prints a grid of characters using [Format.pp_print_char] *)
+(** prints a grid of characters using [Format.pp_print_char] Example:
+    [Format.printf "%a" print_chars g;] *)
 
 val read : in_channel -> char t
 (** [read c] reads a grid of characters from the input channel [c]. Raises
