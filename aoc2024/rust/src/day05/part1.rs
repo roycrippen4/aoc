@@ -45,15 +45,10 @@ fn parse_order_rules(s: &str) -> OrderMap {
 
 fn evaluate(update: &[usize], map: &OrderMap) -> usize {
     for i in 0..update.len() - 1 {
-        let key = update[i];
-        let value = update[i + 1];
-
-        if let Some(mapping) = map.get(&key) {
-            if !mapping.contains(&value) {
-                return 0;
-            }
-        } else {
-            return 0;
+        match map.get(&update[i]) {
+            Some(mapping) if !mapping.contains(&update[i + 1]) => return 0,
+            None => return 0,
+            _ => (),
         }
     }
     get_middle(update)
