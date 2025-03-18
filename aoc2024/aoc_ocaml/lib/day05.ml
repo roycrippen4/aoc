@@ -1,13 +1,22 @@
 open Util
 open Batteries
 
-let example = read_to_string "/home/roy/dev/aoc/aoc2024/data/day05/data.txt"
-let _rules, _updates = String.split example ~by:"\n\n"
+let input = read_to_string "/home/roy/dev/aoc/aoc2024/data/day05/data.txt"
+
+(* parses rules *)
+let rule s = String.(trim s |> split ~by:"|") |> map_tuple int_of_string
+let parse_rules s = String.split_on_char '\n' s |> List.map rule
+
+(* parses updates *)
+let update s = String.split_on_char ',' s |> List.map int_of_string
+let parse_updates s = String.(trim s |> split_on_char '\n') |> List.map update
+
+(* Gets the middle element*)
 let middle vs = List.nth vs (List.length vs / 2)
-let to_rule s = String.(trim s |> split ~by:"|") |> map_tuple int_of_string
-let rules = String.split_on_char '\n' _rules |> List.map to_rule
-let to_update s = String.split_on_char ',' s |> List.map int_of_string
-let updates = String.(trim _updates |> split_on_char '\n') |> List.map to_update
+
+let rules, updates =
+  let rs, us = String.split input ~by:"\n\n" in
+  (parse_rules rs, parse_updates us)
 
 let insert_or_update tbl (k, v) =
   match Hashtbl.find_opt tbl k with
@@ -19,33 +28,44 @@ let rule_tbl =
   rules |> List.iter (insert_or_update tbl);
   tbl
 
-let mapping_contians curr next =
+let mapping_contains curr next =
   match Hashtbl.find_opt rule_tbl curr with
   | Some mapping -> List.mem next mapping
   | None -> false
 
-let eval update =
-  let rec go = function
-    | [] -> middle update
-    | [ _ ] -> middle update
-    | curr :: rest -> (
-        match mapping_contians curr (List.hd rest) with
-        | false -> raise Not_found
-        | true -> go rest)
-  in
-  try go update with Not_found -> 0
+let cmp a b = if mapping_contains a b then -1 else 1
+
+let rec is_in_order = function
+  | [] | [ _ ] -> true
+  | hd :: tl ->
+      if mapping_contains hd (List.hd tl) then is_in_order tl else false
+
+let fix_order lst =
+  let rec go l = if is_in_order l then l else go (List.sort cmp l) in
+  go lst
 
 (* exports *)
 
-let solve1 () = List.fold_left (fun acc v -> acc + eval v) 0 updates
-let solve2 () = 42
+let solve1 () =
+  let accumulate acc u = if is_in_order u then acc + middle u else acc in
+  List.fold_left accumulate 0 updates
+
+let solve2 () =
+  let filter_map v = if not (is_in_order v) then Some (fix_order v) else None in
+  let accumulate_middles acc lst = acc + middle lst in
+  updates |> List.filter_map filter_map |> List.fold_left accumulate_middles 0
+
 let part1 () = validate solve1 7198 "05" One
-let part2 () = validate solve2 42 "04" Two
+let part2 () = validate solve2 4230 "05" Two
 let solution : solution = { part1; part2 }
 
 (* tests *)
+
 let%test _ = middle [ 1; 2; 3 ] = 2
-let%test _ = to_rule "53|13" = (53, 13)
+
+let%test _ =
+  Printf.printf "\n\nAnswer: %d\n\n" (solve2 ());
+  true
 
 let%test _ =
   let tbl = Hashtbl.create 1 in
