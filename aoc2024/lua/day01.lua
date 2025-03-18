@@ -53,15 +53,6 @@ local function frequency_map(list)
 	end)
 end
 
--- let solve2 () =
---   let left_map, right_map = parse lines |> map_tuple into_frequency_map in
---   Hashtbl.fold
---     (fun n count acc ->
---       match Hashtbl.find_opt right_map n with
---       | Some count_right -> acc + (n * count * count_right)
---       | None -> acc)
---     left_map 0
-
 ---@return integer, integer
 local function part2()
 	local lines = utils.get_input(1)
