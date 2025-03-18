@@ -40,10 +40,6 @@ let rec is_in_order = function
   | hd :: tl ->
       if mapping_contains hd (List.hd tl) then is_in_order tl else false
 
-let fix_order lst =
-  let rec go l = if is_in_order l then l else go (List.sort cmp l) in
-  go lst
-
 (* exports *)
 
 let solve1 () =
@@ -51,7 +47,8 @@ let solve1 () =
   List.fold_left accumulate 0 updates
 
 let solve2 () =
-  let filter_map v = if not (is_in_order v) then Some (fix_order v) else None in
+  let sort v = List.sort cmp v in
+  let filter_map v = if not (is_in_order v) then Some (sort v) else None in
   let accumulate_middles acc lst = acc + middle lst in
   updates |> List.filter_map filter_map |> List.fold_left accumulate_middles 0
 
@@ -62,10 +59,6 @@ let solution : solution = { part1; part2 }
 (* tests *)
 
 let%test _ = middle [ 1; 2; 3 ] = 2
-
-let%test _ =
-  Printf.printf "\n\nAnswer: %d\n\n" (solve2 ());
-  true
 
 let%test _ =
   let tbl = Hashtbl.create 1 in
