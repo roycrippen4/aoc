@@ -106,6 +106,8 @@ type direction =
   | E  (** East *)
   | NE  (** Northeast *)
 
+val string_of_direction : direction -> string
+
 val move : direction -> position -> position
 (** move a position in a given direction *)
 

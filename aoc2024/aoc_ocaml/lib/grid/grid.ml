@@ -27,6 +27,16 @@ let set_opt g (i, j) v =
 
 type direction = N | NW | W | SW | S | SE | E | NE
 
+let string_of_direction = function
+  | N -> "north"
+  | S -> "south"
+  | E -> "east"
+  | W -> "west"
+  | NE -> "northeast"
+  | NW -> "northwest"
+  | SE -> "southeast"
+  | SW -> "southwest"
+
 let move d (i, j) =
   match d with
   | N -> (i - 1, j)
