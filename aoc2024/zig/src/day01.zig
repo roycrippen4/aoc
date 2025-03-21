@@ -3,6 +3,8 @@ const ArrayList = std.ArrayList;
 
 const Lists = struct { l: ArrayList(u32), r: ArrayList(u32) };
 
+const input = @embedFile("data/day01/data.txt");
+
 const ListsError = error{
     ParseFailure,
     AppendFailure,
@@ -10,8 +12,7 @@ const ListsError = error{
 
 pub fn main() !void {
     var t = try std.time.Timer.start();
-    const input = @embedFile("./data/data.txt");
-    const result = try day01Part1(input);
+    const result = try part1();
     if (1506483 != result) {
         std.debug.print("Failed to solve!", .{});
         return;
@@ -25,7 +26,7 @@ fn absDiff(x: u32, y: u32) u64 {
     return @abs(safe_x - safe_y);
 }
 
-fn parseInput(input: []const u8, allocator: std.mem.Allocator) ListsError!Lists {
+fn parseInput(allocator: std.mem.Allocator) ListsError!Lists {
     var lists: Lists = .{
         .l = ArrayList(u32).init(allocator),
         .r = ArrayList(u32).init(allocator),
@@ -45,9 +46,9 @@ fn parseInput(input: []const u8, allocator: std.mem.Allocator) ListsError!Lists 
     return lists;
 }
 
-fn day01Part1(input: []const u8) ListsError!u64 {
+pub fn part1() ListsError!u64 {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    var lists = try parseInput(input, gpa.allocator());
+    var lists = try parseInput(gpa.allocator());
     defer _ = lists.l.deinit();
     defer _ = lists.r.deinit();
     std.mem.sort(u32, lists.l.items, {}, comptime std.sort.asc(u32));
@@ -64,16 +65,9 @@ fn day01Part1(input: []const u8) ListsError!u64 {
 
 test "solve" {
     var t = try std.time.Timer.start();
-    const input = @embedFile("./data/data.txt");
-    const result = try part1(input);
+    const result = try part1();
     try std.testing.expectEqual(1506483, result);
     std.debug.print("Answer: {}\nSolved in {}\n", .{ result, std.fmt.fmtDuration(t.read()) });
-}
-
-test "example" {
-    const input = @embedFile("./data/example.txt");
-    const result = try part1(input);
-    try std.testing.expectEqual(11, result);
 }
 
 test "test absDiff" {
