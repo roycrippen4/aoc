@@ -1,6 +1,4 @@
 const std = @import("std");
-const time = std.time;
-const fmt = std.fmt;
 
 /// Enum representing the two parts commonly
 /// found with advent of code problems.
@@ -78,40 +76,6 @@ pub const Day = enum {
             .twenty_five => "Day 25",
         };
     }
-
-    /// Converts a u8 value to a corresponding Day enum variant.
-    /// Takes a number from 1 to 25 and returns the matching Day.
-    /// Panics with unreachable if given an invalid value (0 or > 25).
-    pub fn fromU8(value: u8) Day {
-        return switch (value) {
-            1 => .one,
-            2 => .two,
-            3 => .three,
-            4 => .four,
-            5 => .five,
-            6 => .six,
-            7 => .seven,
-            8 => .eight,
-            9 => .nine,
-            10 => .ten,
-            11 => .eleven,
-            12 => .twelve,
-            13 => .thirteen,
-            14 => .fourteen,
-            15 => .fifteen,
-            16 => .sixteen,
-            17 => .seventeen,
-            18 => .eighteen,
-            19 => .nineteen,
-            20 => .twenty,
-            21 => .twenty_one,
-            22 => .twenty_two,
-            23 => .twenty_three,
-            24 => .twenty_four,
-            25 => .twenty_five,
-            else => unreachable,
-        };
-    }
 };
 
 const Time = enum {
@@ -123,19 +87,19 @@ const Time = enum {
 
     fn convertToSeconds(ns: u64) f64 {
         const ns_f: f64 = @floatFromInt(ns);
-        const ns_per_s_f: f64 = @floatFromInt(time.ns_per_s);
+        const ns_per_s_f: f64 = @floatFromInt(std.time.ns_per_s);
         return ns_f / ns_per_s_f;
     }
 
     fn convertToMil(ns: u64) f64 {
         const ns_f: f64 = @floatFromInt(ns);
-        const ns_per_ms_f: f64 = @floatFromInt(time.ns_per_ms);
+        const ns_per_ms_f: f64 = @floatFromInt(std.time.ns_per_ms);
         return ns_f / ns_per_ms_f;
     }
 
     fn convertToMicro(ns: u64) f64 {
         const ns_f: f64 = @floatFromInt(ns);
-        const ns_per_us_f: f64 = @floatFromInt(time.ns_per_us);
+        const ns_per_us_f: f64 = @floatFromInt(std.time.ns_per_us);
         return ns_f / ns_per_us_f;
     }
 
@@ -156,35 +120,35 @@ const Time = enum {
         return Time.Micro;
     }
 
-    fn colorTime(ns: u64, allocator: std.mem.Allocator) fmt.AllocPrintError![]u8 {
+    fn colorTime(ns: u64, allocator: std.mem.Allocator) anyerror![]u8 {
         return switch (getRange(ns)) {
             .Sec => {
                 const secs = convertToSeconds(ns);
-                const string = try fmt.allocPrint(allocator, "{d:.3}s", .{secs});
+                const string = try std.fmt.allocPrint(allocator, "{d:.3}s", .{secs});
                 defer allocator.free(string);
                 return try rgb(255, 0, 0, string, allocator);
             },
             .MilSlow => {
                 const mils = convertToMil(ns);
-                const string = try fmt.allocPrint(allocator, "{d:.3}ms", .{mils});
+                const string = try std.fmt.allocPrint(allocator, "{d:.3}ms", .{mils});
                 defer allocator.free(string);
                 return try rgb(255, 82, 0, string, allocator);
             },
             .MilMed => {
                 const mils = convertToMil(ns);
-                const string = try fmt.allocPrint(allocator, "{d:.3}ms", .{mils});
+                const string = try std.fmt.allocPrint(allocator, "{d:.3}ms", .{mils});
                 defer allocator.free(string);
                 return try rgb(255, 165, 0, string, allocator);
             },
             .MilFast => {
                 const mils = convertToMil(ns);
-                const string = try fmt.allocPrint(allocator, "{d:.3}ms", .{mils});
+                const string = try std.fmt.allocPrint(allocator, "{d:.3}ms", .{mils});
                 defer allocator.free(string);
                 return try rgb(127, 210, 0, string, allocator);
             },
             .Micro => {
                 const micros = convertToMicro(ns);
-                const string = try fmt.allocPrint(allocator, "{d:.3}µs", .{micros});
+                const string = try std.fmt.allocPrint(allocator, "{d:.3}µs", .{micros});
                 defer allocator.free(string);
                 return try rgb(0, 255, 0, string, allocator);
             },
@@ -192,24 +156,18 @@ const Time = enum {
     }
 };
 
-fn rgb(r: u8, g: u8, b: u8, s: []const u8, allocator: std.mem.Allocator) fmt.AllocPrintError![]u8 {
-    return try fmt.allocPrint(
+fn rgb(r: u8, g: u8, b: u8, s: []const u8, allocator: std.mem.Allocator) anyerror![]u8 {
+    return try std.fmt.allocPrint(
         allocator,
         "\x1b[38;2;{d};{d};{d}m{s}\x1b[0m",
         .{ r, g, b, s },
     );
 }
 
-const TimeError = error{
-    AllocPrintError,
-    Unsupported,
-    OutOfMemory,
-};
-
-pub fn validate(f: fn () u64, expected: u64, day: Day, part: Part, allocator: std.mem.Allocator) TimeError!void {
-    const now = try time.Instant.now();
-    const result = f();
-    const done = try time.Instant.now();
+pub fn validate(f: fn (std.mem.Allocator) anyerror!u64, expected: u64, day: Day, part: Part, allocator: std.mem.Allocator) anyerror!void {
+    const now = try std.time.Instant.now();
+    const result = try f(allocator);
+    const done = try std.time.Instant.now();
 
     if (result != expected) {
         const fmt_str =
@@ -223,7 +181,7 @@ pub fn validate(f: fn () u64, expected: u64, day: Day, part: Part, allocator: st
             \\
             \\
         ;
-        const msg = try fmt.allocPrint(allocator, fmt_str, .{ expected, result });
+        const msg = try std.fmt.allocPrint(allocator, fmt_str, .{ expected, result });
         @panic(msg);
     }
 
@@ -232,20 +190,6 @@ pub fn validate(f: fn () u64, expected: u64, day: Day, part: Part, allocator: st
     const time_str = try Time.colorTime(done.since(now), allocator);
     defer allocator.free(time_str);
     std.debug.print("{s} {s} solved in {s}\n", .{ day_str, part_str, time_str });
-}
-
-fn part1() u64 {
-    const t = 500 * time.ns_per_us; // 500µs
-    // const t = 5 * time.ns_per_ms; // 5ms
-    // const t = 50 * time.ns_per_ms; // 50ms
-    // const t = 500 * time.ns_per_ms; // 500ms
-    // const t = 1.25 * time.ns_per_s; // 1.25s
-    std.Thread.sleep(t);
-    return 42;
-}
-
-test "validate" {
-    try validate(part1, 42, Day.one, Part.one, std.testing.allocator);
 }
 
 test "rgb" {
