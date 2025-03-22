@@ -121,25 +121,25 @@ const Time = enum {
     MilFast,
     Micro,
 
-    pub fn convertToSeconds(ns: u64) f64 {
+    fn convertToSeconds(ns: u64) f64 {
         const ns_f: f64 = @floatFromInt(ns);
         const ns_per_s_f: f64 = @floatFromInt(time.ns_per_s);
         return ns_f / ns_per_s_f;
     }
 
-    pub fn convertToMil(ns: u64) f64 {
+    fn convertToMil(ns: u64) f64 {
         const ns_f: f64 = @floatFromInt(ns);
         const ns_per_ms_f: f64 = @floatFromInt(time.ns_per_ms);
         return ns_f / ns_per_ms_f;
     }
 
-    pub fn convertToMicro(ns: u64) f64 {
+    fn convertToMicro(ns: u64) f64 {
         const ns_f: f64 = @floatFromInt(ns);
         const ns_per_us_f: f64 = @floatFromInt(time.ns_per_us);
         return ns_f / ns_per_us_f;
     }
 
-    pub fn getRange(ns: u64) Time {
+    fn getRange(ns: u64) Time {
         const t = convertToSeconds(ns);
         if (t > 1.0) {
             return Time.Sec;
@@ -212,7 +212,17 @@ pub fn validate(f: fn () u64, expected: u64, day: Day, part: Part, allocator: st
     const done = try time.Instant.now();
 
     if (result != expected) {
-        const fmt_str = "Failed to solve problem.\n\tExpected: {d}\nFound   : {d}";
+        const fmt_str =
+            \\
+            \\
+            \\===========================
+            \\  Failed to solve!
+            \\      Expected: {d}
+            \\      Found   : {d}
+            \\===========================
+            \\
+            \\
+        ;
         const msg = try fmt.allocPrint(allocator, fmt_str, .{ expected, result });
         @panic(msg);
     }
@@ -246,16 +256,6 @@ test "rgb" {
 }
 
 test "part.toString" {
-    const one = Part.one;
-    const two = Part.two;
-
-    try std.testing.expectEqualStrings("Part 1", one.toString());
-    try std.testing.expectEqualStrings("Part 2", two.toString());
-}
-
-test "sleep" {
-    const secs = std.time.ns_per_s * 2.5;
-    // std.debug.print("ns per second {d}\n", .{secs});
-    std.Thread.sleep(secs);
-    std.debug.print("done\n", .{});
+    try std.testing.expectEqualStrings("Part 1", Part.one.toString());
+    try std.testing.expectEqualStrings("Part 2", Part.two.toString());
 }
