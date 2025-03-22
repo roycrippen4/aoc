@@ -12,6 +12,7 @@ pub fn main() !void {
         if (deinit == .leak) std.testing.expect(false) catch @panic("LEAK DETECTED");
     }
     _ = try util.validate(part1, 1506483, util.Day.one, util.Part.one, allocator);
+    _ = try util.validate(part2, 23126924, util.Day.one, util.Part.two, allocator);
 }
 
 const input = @embedFile("data/day01/data.txt");
@@ -55,7 +56,7 @@ pub fn part1(allocator: std.mem.Allocator) anyerror!usize {
     return total;
 }
 
-fn updateOrInsert(map: *HashMap(usize, usize), key: usize) anyerror!void {
+inline fn updateOrInsert(map: *HashMap(usize, usize), key: usize) anyerror!void {
     if (map.get(key)) |value| {
         try map.put(key, value + 1);
     } else {
@@ -89,6 +90,14 @@ pub fn part2(allocator: std.mem.Allocator) anyerror!usize {
     }
 
     return total;
+}
+
+test "part1" {
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    const allocator = gpa.allocator();
+    const answer = try part1(allocator);
+
+    std.debug.print("\n\n Answer: {d}\n\n", .{answer});
 }
 
 test "part2" {
