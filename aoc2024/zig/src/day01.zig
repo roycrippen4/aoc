@@ -1,5 +1,6 @@
 const std = @import("std");
 const ArrayList = std.ArrayList;
+const util = @import("util.zig");
 
 const Lists = struct { l: ArrayList(u32), r: ArrayList(u32) };
 
