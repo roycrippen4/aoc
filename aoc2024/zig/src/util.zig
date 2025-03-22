@@ -192,6 +192,49 @@ pub fn validate(f: fn (std.mem.Allocator) anyerror!u64, expected: u64, day: Day,
     std.debug.print("{s} {s} solved in {s}\n", .{ day_str, part_str, time_str });
 }
 
+pub fn splitByte(string: []const u8, b: u8, allocator: std.mem.Allocator) [][]const u8 {
+    const delim: [1]u8 = .{b};
+    const count = std.mem.count(u8, string, &delim) + 1;
+
+    var groups = allocator.alloc([]const u8, count) catch unreachable;
+
+    var it = std.mem.tokenizeScalar(u8, string, b);
+    for (0..count) |i| {
+        groups[i] = it.next() orelse unreachable;
+    }
+
+    return groups;
+}
+
+pub fn lines(string: []const u8, allocator: std.mem.Allocator) [][]const u8 {
+    const trimmed = std.mem.trim(u8, string, "\n");
+    return splitByte(trimmed, '\n', allocator);
+}
+
+test "lines" {
+    const allocator = std.testing.allocator;
+    const string = "one\ntwo\nthree";
+    const split = splitByte(string, '\n', allocator);
+    defer allocator.free(split);
+
+    try std.testing.expectEqual(3, split.len);
+    try std.testing.expectEqualStrings("one", split[0]);
+    try std.testing.expectEqualStrings("two", split[1]);
+    try std.testing.expectEqualStrings("three", split[2]);
+}
+
+test "splitByte" {
+    const allocator = std.testing.allocator;
+    const string = "one|two|three";
+    const split = splitByte(string, '|', allocator);
+    defer allocator.free(split);
+
+    try std.testing.expectEqual(3, split.len);
+    try std.testing.expectEqualStrings("one", split[0]);
+    try std.testing.expectEqualStrings("two", split[1]);
+    try std.testing.expectEqualStrings("three", split[2]);
+}
+
 test "rgb" {
     const allocator = std.testing.allocator;
     const red_text = try rgb(0, 255, 0, "hello", allocator);
