@@ -29,8 +29,10 @@ fn parseLevels(line: []const u8, allocator: std.mem.Allocator) []u64 {
 }
 
 fn pairIsSafe(x: u64, y: u64, direction: bool) bool {
-    const diff = util.absDiff(x, y);
-    return diff != 0 and diff <= 3 and (diff > 0) == direction;
+    const ix: i64 = @intCast(x);
+    const iy: i64 = @intCast(y);
+    const diff = ix - iy;
+    return diff != 0 and @abs(diff) <= 3 and (diff > 0) == direction;
 }
 
 fn isSafe(levels: []u64) bool {
@@ -39,7 +41,6 @@ fn isSafe(levels: []u64) bool {
     const direction = x - y > 0;
 
     for (0..levels.len - 1) |i| {
-        // prevent invalid array access
         if (i == levels.len - 1) {
             return true;
         }
@@ -54,7 +55,7 @@ fn isSafe(levels: []u64) bool {
 }
 
 pub fn part1(allocator: std.mem.Allocator) anyerror!usize {
-    const lines = util.lines(example, allocator);
+    const lines = util.lines(input, allocator);
     defer allocator.free(lines);
 
     var answer: usize = 0;
@@ -62,10 +63,7 @@ pub fn part1(allocator: std.mem.Allocator) anyerror!usize {
     for (lines) |line| {
         const levels = parseLevels(line, allocator);
         if (isSafe(levels)) {
-            std.debug.print("SAFE: {any}\n", .{levels});
             answer += 1;
-        } else {
-            std.debug.print("NOT SAFE: {any}\n", .{levels});
         }
     }
 
@@ -96,7 +94,14 @@ test "part2" {
     std.debug.print("\n\nAnswer: {d}\n\n", .{answer});
 }
 
-test "isSafe" {}
+test "isSafe" {
+    var list = [_]u64{ 1, 3, 6, 7, 9 };
+    try std.testing.expect(isSafe(&list));
+}
+
+test "pairIsSafe" {
+    try std.testing.expect(pairIsSafe(1, 3, 1 - 3 > 0));
+}
 
 test "parseValues" {
     const allocator = std.testing.allocator;
