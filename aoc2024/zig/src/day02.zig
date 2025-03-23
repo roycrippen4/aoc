@@ -39,6 +39,19 @@ fn isSafe(line: []const u8) bool {
     return true;
 }
 
+pub fn part1(_: Allocator) anyerror!usize {
+    var answer: usize = 0;
+    var linesIter = std.mem.tokenizeScalar(u8, input, '\n');
+
+    while (linesIter.next()) |line| {
+        if (isSafe(line)) answer += 1;
+    }
+
+    return answer;
+}
+
+// PART 2
+
 fn isSafe2(line: []const u8, buffer: []i64) bool {
     var it = std.mem.splitScalar(u8, line, ' ');
     var count: usize = 0;
@@ -76,17 +89,6 @@ fn check(nums: []const i64) bool {
     }
 
     return true;
-}
-
-pub fn part1(_: Allocator) anyerror!usize {
-    var answer: usize = 0;
-    var linesIter = std.mem.tokenizeScalar(u8, input, '\n');
-
-    while (linesIter.next()) |line| {
-        if (isSafe(line)) answer += 1;
-    }
-
-    return answer;
 }
 
 pub fn part2(allocator: Allocator) anyerror!usize {
