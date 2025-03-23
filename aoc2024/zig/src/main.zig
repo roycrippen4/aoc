@@ -14,4 +14,5 @@ pub fn main() !void {
     _ = try util.validate(day01.part1, 1506483, util.Day.one, util.Part.one, allocator);
     _ = try util.validate(day01.part2, 23126924, util.Day.one, util.Part.two, allocator);
     _ = try util.validate(day02.part1, 202, util.Day.two, util.Part.one, allocator);
+    _ = try util.validate(day02.part2, 271, util.Day.two, util.Part.two, allocator);
 }
