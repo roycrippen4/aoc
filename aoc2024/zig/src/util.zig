@@ -192,6 +192,12 @@ pub fn validate(f: fn (std.mem.Allocator) anyerror!u64, expected: u64, day: Day,
     std.debug.print("{s} {s} solved in {s}\n", .{ day_str, part_str, time_str });
 }
 
+pub fn absDiff(x: usize, y: usize) usize {
+    const safe_x: i64 = @intCast(x);
+    const safe_y: i64 = @intCast(y);
+    return @abs(safe_x - safe_y);
+}
+
 pub fn splitByte(string: []const u8, b: u8, allocator: std.mem.Allocator) [][]const u8 {
     const delim: [1]u8 = .{b};
     const count = std.mem.count(u8, string, &delim) + 1;
@@ -245,4 +251,11 @@ test "rgb" {
 test "part.toString" {
     try std.testing.expectEqualStrings("Part 1", Part.one.toString());
     try std.testing.expectEqualStrings("Part 2", Part.two.toString());
+}
+
+test "absDiff" {
+    const x: usize = 3;
+    const y: usize = 1;
+    const expected: usize = 2;
+    try std.testing.expectEqual(expected, absDiff(x, y));
 }

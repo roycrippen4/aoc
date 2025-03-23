@@ -17,12 +17,6 @@ pub fn main() !void {
 
 const input = @embedFile("data/day01/data.txt");
 
-fn absDiff(x: usize, y: usize) usize {
-    const safe_x: i64 = @intCast(x);
-    const safe_y: i64 = @intCast(y);
-    return @abs(safe_x - safe_y);
-}
-
 fn parseTuple(line: []const u8) anyerror!struct { usize, usize } {
     var it = std.mem.splitSequence(u8, line, "   ");
     const l = try std.fmt.parseInt(usize, it.next().?, 10);
@@ -50,7 +44,7 @@ pub fn part1(allocator: std.mem.Allocator) anyerror!usize {
     var total: usize = 0;
 
     for (0..left.items.len) |idx| {
-        total += absDiff(left.items[idx], right.items[idx]);
+        total += util.absDiff(left.items[idx], right.items[idx]);
     }
 
     return total;
@@ -139,11 +133,4 @@ test "updateOrInsert" {
     try updateOrInsert(&map, 5);
     try updateOrInsert(&map, 5);
     try std.testing.expectEqual(map.get(5), 3);
-}
-
-test "test absDiff" {
-    const x: usize = 3;
-    const y: usize = 1;
-    const expected: usize = 2;
-    try std.testing.expectEqual(expected, absDiff(x, y));
 }
