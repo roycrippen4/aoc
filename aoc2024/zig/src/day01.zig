@@ -2,7 +2,7 @@ const std = @import("std");
 const ArrayList = std.ArrayList;
 const HashMap = std.AutoHashMap;
 
-const util = @import("util.zig");
+const lib = @import("lib");
 
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
@@ -11,8 +11,8 @@ pub fn main() !void {
         const deinit = gpa.deinit();
         if (deinit == .leak) std.testing.expect(false) catch @panic("LEAK DETECTED");
     }
-    _ = try util.validate(part1, 1506483, util.Day.one, util.Part.one, allocator);
-    _ = try util.validate(part2, 23126924, util.Day.one, util.Part.two, allocator);
+    _ = try lib.validate(part1, 1506483, lib.Day.one, lib.Part.one, allocator);
+    _ = try lib.validate(part2, 23126924, lib.Day.one, lib.Part.two, allocator);
 }
 
 const input = @embedFile("data/day01/data.txt");
@@ -44,7 +44,7 @@ pub fn part1(allocator: std.mem.Allocator) anyerror!usize {
     var total: usize = 0;
 
     for (0..left.items.len) |idx| {
-        total += util.absDiff(left.items[idx], right.items[idx]);
+        total += lib.absDiff(left.items[idx], right.items[idx]);
     }
 
     return total;

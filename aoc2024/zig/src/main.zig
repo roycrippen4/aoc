@@ -1,5 +1,5 @@
 const std = @import("std");
-const util = @import("util.zig");
+const lib = @import("lib");
 const day01 = @import("day01.zig");
 const day02 = @import("day02.zig");
 
@@ -13,11 +13,12 @@ pub fn main() !void {
 
     var total_time: u64 = 0;
 
-    total_time += try util.validate(day01.part1, 1506483, util.Day.one, util.Part.one, allocator);
-    total_time += try util.validate(day01.part2, 23126924, util.Day.one, util.Part.two, allocator);
-    total_time += try util.validate(day02.part1, 202, util.Day.two, util.Part.one, allocator);
-    total_time += try util.validate(day02.part2, 271, util.Day.two, util.Part.two, allocator);
+    total_time += try lib.validate(day01.part1, 1506483, lib.Day.one, lib.Part.one, allocator);
+    total_time += try lib.validate(day01.part2, 23126924, lib.Day.one, lib.Part.two, allocator);
+    total_time += try lib.validate(day02.part1, 202, lib.Day.two, lib.Part.one, allocator);
+    total_time += try lib.validate(day02.part2, 271, lib.Day.two, lib.Part.two, allocator);
 
-    const time = util.Time.colorTime(total_time, allocator) catch unreachable;
+    const time = lib.Time.colorTime(total_time, allocator) catch unreachable;
+    defer allocator.free(time);
     std.debug.print("\nTotal time: {s}\n", .{time});
 }

@@ -1,6 +1,6 @@
 const std = @import("std");
 const Allocator = std.mem.Allocator;
-const util = @import("util.zig");
+const lib = @import("lib");
 
 const input = @embedFile("data/day02/data.txt");
 
@@ -12,8 +12,8 @@ pub fn main() !void {
         if (deinit == .leak) std.testing.expect(false) catch @panic("LEAK DETECTED");
     }
 
-    _ = try util.validate(part1, 202, util.Day.two, util.Part.one, allocator);
-    _ = try util.validate(part2, 271, util.Day.two, util.Part.two, allocator);
+    _ = try lib.validate(part1, 202, lib.Day.two, lib.Part.one, allocator);
+    _ = try lib.validate(part2, 271, lib.Day.two, lib.Part.two, allocator);
 }
 
 inline fn pairIsSafe(x: i64, y: i64, desc: bool) bool {
@@ -106,11 +106,11 @@ pub fn part2(allocator: Allocator) anyerror!usize {
 }
 
 test "part1" {
-    _ = try util.validate(part1, 202, util.Day.two, util.Part.one, std.testing.allocator);
+    _ = try lib.validate(part1, 202, lib.Day.two, lib.Part.one, std.testing.allocator);
 }
 
 test "part2" {
-    _ = try util.validate(part2, 271, util.Day.two, util.Part.two, std.testing.allocator);
+    _ = try lib.validate(part2, 271, lib.Day.two, lib.Part.two, std.testing.allocator);
 }
 
 test "isSafe" {
