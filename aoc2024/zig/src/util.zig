@@ -78,7 +78,7 @@ pub const Day = enum {
     }
 };
 
-const Time = enum {
+pub const Time = enum {
     Sec,
     MilSlow,
     MilMed,
@@ -120,7 +120,7 @@ const Time = enum {
         return Time.Micro;
     }
 
-    fn colorTime(ns: u64, allocator: std.mem.Allocator) anyerror![]u8 {
+    pub fn colorTime(ns: u64, allocator: std.mem.Allocator) anyerror![]u8 {
         return switch (getRange(ns)) {
             .Sec => {
                 const secs = convertToSeconds(ns);
@@ -164,10 +164,10 @@ fn rgb(r: u8, g: u8, b: u8, s: []const u8, allocator: std.mem.Allocator) anyerro
     );
 }
 
-pub fn validate(f: fn (std.mem.Allocator) anyerror!u64, expected: u64, day: Day, part: Part, allocator: std.mem.Allocator) anyerror!void {
-    const now = try std.time.Instant.now();
+pub fn validate(f: fn (std.mem.Allocator) anyerror!u64, expected: u64, day: Day, part: Part, allocator: std.mem.Allocator) anyerror!u64 {
+    const start = try std.time.Instant.now();
     const result = try f(allocator);
-    const done = try std.time.Instant.now();
+    const finish = try std.time.Instant.now();
 
     if (result != expected) {
         const fmt_str =
@@ -185,11 +185,13 @@ pub fn validate(f: fn (std.mem.Allocator) anyerror!u64, expected: u64, day: Day,
         @panic(msg);
     }
 
+    const elapsed = finish.since(start);
     const day_str = day.toString();
     const part_str = part.toString();
-    const time_str = try Time.colorTime(done.since(now), allocator);
+    const time_str = try Time.colorTime(elapsed, allocator);
     defer allocator.free(time_str);
     std.debug.print("{s} {s} solved in {s}\n", .{ day_str, part_str, time_str });
+    return elapsed;
 }
 
 pub fn absDiff(x: usize, y: usize) usize {
