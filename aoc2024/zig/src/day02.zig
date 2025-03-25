@@ -1,20 +1,8 @@
+const lib = @import("lib");
 const std = @import("std");
 const Allocator = std.mem.Allocator;
-const lib = @import("lib");
 
 const input = @embedFile("data/day02/data.txt");
-
-pub fn main() !void {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    const allocator = gpa.allocator();
-    defer {
-        const deinit = gpa.deinit();
-        if (deinit == .leak) std.testing.expect(false) catch @panic("LEAK DETECTED");
-    }
-
-    _ = try lib.validate(part1, 202, lib.Day.two, lib.Part.one, allocator);
-    _ = try lib.validate(part2, 271, lib.Day.two, lib.Part.two, allocator);
-}
 
 inline fn pairIsSafe(x: i64, y: i64, desc: bool) bool {
     const diff = x - y;
@@ -105,28 +93,30 @@ pub fn part2(allocator: Allocator) anyerror!usize {
     return answer;
 }
 
-test "part1" {
-    _ = try lib.validate(part1, 202, lib.Day.two, lib.Part.one, std.testing.allocator);
+const t = std.testing;
+
+test "day02 part1" {
+    _ = try lib.validate(part1, 202, lib.Day.two, lib.Part.one, t.allocator);
 }
 
-test "part2" {
-    _ = try lib.validate(part2, 271, lib.Day.two, lib.Part.two, std.testing.allocator);
+test "day02 part2" {
+    _ = try lib.validate(part2, 271, lib.Day.two, lib.Part.two, t.allocator);
 }
 
-test "isSafe" {
-    try std.testing.expect(isSafe("7 6 4 2 1"));
-    try std.testing.expect(!isSafe("1 2 7 8 9"));
-    try std.testing.expect(!isSafe("9 7 6 2 1"));
-    try std.testing.expect(!isSafe("1 3 2 4 5"));
-    try std.testing.expect(!isSafe("8 6 4 4 1"));
-    try std.testing.expect(isSafe("1 3 6 7 9"));
+test "day02 isSafe" {
+    try t.expect(isSafe("7 6 4 2 1"));
+    try t.expect(!isSafe("1 2 7 8 9"));
+    try t.expect(!isSafe("9 7 6 2 1"));
+    try t.expect(!isSafe("1 3 2 4 5"));
+    try t.expect(!isSafe("8 6 4 4 1"));
+    try t.expect(isSafe("1 3 6 7 9"));
 }
 
-test "check" {
-    try std.testing.expect(check(&[_]i64{ 7, 6, 4, 2, 1 }, true));
-    try std.testing.expect(!check(&[_]i64{ 1, 2, 7, 8, 9 }, false));
-    try std.testing.expect(!check(&[_]i64{ 9, 7, 6, 2, 1 }, true));
-    try std.testing.expect(check(&[_]i64{ 1, 3, 2, 4, 5 }, false));
-    try std.testing.expect(check(&[_]i64{ 8, 6, 4, 4, 1 }, true));
-    try std.testing.expect(check(&[_]i64{ 1, 3, 6, 7, 9 }, false));
+test "day02 check" {
+    try t.expect(check(&[_]i64{ 7, 6, 4, 2, 1 }));
+    try t.expect(!check(&[_]i64{ 1, 2, 7, 8, 9 }));
+    try t.expect(!check(&[_]i64{ 9, 7, 6, 2, 1 }));
+    try t.expect(check(&[_]i64{ 1, 3, 2, 4, 5 }));
+    try t.expect(check(&[_]i64{ 8, 6, 4, 4, 1 }));
+    try t.expect(check(&[_]i64{ 1, 3, 6, 7, 9 }));
 }

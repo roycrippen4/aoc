@@ -1,19 +1,8 @@
+const lib = @import("lib");
 const std = @import("std");
 const ArrayList = std.ArrayList;
 const HashMap = std.AutoHashMap;
-
-const lib = @import("lib");
-
-pub fn main() !void {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    const allocator = gpa.allocator();
-    defer {
-        const deinit = gpa.deinit();
-        if (deinit == .leak) std.testing.expect(false) catch @panic("LEAK DETECTED");
-    }
-    _ = try lib.validate(part1, 1506483, lib.Day.one, lib.Part.one, allocator);
-    _ = try lib.validate(part2, 23126924, lib.Day.one, lib.Part.two, allocator);
-}
+const t = std.testing;
 
 const input = @embedFile("data/day01/data.txt");
 
@@ -86,51 +75,31 @@ pub fn part2(allocator: std.mem.Allocator) anyerror!usize {
     return total;
 }
 
-test "part1" {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    const allocator = gpa.allocator();
-    const answer = try part1(allocator);
-
-    std.debug.print("\n\n Answer: {d}\n\n", .{answer});
-}
-
 test "part2" {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    const allocator = gpa.allocator();
-    const answer = try part2(allocator);
-
-    std.debug.print("\n\n Answer: {d}\n\n", .{answer});
+    _ = try lib.validate(part1, 1506483, lib.Day.one, lib.Part.one, t.allocator);
 }
 
-test "parseTuple" {
+test "day01 part2" {
+    _ = try lib.validate(part2, 23126924, lib.Day.one, lib.Part.two, t.allocator);
+}
+
+test "day01 parseTuple" {
     const line = "3   4";
     const l, const r = try parseTuple(line);
-    try std.testing.expectEqual(l, 3);
-    try std.testing.expectEqual(r, 4);
+    try t.expectEqual(l, 3);
+    try t.expectEqual(r, 4);
 }
 
-test "test ptr key" {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    const allocator = gpa.allocator();
-    var map = HashMap(usize, usize).init(allocator);
-    const key: usize = 5;
-    const ptr = &key;
-
-    try map.put(key, 0);
-    try std.testing.expectEqual(map.get(key), 0);
-    try std.testing.expectEqual(map.get(ptr.*), 0);
-}
-
-test "updateOrInsert" {
+test "day01 updateOrInsert" {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const allocator = gpa.allocator();
     var map = HashMap(usize, usize).init(allocator);
 
     const no_entry = map.get(5);
-    try std.testing.expectEqual(null, no_entry);
+    try t.expectEqual(null, no_entry);
     try updateOrInsert(&map, 5);
-    try std.testing.expectEqual(map.get(5), 1);
+    try t.expectEqual(map.get(5), 1);
     try updateOrInsert(&map, 5);
     try updateOrInsert(&map, 5);
-    try std.testing.expectEqual(map.get(5), 3);
+    try t.expectEqual(map.get(5), 3);
 }

@@ -28,6 +28,16 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
+    // const regex_mod = b.dependency("pcrez", .{
+    //     .target = target,
+    //     .optimize = optimize,
+    // }).module("pcrez");
+
+    const regex_mod = b.dependency("mvzr", .{
+        .target = target,
+        .optimize = optimize,
+    }).module("mvzr");
+
     // We will also create a module for our other entry point, 'main.zig'.
     const exe_mod = b.createModule(.{
         // `root_source_file` is the Zig "entry point" of the module. If a module
@@ -43,6 +53,29 @@ pub fn build(b: *std.Build) void {
     // This is what allows Zig source code to use `@import("foo")` where 'foo' is not a
     // file path. In this case, we set up `exe_mod` to import `lib_mod`.
     exe_mod.addImport("lib", lib_mod);
+    // exe_mod.addImport("pcrez", regex_mod);
+    exe_mod.addImport("mvzr", regex_mod);
+
+    const lib = b.addLibrary(.{
+        .linkage = .static,
+        .name = "lib",
+        .root_module = lib_mod,
+    });
+
+    const regex = b.addLibrary(.{
+        .linkage = .static,
+        .name = "mvzr",
+        .root_module = regex_mod,
+    });
+
+    // const regex = b.addLibrary(.{
+    //     .linkage = .static,
+    //     .name = "pcrez",
+    //     .root_module = regex_mod,
+    // });
+
+    b.installArtifact(regex);
+    b.installArtifact(lib);
 
     // This creates another `std.Build.Step.Compile`, but this one builds an executable
     // rather than a static library.
@@ -84,15 +117,24 @@ pub fn build(b: *std.Build) void {
     const run_step = b.step("run", "Run the app");
     run_step.dependOn(&run_cmd.step);
 
-    const exe_unit_tests = b.addTest(.{
-        .root_module = exe_mod,
-    });
+    const test_filters = b.option(
+        []const []const u8,
+        "test-filter",
+        "Skip tests that do not match any filter",
+    ) orelse &.{};
+
+    // Creates a step for unit testing. This only builds the test executable
+    // but does not run it.
+    const lib_unit_tests = b.addTest(.{ .target = target, .optimize = optimize, .root_module = lib_mod, .filters = test_filters });
+    const exe_unit_tests = b.addTest(.{ .target = target, .optimize = optimize, .root_module = exe_mod, .filters = test_filters });
 
     const run_exe_unit_tests = b.addRunArtifact(exe_unit_tests);
+    const run_lib_unit_tests = b.addRunArtifact(lib_unit_tests);
 
     // Similar to creating the run step earlier, this exposes a `test` step to
     // the `zig build --help` menu, providing a way for the user to request
     // running the unit tests.
     const test_step = b.step("test", "Run unit tests");
+    test_step.dependOn(&run_lib_unit_tests.step);
     test_step.dependOn(&run_exe_unit_tests.step);
 }

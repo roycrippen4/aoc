@@ -104,17 +104,17 @@ pub const Time = enum {
     }
 
     fn getRange(ns: u64) Time {
-        const t = convertToSeconds(ns);
-        if (t > 1.0) {
+        const time = convertToSeconds(ns);
+        if (time > 1.0) {
             return Time.Sec;
         }
-        if (t > 0.1) {
+        if (time > 0.1) {
             return Time.MilSlow;
         }
-        if (t > 0.01) {
+        if (time > 0.01) {
             return Time.MilMed;
         }
-        if (t > 0.001) {
+        if (time > 0.001) {
             return Time.MilFast;
         }
         return Time.Micro;
@@ -200,64 +200,15 @@ pub fn absDiff(x: usize, y: usize) usize {
     return @abs(safe_x - safe_y);
 }
 
-pub fn splitByte(string: []const u8, b: u8, allocator: std.mem.Allocator) [][]const u8 {
-    const delim: [1]u8 = .{b};
-    const count = std.mem.count(u8, string, &delim) + 1;
-
-    var groups = allocator.alloc([]const u8, count) catch unreachable;
-
-    var it = std.mem.tokenizeScalar(u8, string, b);
-    for (0..count) |i| {
-        groups[i] = it.next() orelse unreachable;
-    }
-
-    return groups;
+const t = std.testing;
+test "util part.toString" {
+    try t.expectEqualStrings("Part 1", Part.one.toString());
+    try t.expectEqualStrings("Part 2", Part.two.toString());
 }
 
-pub fn lines(string: []const u8, allocator: std.mem.Allocator) [][]const u8 {
-    const trimmed = std.mem.trim(u8, string, "\n");
-    return splitByte(trimmed, '\n', allocator);
-}
-
-test "lines" {
-    const allocator = std.testing.allocator;
-    const string = "one\ntwo\nthree";
-    const split = splitByte(string, '\n', allocator);
-    defer allocator.free(split);
-
-    try std.testing.expectEqual(3, split.len);
-    try std.testing.expectEqualStrings("one", split[0]);
-    try std.testing.expectEqualStrings("two", split[1]);
-    try std.testing.expectEqualStrings("three", split[2]);
-}
-
-test "splitByte" {
-    const allocator = std.testing.allocator;
-    const string = "one|two|three";
-    const split = splitByte(string, '|', allocator);
-    defer allocator.free(split);
-
-    try std.testing.expectEqual(3, split.len);
-    try std.testing.expectEqualStrings("one", split[0]);
-    try std.testing.expectEqualStrings("two", split[1]);
-    try std.testing.expectEqualStrings("three", split[2]);
-}
-
-test "rgb" {
-    const allocator = std.testing.allocator;
-    const red_text = try rgb(0, 255, 0, "hello", allocator);
-    defer allocator.free(red_text);
-    std.debug.print("{s}\n", .{red_text});
-}
-
-test "part.toString" {
-    try std.testing.expectEqualStrings("Part 1", Part.one.toString());
-    try std.testing.expectEqualStrings("Part 2", Part.two.toString());
-}
-
-test "absDiff" {
+test "util absDiff" {
     const x: usize = 3;
     const y: usize = 1;
     const expected: usize = 2;
-    try std.testing.expectEqual(expected, absDiff(x, y));
+    try t.expectEqual(expected, absDiff(x, y));
 }
