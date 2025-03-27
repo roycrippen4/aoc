@@ -1,4 +1,4 @@
-const lib = @import("lib");
+const lib = @import("aoc");
 const std = @import("std");
 
 const input: []const u8 = @embedFile("data/day03/data.txt");

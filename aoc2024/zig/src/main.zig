@@ -1,8 +1,9 @@
 const std = @import("std");
-const lib = @import("lib");
+const lib = @import("aoc");
 const day01 = @import("day01.zig");
 const day02 = @import("day02.zig");
 const day03 = @import("day03.zig");
+const day04 = @import("day04.zig");
 
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
@@ -20,6 +21,8 @@ pub fn main() !void {
     total_time += try lib.validate(day02.part2, 271, lib.Day.two, lib.Part.two, allocator);
     total_time += try lib.validate(day03.part1, 173731097, lib.Day.three, lib.Part.one, allocator);
     total_time += try lib.validate(day03.part2, 93729253, lib.Day.three, lib.Part.two, allocator);
+    total_time += try lib.validate(day04.part1, 2483, lib.Day.four, lib.Part.one, allocator);
+    total_time += try lib.validate(day04.part2, 1925, lib.Day.four, lib.Part.two, allocator);
 
     const time = lib.Time.colorTime(total_time, allocator) catch unreachable;
     defer allocator.free(time);

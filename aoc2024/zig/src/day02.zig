@@ -1,4 +1,4 @@
-const lib = @import("lib");
+const lib = @import("aoc");
 const std = @import("std");
 const Allocator = std.mem.Allocator;
 
