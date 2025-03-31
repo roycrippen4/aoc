@@ -1,12 +1,11 @@
 open Util
 
 let g = Grid.from_file "/home/roy/dev/aoc/aoc2024/data/day04/data.txt"
+let xs = Grid.filter (fun _ v -> v = 'X') g
 
 let is_mas_part1 = function
   | [ Some 'M'; Some 'A'; Some 'S' ] -> true
   | _ -> false
-
-let xs = Grid.filter (fun _ v -> v = 'X') g
 
 let mas_positions pos dir =
   let m = Grid.move dir pos in
