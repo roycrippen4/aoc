@@ -13,6 +13,7 @@ let split_to_int delim str =
   |> List.map int_of_string
 
 let map_tuple f (a, b) = (f a, f b)
+let pop = function x :: xs -> (x, xs) | [] -> failwith "List is empty"
 
 let windows n lst =
   let rec build_window n acc = function
@@ -28,12 +29,8 @@ let windows n lst =
   in
   aux [] lst
 
-let enumerate_list lst =
-  List.mapi (fun i x -> (i, x)) lst
-
-let enumerate_array arr =
-  Array.mapi (fun i x -> (i, x)) arr
-  
+let enumerate_list lst = List.mapi (fun i x -> (i, x)) lst
+let enumerate_array arr = Array.mapi (fun i x -> (i, x)) arr
 
 let ( /.. ) i j =
   let rec aux n acc = if n <= i then acc else aux (n - 1) ((n - 1) :: acc) in
@@ -51,6 +48,8 @@ let ( /= ) x y = x := !x / y
 let ( /=. ) x y = x := !x /. y
 let ( % ) x y = x mod y
 let ( %= ) x y = x := !x mod y
+let ( *= ) x y = x := !x * y
+let ( *=. ) x y = x := !x *. y
 
 let%test _ =
   let x = ref 5 in

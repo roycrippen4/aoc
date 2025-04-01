@@ -75,7 +75,6 @@ let solve1 () = PosSet.cardinal guard_path
 
 let is_some_then f = function Some x -> f x | None -> None
 let step_twice hare = step hare |> is_some_then step
-let pop = function x :: xs -> (x, xs) | [] -> failwith "List is empty"
 
 let rec is_loop = function
   | Some t, Some h ->

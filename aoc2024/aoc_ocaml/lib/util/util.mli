@@ -13,6 +13,12 @@ val ( += ) : int ref -> int -> unit
 val ( +=. ) : float ref -> float -> unit
 (** Floating point plus equal. [ref x] +=. [y] *)
 
+val ( *= ) : int ref -> int -> unit
+(** Integer times-equal. [ref x] *= [y] *)
+
+val ( *=. ) : float ref -> float -> unit
+(** Floating point times-equal. [ref x] *=. [y] *)
+
 val ( -= ) : int ref -> int -> unit
 (** Minus equal. [ref x] -= [y] *)
 
@@ -33,6 +39,9 @@ val ( %= ) : int ref -> int -> unit
 
 val map_tuple : ('a -> 'b) -> 'a * 'a -> 'b * 'b
 (** applies function [f] to the tuple [(a, b)] as [(f a, f b)] *)
+
+val pop : 'a list -> 'a * 'a list
+(* Pops the head off of a list. Returns [hd] and rest of the [list] *)
 
 val pp_int_list : int list -> unit
 val pp_int_list_list : int list list -> unit
