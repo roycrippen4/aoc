@@ -1,6 +1,5 @@
 (library
- (name lib)
- (libraries unix re grid util batteries option)
+ (name option)
  (inline_tests)
  (preprocess
   (pps ppx_inline_test)))
