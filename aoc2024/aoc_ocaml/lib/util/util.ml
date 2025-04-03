@@ -28,3 +28,4 @@ let split_to_int = General.split_to_int
 let split_to_string = General.split_to_string
 let validate = Solution.validate
 let windows = General.windows
+let combos = General.combos

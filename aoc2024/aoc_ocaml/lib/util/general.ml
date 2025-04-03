@@ -51,6 +51,18 @@ let ( %= ) x y = x := !x mod y
 let ( *= ) x y = x := !x * y
 let ( *=. ) x y = x := !x *. y
 
+let rec combos = function
+  | [] -> []
+  | x :: xs ->
+      let rec aux y = function [] -> [] | z :: zs -> (y, z) :: aux y zs in
+      aux x xs @ combos xs
+
+let%test _ = combos [ 1; 2; 3 ] = [ (1, 2); (1, 3); (2, 3) ]
+
+let%test _ =
+  let expected = [ (1, 2); (1, 3); (1, 4); (2, 3); (2, 4); (3, 4) ] in
+  combos [ 1; 2; 3; 4 ] = expected
+
 let%test _ =
   let x = ref 5 in
   x += 5;

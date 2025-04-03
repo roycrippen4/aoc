@@ -68,3 +68,6 @@ val split_to_string : char -> string -> string list
 
 val validate : (unit -> int) -> int -> string -> part -> float
 val windows : int -> 'a list -> 'a list list
+
+val combos : 'a list -> ('a * 'a) list
+(** Produces the list of unique element pairs in a list *)
