@@ -19,13 +19,6 @@ fn find_guard(grid: &[u8], width: usize, height: usize) -> Pos {
     unreachable!("No guard found in grid") // we should always find a guard
 }
 
-#[derive(Clone, Debug, PartialEq)]
-struct Grid {
-    grid: Vec<u8>,
-    width: usize,
-    start: (usize, usize, Dir),
-}
-
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 enum Dir {
     Up = 0,
@@ -42,35 +35,32 @@ const MOVES: [(isize, isize, Dir); 4] = [
     (-1, 0, Dir::Up),
 ];
 
-impl Grid {
-    pub fn new(data: Vec<&str>) -> Self {
-        let mut data: Vec<_> = data.iter().map(|s| s.to_string().pad(1, 'O')).collect();
-        data.insert(0, "O".repeat(data[0].len()));
-        data.insert(data.len(), "O".repeat(data[0].len()));
+fn make_grid(data: Vec<&str>) -> (Vec<u8>, usize, Pos) {
+    let mut data: Vec<_> = data.iter().map(|s| s.to_string().pad(1, 'O')).collect();
+    data.insert(0, "O".repeat(data[0].len()));
+    data.insert(data.len(), "O".repeat(data[0].len()));
 
-        let height = data.len();
-        let width = data[0].len();
-        let mut grid = Vec::with_capacity(width * height);
+    let height = data.len();
+    let width = data[0].len();
+    let mut grid = Vec::with_capacity(width * height);
 
-        for row in &data {
-            grid.extend(row.bytes());
-        }
-        let start = find_guard(&grid, width, height);
-
-        Self { grid, width, start }
+    for row in &data {
+        grid.extend(row.bytes());
     }
+    let start = find_guard(&grid, width, height);
 
-    pub fn evaluate(&self) -> usize {
-        get_path(&self.grid, self.start, self.width)
-            .into_par_iter()
-            .map(
-                |obs| match is_loop(self.start, &self.grid, obs, self.width) {
-                    true => 1,
-                    false => 0,
-                },
-            )
-            .sum()
-    }
+    (grid, width, start)
+}
+
+fn evaluate(args: (Vec<u8>, usize, Pos)) -> usize {
+    let (grid, width, guard) = args;
+    get_path(&grid, guard, width)
+        .into_par_iter()
+        .map(|obs| match is_loop(guard, &grid, obs, width) {
+            true => 1,
+            false => 0,
+        })
+        .sum()
 }
 
 #[inline(always)]
@@ -132,7 +122,7 @@ fn is_loop(start_state: Pos, grid: &[u8], obs: Obs, width: usize) -> bool {
 }
 
 pub fn solve() -> usize {
-    Grid::new(data!().lines().collect()).evaluate()
+    evaluate(make_grid(data!().lines().collect()))
 }
 
 #[cfg(test)]
