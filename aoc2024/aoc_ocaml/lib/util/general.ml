@@ -12,6 +12,10 @@ let split_to_int delim str =
   |> List.filter (fun s -> s <> "")
   |> List.map int_of_string
 
+let str_explode str =
+  let rec exp a b = if a < 0 then b else exp (a - 1) (str.[a] :: b) in
+  exp (String.length str - 1) []
+
 let map_tuple f (a, b) = (f a, f b)
 let pop = function x :: xs -> (x, xs) | [] -> failwith "List is empty"
 
@@ -32,25 +36,6 @@ let windows n lst =
 let enumerate_list lst = List.mapi (fun i x -> (i, x)) lst
 let enumerate_array arr = Array.mapi (fun i x -> (i, x)) arr
 
-let ( /.. ) i j =
-  let rec aux n acc = if n <= i then acc else aux (n - 1) ((n - 1) :: acc) in
-  aux j []
-
-let ( /..= ) i j =
-  let rec aux n acc = if n < i then acc else aux (n - 1) (n :: acc) in
-  aux j []
-
-let ( += ) x y = x := !x + y
-let ( +=. ) x y = x := !x +. y
-let ( -= ) x y = x := !x - y
-let ( -=. ) x y = x := !x -. y
-let ( /= ) x y = x := !x / y
-let ( /=. ) x y = x := !x /. y
-let ( % ) x y = x mod y
-let ( %= ) x y = x := !x mod y
-let ( *= ) x y = x := !x * y
-let ( *=. ) x y = x := !x *. y
-
 let rec combos = function
   | [] -> []
   | x :: xs ->
@@ -63,22 +48,6 @@ let%test _ =
   let expected = [ (1, 2); (1, 3); (1, 4); (2, 3); (2, 4); (3, 4) ] in
   combos [ 1; 2; 3; 4 ] = expected
 
-let%test _ =
-  let x = ref 5 in
-  x += 5;
-  !x = 10
-
-let%test _ =
-  let x = ref 5 in
-  x -= 5;
-  !x = 0
-
-let%test _ =
-  let x = ref 6 in
-  x /= 5;
-  !x = 1
-
-let%test _ = 6 % 5 = 1
 let%test _ = windows 3 [] = []
 let%test _ = windows 1 [ 1; 2; 3 ] = [ [ 1 ]; [ 2 ]; [ 3 ] ]
 let%test _ = windows 2 [ 1; 2 ] = [ [ 1; 2 ] ]
@@ -88,6 +57,3 @@ let%test _ = windows 4 [ 1; 2; 3 ] = []
 let%test _ =
   let win = windows 3 [ 1; 2; 3; 4; 5 ] in
   win = [ [ 1; 2; 3 ]; [ 2; 3; 4 ]; [ 3; 4; 5 ] ]
-
-let%test _ = 0 /.. 5 = [ 0; 1; 2; 3; 4 ]
-let%test _ = 0 /..= 5 = [ 0; 1; 2; 3; 4; 5 ]

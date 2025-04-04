@@ -8,7 +8,10 @@ let split_once delim s =
   | _ -> failwith "InvalidString"
 
 let parse_nums s =
-  s |> String.trim |> String.split_on_char ' ' |> List.map int_of_string
+  s
+  |> String.trim
+  |> String.split_on_char ' '
+  |> List.map int_of_string
   |> List.rev
 
 let parse_line s =
@@ -17,7 +20,9 @@ let parse_line s =
 
 let map =
   read_to_string "/home/roy/dev/aoc/aoc2024/data/day07/data.txt"
-  |> String.trim |> String.split_on_char '\n' |> List.map parse_line
+  |> String.trim
+  |> String.split_on_char '\n'
+  |> List.map parse_line
 
 let rec eval target = function
   | [] -> false
@@ -46,9 +51,7 @@ let ( ^^ ) root next =
   aux 1 next
 
 let rec eval2 target = function
-  | [] ->
-      Printf.printf "empty\n";
-      false
+  | [] -> false
   | [ v1; v2 ] -> v1 + v2 = target || v1 * v2 = target || v2 ^^ v1 = target
   | v :: rest ->
       let is_mul = target % v = 0 && eval2 (target / v) rest in

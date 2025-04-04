@@ -37,6 +37,9 @@ val ( % ) : int -> int -> int
 val ( %= ) : int ref -> int -> unit
 (** Modulo Equal. [ref x] %= [y] *)
 
+val ( let* ) : 'a option -> ('a -> 'b option) -> 'b option
+(* This is like Gleam's `use` expressions *)
+
 val map_tuple : ('a -> 'b) -> 'a * 'a -> 'b * 'b
 (** applies function [f] to the tuple [(a, b)] as [(f a, f b)] *)
 
@@ -71,3 +74,5 @@ val windows : int -> 'a list -> 'a list list
 
 val combos : 'a list -> ('a * 'a) list
 (** Produces the list of unique element pairs in a list *)
+
+val str_explode : string -> char list

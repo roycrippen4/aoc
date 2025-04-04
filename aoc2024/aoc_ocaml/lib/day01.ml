@@ -29,7 +29,8 @@ let parse lines =
     | [] -> (List.rev acc_left, List.rev acc_right)
     | line :: rest -> (
         match
-          line |> String.split_on_char ' '
+          line
+          |> String.split_on_char ' '
           |> List.filter (fun s -> s <> "")
           |> List.map int_of_string
         with

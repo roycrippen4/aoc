@@ -1,18 +1,20 @@
 type solution = Solution.solution
 type part = Solution.part
 
-let ( /.. ) = General.( /.. )
-let ( /..= ) = General.( /..= )
-let ( += ) = General.( += )
-let ( +=. ) = General.( +=. )
-let ( *= ) = General.( *= )
-let ( *=. ) = General.( *=. )
-let ( -= ) = General.( -= )
-let ( -=. ) = General.( -=. )
-let ( /= ) = General.( /= )
-let ( /=. ) = General.( /=. )
-let ( % ) = General.( % )
-let ( %= ) = General.( %= )
+let ( /.. ) = Operators.( /.. )
+let ( /..= ) = Operators.( /..= )
+let ( += ) = Operators.( += )
+let ( +=. ) = Operators.( +=. )
+let ( *= ) = Operators.( *= )
+let ( *=. ) = Operators.( *=. )
+let ( -= ) = Operators.( -= )
+let ( -=. ) = Operators.( -=. )
+let ( /= ) = Operators.( /= )
+let ( /=. ) = Operators.( /=. )
+let ( % ) = Operators.( % )
+let ( %= ) = Operators.( %= )
+let ( let* ) = Operators.( let* )
+let str_explode = General.str_explode
 let map_tuple = General.map_tuple
 let pop = General.pop
 let pp_char_list = Fmt.pp_char_list

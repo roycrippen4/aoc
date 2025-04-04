@@ -14,7 +14,6 @@ end
 module PointSet = Set.Make (Point)
 
 (* Ported from rust std *)
-
 let is_alphanumeric = function
   | '0' .. '9' | 'A' .. 'Z' | 'a' .. 'z' -> true
   | _ -> false
@@ -33,9 +32,6 @@ let update_antennas (y, x) v =
     | Some entry -> Hashtbl.replace antennas v ((x, y) :: entry)
 
 let () = Grid.iter update_antennas grid
-
-(* This is like Gleam's `use` expressions *)
-let ( let* ) x f = Option.bind x f
 
 (* Unsigned integer subtraction of [x] - [y] with underflow protection *)
 let ( -| ) x y = if x < 1 || y < 0 || y > x then None else Some (x - y)
@@ -67,7 +63,8 @@ let process_positions _ positions acc =
 
 let solve1 () =
   Hashtbl.fold process_positions antennas []
-  |> PointSet.of_list |> PointSet.cardinal
+  |> PointSet.of_list
+  |> PointSet.cardinal
 
 (* part 2 *)
 
@@ -89,7 +86,8 @@ let process_positions _ positions acc =
 
 let solve2 () =
   Hashtbl.fold process_positions antennas []
-  |> PointSet.of_list |> PointSet.cardinal
+  |> PointSet.of_list
+  |> PointSet.cardinal
 
 (* exports *)
 
@@ -98,8 +96,3 @@ let part2 () = validate solve2 912 "08" Two
 let solution : solution = { part1; part2 }
 
 (* tests *)
-
-let%test _ =
-  let answer = solve1 () in
-  Printf.printf "answer: %d\n" answer;
-  true
