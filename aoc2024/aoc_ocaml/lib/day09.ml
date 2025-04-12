@@ -13,17 +13,19 @@ let to_int = function
   | '9' -> 9
   | _ -> failwith "Invalid_argument"
 
+type byte = Hole | Bit of int
+
 let create_memory char_list =
   let sum x y = x + to_int y in
   let size = char_list |> List.fold_left sum 0 in
-  let memory = Array.make size None in
+  let memory = Array.make size Hole in
 
   let rec aux char_idx mem_idx = function
     | [] -> ()
     | char :: chars ->
         let length = to_int char in
         let next_mem_idx = mem_idx + length in
-        let value = if char_idx % 2 = 0 then Some (char_idx / 2) else None in
+        let value = if char_idx % 2 = 0 then Bit (char_idx / 2) else Hole in
         Array.fill memory mem_idx length value;
         aux (succ char_idx) next_mem_idx chars
   in
@@ -34,7 +36,7 @@ let create_memory char_list =
 let show_memory memory =
   memory
   |> Array.to_list
-  |> List.map (function None -> "." | Some v -> string_of_int v)
+  |> List.map (function Hole -> "." | Bit v -> string_of_int v)
   |> String.concat ""
   |> Printf.printf "%s\n"
 
@@ -44,36 +46,21 @@ let memory = create_memory input
 
 (* Part 1 *)
 
-let solve1 () =
-  let id = ref 0 in
-  let result = ref 0 in
-  let len = Array.length memory in
-  let i = ref 0 in
-  let j = ref (len - 1) in
+let rec scan_right i j id acc =
+  if j >= i then
+    match memory.(j) with
+    | Hole -> scan_right i (pred j) id acc
+    | Bit v -> (pred j, succ id, acc + (id * v))
+  else (j, id, acc)
 
-  let scan_reverse () =
-    try
-      while i <= j do
-        match memory.(!j) with
-        | Some next ->
-            result += (!id * next);
-            id += 1;
-            j -= 1;
-            raise Exit
-        | None -> j -= 1
-      done
-    with Exit -> ()
-  in
+let rec loop i (j, id, acc) =
+  if i <= j then
+    match memory.(i) with
+    | Bit v -> loop (succ i) (j, succ id, acc + (id * v))
+    | Hole -> loop (succ i) (scan_right i j id acc)
+  else acc
 
-  while i <= j do
-    i += 1;
-    match memory.(!i - 1) with
-    | Some next ->
-        result += (!id * next);
-        id += 1
-    | None -> scan_reverse ()
-  done;
-  !result
+let solve1 () = loop 0 (Array.length memory - 1, 0, 0)
 
 (* part 2 *)
 
