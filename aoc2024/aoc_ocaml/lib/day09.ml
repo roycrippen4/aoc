@@ -46,10 +46,10 @@ let memory = create_memory input
 
 (* Part 1 *)
 
-let rec scan_right i j id acc =
+let rec scan_for_bit i j id acc =
   if j >= i then
     match memory.(j) with
-    | Hole -> scan_right i (pred j) id acc
+    | Hole -> scan_for_bit i (pred j) id acc
     | Bit v -> (pred j, succ id, acc + (id * v))
   else (j, id, acc)
 
@@ -57,7 +57,7 @@ let rec loop i (j, id, acc) =
   if i <= j then
     match memory.(i) with
     | Bit v -> loop (succ i) (j, succ id, acc + (id * v))
-    | Hole -> loop (succ i) (scan_right i j id acc)
+    | Hole -> loop (succ i) (scan_for_bit i j id acc)
   else acc
 
 let solve1 () = loop 0 (Array.length memory - 1, 0, 0)
