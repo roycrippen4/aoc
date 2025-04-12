@@ -6,3 +6,4 @@ let day05 = Day05.solution
 let day06 = Day06.solution
 let day07 = Day07.solution
 let day08 = Day08.solution
+let day09 = Day09.solution
