@@ -15,6 +15,7 @@ depends: [
   "re"
   "batteries"
   "ppx_deriving"
+  "ppx_assert"
   "odoc" {with-doc}
 ]
 build: [
