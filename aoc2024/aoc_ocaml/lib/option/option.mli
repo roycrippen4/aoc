@@ -76,19 +76,18 @@ val to_seq : 'a option -> 'a Seq.t
     is the singleton sequence containing [v]. *)
 
 val is_some_and : ('a -> bool) -> 'a t -> bool
-(** Returns [true] if the option is a [Some] and the value inside of it matches a predicate.
+(** Returns [true] if the option is a [Some] and the value inside of it matches
+    a predicate.
     {0 Examples}
-{[
-    let x = Some 2
-    let () = assert (Option.is_some_and (fun x -> x > 1) x)
-    
-    let x = Some 0
-    let () = assert (not (Option.is_some_and (fun x -> x > 1) x))
-      
-    let x = None
-    let () = assert (not (Option.is_some_and (fun x -> x > 1)))
-]}
-*)
+    {[
+      let x = Some 2
+      let () = assert (Option.is_some_and (fun x -> x > 1) x)
+      let x = Some 0
+      let () = assert (not (Option.is_some_and (fun x -> x > 1) x))
+      let x = None
+      let () = assert (not (Option.is_some_and (fun x -> x > 1)))
+    ]} *)
+
 val filter : ('a -> bool) -> 'a t -> 'a t
 val unwrap_or_else : (unit -> 'a) -> 'a t -> 'a
 val unwrap_or : 'a -> 'a t -> 'a
