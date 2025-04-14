@@ -63,6 +63,8 @@ let solve1 () = loop 0 (Array.length mem - 1, 0, 0)
 
 (* part 2 *)
 
+let mem = create_mem input |> Array.copy
+
 let find_hole mem b_start size =
   (* gets the hole end index *)
   let rec get_hole_end = function
@@ -134,3 +136,20 @@ let solve2 () =
 let part1 () = validate solve1 6448989155953 "09" One
 let part2 () = validate solve2 6476642796832 "09" Two
 let solution : solution = { part1; part2 }
+
+(* tests *)
+
+let create_example () =
+  "/home/roy/dev/aoc/aoc2024/data/day09/example.txt"
+  |> read_to_string
+  |> String.trim
+  |> str_explode
+  |> create_mem
+
+let%test _ =
+  let mem = "553" |> str_explode |> create_mem in
+  (0, 4) = find_file mem 5
+
+let%test _ =
+  let example = create_example () in
+  None = find_hole example 40 5 && Some 2 = find_hole example 40 2
