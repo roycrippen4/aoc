@@ -4,28 +4,15 @@ type byte = Hole | Bit of int
 
 let string_of_byte = function Hole -> "." | Bit v -> string_of_int v
 
-let to_int = function
-  | '0' -> 0
-  | '1' -> 1
-  | '2' -> 2
-  | '3' -> 3
-  | '4' -> 4
-  | '5' -> 5
-  | '6' -> 6
-  | '7' -> 7
-  | '8' -> 8
-  | '9' -> 9
-  | _ -> failwith "Invalid_argument"
-
 let create_mem char_list =
-  let sum x y = x + to_int y in
+  let sum x y = x + int_of_char2 y in
   let size = char_list |> List.fold_left sum 0 in
   let mem = Array.make size Hole in
 
   let rec aux char_idx mem_idx = function
     | [] -> ()
     | char :: chars ->
-        let length = to_int char in
+        let length = int_of_char2 char in
         let next_mem_idx = mem_idx + length in
         if char_idx % 2 = 0 then
           Array.fill mem mem_idx length (Bit (char_idx / 2));
