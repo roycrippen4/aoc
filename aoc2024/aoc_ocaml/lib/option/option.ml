@@ -10,6 +10,7 @@ let ok_or err = function Some v -> Ok v | None -> Error err
 let ok_or_else err = function Some v -> Ok v | None -> err ()
 let or_ alt = function Some v -> v | None -> alt
 let or_else f = function Some v -> v | None -> f ()
+let unwrap = function Some v -> v | None -> invalid_arg "option is None"
 let unwrap_or default = function Some v -> v | None -> default
 let unwrap_or_else f = function Some v -> v | None -> f ()
 let filter p = function Some v -> if p v then Some v else None | None -> None

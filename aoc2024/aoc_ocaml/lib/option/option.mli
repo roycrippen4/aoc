@@ -91,6 +91,13 @@ val is_some_and : ('a -> bool) -> 'a t -> bool
 val filter : ('a -> bool) -> 'a t -> 'a t
 val unwrap_or_else : (unit -> 'a) -> 'a t -> 'a
 val unwrap_or : 'a -> 'a t -> 'a
+
+val unwrap : 'a option -> 'a
+(** Alias for [Option.get]. [unwrap o] is [v] if [o] is [Some v] and raise
+    otherwise.
+
+    @raise Invalid_argument if [o] is [None]. *)
+
 val or_else : (unit -> 'a) -> 'a t -> 'a
 val or_ : 'a -> 'a t -> 'a
 val ok_or_else : (unit -> ('a, 'b) result) -> 'a t -> ('a, 'b) result

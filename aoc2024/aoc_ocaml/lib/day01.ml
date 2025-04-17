@@ -42,11 +42,3 @@ let solve2 () =
 let part1 () = validate solve1 1506483 "01" One
 let part2 () = validate solve2 23126924 "01" Two
 let solution : solution = { part1; part2 }
-
-let%test _ =
-  Printf.printf "part1 answer: %d\n" (solve1 ());
-  true
-
-let%test _ =
-  Printf.printf "part2 answer: %d\n" (solve2 ());
-  true
