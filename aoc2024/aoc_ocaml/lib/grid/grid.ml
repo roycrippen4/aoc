@@ -1,4 +1,5 @@
 type 'a t = 'a array array
+type 'a tl = 'a list list
 type position = int * int
 
 let height g = Array.length g
@@ -15,8 +16,19 @@ let init h w f =
 
 let copy g = init (height g) (width g) (fun (i, j) -> g.(i).(j))
 let inside g (i, j) = 0 <= i && i < height g && 0 <= j && j < width g
+
+(* *)
+
 let get g (i, j) = g.(i).(j)
 let get_opt g (i, j) = try Some g.(i).(j) with Invalid_argument _ -> None
+
+(* *)
+
+let entry g (i, j) = (i, j, get g (i, j))
+let entry_opt g (i, j) = get_opt g (i, j) |> Option.map (fun v -> (i, j, v))
+
+(* *)
+
 let set g (i, j) v = g.(i).(j) <- v
 
 let set_opt g (i, j) v =
@@ -66,6 +78,27 @@ let rotate_right g =
   init w h (fun (i, j) -> g.(h - 1 - j).(i))
 
 let map f g = init (height g) (width g) (fun p -> f p (get g p))
+
+(* *)
+
+let neighbor4_coords p = [ north p; east p; south p; west p ]
+let neighbor4_values g p = p |> neighbor4_coords |> List.map (get_opt g)
+let neighbor4_entries g p = p |> neighbor4_coords |> List.map (entry_opt g)
+
+let neighbor8_coords p =
+  [
+    north p;
+    north_east p;
+    east p;
+    south_east p;
+    south p;
+    south_west p;
+    west p;
+    north_west p;
+  ]
+
+let neighbor8_values g p = p |> neighbor8_coords |> List.map (get_opt g)
+let neighbor8_entries g p = p |> neighbor8_coords |> List.map (entry_opt g)
 
 let iter4 f g p =
   let f p = if inside g p then f p (get g p) in
