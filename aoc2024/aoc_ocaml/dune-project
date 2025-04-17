@@ -23,8 +23,7 @@
   dune
   (ppx_inline_test :with-test)
   re
-  batteries
-  ppxlib)
+  batteries)
  (tags
   ("add topics" "to describe" your project)))
 
