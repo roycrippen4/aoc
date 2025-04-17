@@ -204,3 +204,9 @@ val of_string : string -> char t
 (** [grid_of_string s] reads a grid of characters from [s]. Raises
     [Invalid_argument] if the lines do not have the same length, or there is no
     line at all. *)
+
+val to_list : 'a array array -> 'a list list
+(** [to_list g] converts a ['a array array] to a ['a list list] *)
+
+val of_list : 'a list list -> 'a array array
+(** [to_list g] converts a ['a list list] to a ['a array array] *)

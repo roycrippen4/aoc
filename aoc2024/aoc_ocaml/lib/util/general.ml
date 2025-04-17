@@ -36,6 +36,32 @@ let windows n lst =
 let enumerate_list lst = List.mapi (fun i x -> (i, x)) lst
 let enumerate_array arr = Array.mapi (fun i x -> (i, x)) arr
 
+let int_of_char2 = function
+  | '0' -> 0
+  | '1' -> 1
+  | '2' -> 2
+  | '3' -> 3
+  | '4' -> 4
+  | '5' -> 5
+  | '6' -> 6
+  | '7' -> 7
+  | '8' -> 8
+  | '9' -> 9
+  | _ -> failwith "Invalid_argument"
+
+let char_of_int2 = function
+  | 0 -> '0'
+  | 1 -> '1'
+  | 2 -> '2'
+  | 3 -> '3'
+  | 4 -> '4'
+  | 5 -> '5'
+  | 6 -> '6'
+  | 7 -> '7'
+  | 8 -> '8'
+  | 9 -> '9'
+  | _ -> failwith "Invalid_argument"
+
 let rec combos = function
   | [] -> []
   | x :: xs ->

@@ -31,3 +31,5 @@ let split_to_string = General.split_to_string
 let validate = Solution.validate
 let windows = General.windows
 let combos = General.combos
+let char_of_int2 = General.char_of_int2
+let int_of_char2 = General.int_of_char2

@@ -76,3 +76,9 @@ val combos : 'a list -> ('a * 'a) list
 (** Produces the list of unique element pairs in a list *)
 
 val str_explode : string -> char list
+
+val int_of_char2 : char -> int
+(** Converts a [char] into an [int]. e.g. ['1'] becomes [1] *)
+
+val char_of_int2 : int -> char
+(** Converts an [int] into a [char]. e.g. [1] becomes ['1'] *)

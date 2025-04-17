@@ -169,6 +169,15 @@ let of_string str =
   done;
   g
 
+let of_list l = l |> Array.of_list |> Array.map (fun l -> Array.of_list l)
+
+let to_list g =
+  let rec aux acc = function
+    | [] -> acc
+    | hd :: tl -> aux (Array.to_list hd :: acc) tl
+  in
+  aux [] (Array.to_list g) |> List.rev
+
 let from_file path = In_channel.with_open_text path (fun ic -> read ic)
 
 let print ?(bol = fun _fmt _i -> ())
