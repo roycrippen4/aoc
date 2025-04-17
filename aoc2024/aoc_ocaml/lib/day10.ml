@@ -39,38 +39,12 @@ let show_grid () =
 let () = show_grid ()
 let solve1 () = 42
 
-let get_neighbors p g =
-  let get_neighbor x y = { x; y; v = Grid.get g (y, x) } in
-
-  let { x; y; v } = p in
-  let target = v + 1 in
-  let neighbors = [] in
-
-  let neighbors =
-    if x < gwidth - 1 && Grid.get g (y, x) = target then
-      get_neighbor (x + 1) y :: neighbors
-    else neighbors
+let get_neighbors p (g : grid) : point list =
+  let point_of_entry = function
+    | Some (y, x, v) -> if v = p.v + 1 then Some { x; y; v } else None
+    | None -> None
   in
-
-  let neighbors =
-    if x <> 0 && Grid.get g (y, x - 1) = target then
-      get_neighbor (x - 1) y :: neighbors
-    else neighbors
-  in
-
-  let neighbors =
-    if y <> 0 && Grid.get g (y - 1, x) = target then
-      get_neighbor x (y - 1) :: neighbors
-    else neighbors
-  in
-
-  let neighbors =
-    if y < gheight - 1 && Grid.get g (y + 1, x) = target then
-      get_neighbor x (y + 1) :: neighbors
-    else neighbors
-  in
-
-  neighbors
+  Grid.neighbor4_entries g (p.y, p.x) |> List.filter_map point_of_entry
 
 (* part 2 *)
 
