@@ -1,101 +1,59 @@
-use std::sync::LazyLock;
-
-use crate::DIRECTIONS;
-
-static _SIZE: LazyLock<usize> = LazyLock::new(|| 5);
-
-fn make_grid(input: &str) -> (usize, Vec<u8>) {
-    let data: Vec<Vec<_>> = input
-        .trim()
-        .split('\n')
-        .map(|s| s.chars().map(|c| c as u8).collect())
-        .collect();
-
-    let size = data.len();
-    let grid: Vec<_> = data.into_iter().flatten().collect();
-
-    (size, grid)
-}
-
-#[inline(always)]
-fn idx(x: usize, y: usize, size: usize) -> usize {
-    size * y + x
-}
+use crate::{DIRECTIONS, data};
 
 fn evaluate(input: &str) -> usize {
-    let (size, grid) = make_grid(input);
-    let mut visited = vec![false; size * size];
+    let trimmed = input.trim();
+    let size = trimmed.lines().count();
+    let grid: Vec<u8> = trimmed.lines().flat_map(|l| l.bytes()).collect();
+    let mut seen = vec![false; grid.len()];
 
-    let xyc = |i: usize| (i % size, i / size, grid[i]);
-
-    (0..grid.len()).fold(0, |acc, i| {
-        if visited[i] {
-            acc
-        } else {
-            acc + walk_area(xyc(i), (size, &grid), &mut visited)
-        }
-    })
+    (0..grid.len()).fold(0, |acc, i| acc + flood(i, &grid, size, &mut seen))
 }
 
-fn walk_area(
-    (x, y, c): (usize, usize, u8),
-    (size, grid): (usize, &[u8]),
-    visited: &mut [bool],
-) -> usize {
+fn flood(start: usize, g: &[u8], size: usize, seen: &mut [bool]) -> usize {
+    let mut stack = vec![start];
     let mut area = 0;
-    let mut perimeter = 0;
-    let mut q = Vec::from([(x, y)]);
-    visited[y * size + x] = true;
+    let mut peri = 0;
+    let current = g[start];
 
-    while let Some((cx, cy)) = q.pop() {
-        area += 1;
-        walk_perimeter((cx, cy, c), (size, grid), &mut q, &mut perimeter, visited);
-    }
-
-    area * perimeter
-}
-
-fn walk_perimeter(
-    (cx, cy, c): (usize, usize, u8),
-    (size, grid): (usize, &[u8]),
-    queue: &mut Vec<(usize, usize)>,
-    perimeter: &mut usize,
-    visited: &mut [bool],
-) {
-    let cx_i = cx as isize;
-    let cy_i = cy as isize;
-    let size_i = size as isize;
-
-    for &(dx, dy) in &DIRECTIONS {
-        let nx_i = cx_i + dx;
-        let ny_i = cy_i + dy;
-
-        if nx_i < 0 || nx_i >= size_i || ny_i < 0 || ny_i >= size_i {
-            *perimeter += 1;
+    while let Some(i) = stack.pop() {
+        if seen[i] {
             continue;
         }
 
-        let nx = nx_i as usize;
-        let ny = ny_i as usize;
-        let idx = idx(nx, ny, size);
-        if grid[idx] != c {
-            *perimeter += 1;
-        } else if !visited[idx] {
-            visited[idx] = true;
-            queue.push((nx, ny));
+        seen[i] = true;
+        area += 1;
+
+        let (x, y) = (i % size, i / size);
+        for (dx, dy) in DIRECTIONS {
+            let nx = x as isize + dx;
+            let ny = y as isize + dy;
+
+            if nx < 0 || ny < 0 || nx >= size as isize || ny >= size as isize {
+                peri += 1;
+                continue;
+            }
+
+            let ni = ny as usize * size + nx as usize;
+            if g[ni] != current {
+                peri += 1
+            } else if !seen[ni] {
+                stack.push(ni);
+            }
         }
     }
+
+    area * peri
 }
 
 pub fn solve() -> usize {
-    evaluate(include_str!("data/data.txt"))
+    evaluate(data!())
 }
 
 #[cfg(test)]
 mod test {
     use crate::{
         example,
-        util::{validate, Day::Day12, Part::Part1},
+        util::{Day::Day12, Part::Part1, validate},
     };
 
     use super::{evaluate, solve};
