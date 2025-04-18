@@ -53,13 +53,15 @@ let initial_stones =
   |> String.split_on_char ' '
   |> List.map (fun v -> (int_of_string v, 1))
 
-let solve iterations =
+let solve1 () =
   initial_stones |> H.of_list |> fun stones ->
-  let new_stones = H.create 5000 in
-  blink iterations stones new_stones
+  let new_stones = H.create 1000 in
+  blink 25 stones new_stones
 
-let solve1 () = solve 25
-let solve2 () = solve 75
+let solve2 () =
+  initial_stones |> H.of_list |> fun stones ->
+  let new_stones = H.create 2000 in
+  blink 75 stones new_stones
 
 (* exports *)
 
