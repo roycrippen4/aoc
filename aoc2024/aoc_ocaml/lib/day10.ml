@@ -7,7 +7,7 @@ type point = { x : int; y : int; v : int }
 let input = read_to_string "/home/roy/dev/aoc/aoc2024/data/day10/data.txt"
 
 let create_grid str =
-  String.trim str |> G.of_string |> G.map (fun _ c -> int_of_char2 c)
+  String.trim str |> G.of_string |> G.map (fun (_, _, c) -> int_of_char2 c)
 
 let grid = create_grid input
 let gheight = G.height grid

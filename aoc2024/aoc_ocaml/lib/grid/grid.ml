@@ -78,7 +78,7 @@ let rotate_right g =
   let h = height g and w = width g in
   init w h (fun (x, y) -> g.(h - 1 - x).(y))
 
-let map f g = init (height g) (width g) (fun p -> f p (get g p))
+let map f g = init (height g) (width g) (fun ((x, y) as p) -> f (x, y, get g p))
 
 (* *)
 
