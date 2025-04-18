@@ -26,9 +26,13 @@
 type 'a t = 'a array array
 type 'a tl = 'a list list
 
+type 'a entry = int * int * 'a
+(** An entry is an ordered triplet or [(x, y, 'a)], where [x] is the column, [y]
+    is the row and ['a] is the value. Rows and columns are 0-based. *)
+
 type position = int * int
-(** A position is an ordered pair [(i,j)], where [i] is the row and [j] is the
-    column. Rows and columns are 0-based. *)
+(** A position is an ordered pair [(x, y)], where [x] is the column and [y] is
+    the row. Rows and columns are 0-based. *)
 
 val height : 'a t -> int
 (** Returns the number of rows. *)
@@ -61,8 +65,8 @@ val get_opt : 'a t -> position -> 'a option
 (** [get_opt g p] returns [Some] value at position [p]. Returns [None] if the
     position is out of bounds. *)
 
-val entry : 'a t -> position -> int * int * 'a
-val entry_opt : 'a t -> position -> (int * int * 'a) option
+val entry : 'a t -> position -> 'a entry
+val entry_opt : 'a t -> position -> 'a entry option
 
 val set : 'a t -> position -> 'a -> unit
 (** [set g p v] sets the value at position [p], with [v]. Raises
@@ -149,12 +153,12 @@ val fold8 : (position -> 'a -> 'acc -> 'acc) -> 'a t -> position -> 'acc -> 'acc
        right in each row from top to bottom.} *)
 
 val flatten : 'a t -> 'a array
-val enumerate : 'a t -> (int * int * 'a) t
+val enumerate : 'a t -> 'a entry t
 
 val iter : (position -> 'a -> unit) -> 'a t -> unit
 (** [iter f g] applies function [f] at each position of the grid [g] *)
 
-val fold : (position -> 'a -> 'acc -> 'acc) -> 'a t -> 'acc -> 'acc
+val fold : ('acc -> 'a entry -> 'acc) -> 'acc -> 'a t -> 'acc
 (** [fold f g] folds function [f] over each position of [g] *)
 
 val filter : (position -> 'a -> bool) -> 'a t -> position list
@@ -225,7 +229,7 @@ val neighbor4_coords : position -> position list
     given point [p] regardless if neighbor [n] is in bounds. Order of the list
     starts at [N] and rotates clockwise. *)
 
-val neighbor4_entries : 'a t -> position -> (int * int * 'a) option list
+val neighbor4_entries : 'a t -> position -> 'a entry option list
 (** [neighbor4_values g] Get the coordinates and values of all orthoganal
     neighbors from a given point [p] if neighbor [n] is in bounds. A neighbor is
     [None] if it is out of bounds. Order of the list starts at [N] and rotates
@@ -241,7 +245,7 @@ val neighbor8_coords : position -> position list
     [p] regardless if neighbor [n] is in bounds. Order of the list starts at [N]
     and rotates clockwise. *)
 
-val neighbor8_entries : 'a t -> position -> (int * int * 'a) option list
+val neighbor8_entries : 'a t -> position -> 'a entry option list
 (** [neighbor8_entries g] Get the coordinates and values of all neighbors from a
     given point [p] if neighbor [n] is in bounds. A neighbor is [None] if it is
     out of bounds. Order of the list starts at [N] and rotates clockwise. *)

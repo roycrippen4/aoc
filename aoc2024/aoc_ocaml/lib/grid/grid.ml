@@ -1,6 +1,7 @@
 type 'a t = 'a array array
 type 'a tl = 'a list list
 type position = int * int
+type 'a entry = int * int * 'a
 
 let height g = Array.length g
 let width g = Array.length g.(0)
@@ -147,17 +148,17 @@ let enumerate g =
   g
   |> Array.mapi (fun i row -> row |> Array.mapi (fun j value -> (i, j, value)))
 
-let fold f g acc =
-  let rec fold ((x, y) as p) acc =
+let fold f acc g =
+  let rec fold (x, y) acc =
     if y = height g then acc
     else if x = width g then fold (0, y + 1) acc
-    else fold (x + 1, y) (f p g.(y).(x) acc)
+    else fold (x + 1, y) (f acc (x, y, g.(y).(x)))
   in
   fold (0, 0) acc
 
 let filter f g =
-  let f' p v acc = if f p v then p :: acc else acc in
-  fold f' g []
+  let f' acc (x, y, v) = if f (x, y) v then (x, y) :: acc else acc in
+  fold f' [] g
 
 let find_opt f g =
   let exception Found of position in
