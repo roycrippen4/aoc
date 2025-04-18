@@ -14,26 +14,26 @@ let init h w f =
   if h < 1 || w < 1 then invalid_arg "Grid.init";
   Array.init h (fun i -> Array.init w (fun j -> f (i, j)))
 
-let copy g = init (height g) (width g) (fun (i, j) -> g.(i).(j))
-let inside g (i, j) = 0 <= i && i < height g && 0 <= j && j < width g
+let copy g = init (height g) (width g) (fun (x, y) -> g.(y).(x))
+let inside g (x, y) = 0 <= y && y < height g && 0 <= x && x < width g
 
 (* *)
 
-let get g (i, j) = g.(i).(j)
-let get_opt g (i, j) = try Some g.(i).(j) with Invalid_argument _ -> None
+let get g (x, y) = g.(y).(x)
+let get_opt g (x, y) = try Some g.(y).(x) with Invalid_argument _ -> None
 
 (* *)
 
-let entry g (i, j) = (i, j, get g (i, j))
-let entry_opt g (i, j) = get_opt g (i, j) |> Option.map (fun v -> (i, j, v))
+let entry g (y, x) = (y, x, get g (y, x))
+let entry_opt g (y, x) = get_opt g (y, x) |> Option.map (fun v -> (y, x, v))
 
 (* *)
 
-let set g (i, j) v = g.(i).(j) <- v
+let set g (x, y) v = g.(y).(x) <- v
 
-let set_opt g (i, j) v =
+let set_opt g (x, y) v =
   try
-    g.(i).(j) <- v;
+    g.(y).(x) <- v;
     Some ()
   with Invalid_argument _ -> None
 
@@ -49,16 +49,16 @@ let string_of_direction = function
   | SE -> "southeast"
   | SW -> "southwest"
 
-let move d (i, j) =
+let move d (x, y) =
   match d with
-  | N -> (i - 1, j)
-  | NW -> (i - 1, j - 1)
-  | W -> (i, j - 1)
-  | SW -> (i + 1, j - 1)
-  | S -> (i + 1, j)
-  | SE -> (i + 1, j + 1)
-  | E -> (i, j + 1)
-  | NE -> (i - 1, j + 1)
+  | N -> (x, y - 1)
+  | NW -> (x - 1, y - 1)
+  | W -> (x - 1, y)
+  | SW -> (x - 1, y + 1)
+  | S -> (x, y + 1)
+  | SE -> (x + 1, y + 1)
+  | E -> (x + 1, y)
+  | NE -> (x + 1, y - 1)
 
 let north = move N
 let north_west = move NW
@@ -71,11 +71,11 @@ let north_east = move NE
 
 let rotate_left g =
   let h = height g and w = width g in
-  init w h (fun (i, j) -> g.(j).(w - 1 - i))
+  init w h (fun (x, y) -> g.(x).(w - 1 - y))
 
 let rotate_right g =
   let h = height g and w = width g in
-  init w h (fun (i, j) -> g.(h - 1 - j).(i))
+  init w h (fun (x, y) -> g.(h - 1 - x).(y))
 
 let map f g = init (height g) (width g) (fun p -> f p (get g p))
 
@@ -135,9 +135,9 @@ let fold8 f g p acc =
   |> f (north_east p)
 
 let iter f g =
-  for i = 0 to height g - 1 do
-    for j = 0 to width g - 1 do
-      f (i, j) g.(i).(j)
+  for y = 0 to height g - 1 do
+    for x = 0 to width g - 1 do
+      f (x, y) g.(y).(x)
     done
   done
 
@@ -148,10 +148,10 @@ let enumerate g =
   |> Array.mapi (fun i row -> row |> Array.mapi (fun j value -> (i, j, value)))
 
 let fold f g acc =
-  let rec fold ((i, j) as p) acc =
-    if i = height g then acc
-    else if j = width g then fold (i + 1, 0) acc
-    else fold (i, j + 1) (f p g.(i).(j) acc)
+  let rec fold ((x, y) as p) acc =
+    if y = height g then acc
+    else if x = width g then fold (0, y + 1) acc
+    else fold (x + 1, y) (f p g.(y).(x) acc)
   in
   fold (0, 0) acc
 
@@ -182,8 +182,8 @@ let read c =
         let g = Array.map row (Array.of_list (List.rev rows)) in
         if Array.length g = 0 then invalid_arg "Grid.read";
         let w = Array.length g.(0) in
-        for i = 1 to height g - 1 do
-          if Array.length g.(i) <> w then invalid_arg "Grid.read"
+        for y = 1 to height g - 1 do
+          if Array.length g.(y) <> w then invalid_arg "Grid.read"
         done;
         g
   in
@@ -197,8 +197,8 @@ let of_string str =
   in
   if Array.length g = 0 then invalid_arg "Grid.read";
   let w = Array.length g.(0) in
-  for i = 1 to height g - 1 do
-    if Array.length g.(i) <> w then invalid_arg "Grid.read"
+  for y = 1 to height g - 1 do
+    if Array.length g.(y) <> w then invalid_arg "Grid.read"
   done;
   g
 
@@ -216,13 +216,13 @@ let from_file path = In_channel.with_open_text path (fun ic -> read ic)
 let print ?(bol = fun _fmt _i -> ())
     ?(eol = fun fmt _i -> Format.pp_print_newline fmt ())
     ?(sep = fun _fmt _p -> ()) p fmt g =
-  for i = 0 to height g - 1 do
-    bol fmt i;
-    for j = 0 to width g - 1 do
-      p fmt (i, j) g.(i).(j);
-      if j < width g - 1 then sep fmt (i, j)
+  for y = 0 to height g - 1 do
+    bol fmt y;
+    for x = 0 to width g - 1 do
+      p fmt (y, x) g.(y).(x);
+      if x < width g - 1 then sep fmt (y, x)
     done;
-    eol fmt i
+    eol fmt y
   done
 
 let print_chars = print (fun fmt _ c -> Format.pp_print_char fmt c)
