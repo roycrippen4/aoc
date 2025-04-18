@@ -6,6 +6,14 @@ let ( /..= ) i j =
   let rec aux n acc = if n < i then acc else aux (n - 1) (n :: acc) in
   aux j []
 
+let range i j =
+  let rec aux n acc = if n <= i then acc else aux (n - 1) ((n - 1) :: acc) in
+  aux j []
+
+let range_i i j =
+  let rec aux n acc = if n < i then acc else aux (n - 1) (n :: acc) in
+  aux j []
+
 let ( += ) x y = x := !x + y
 let ( +=. ) x y = x := !x +. y
 let ( -= ) x y = x := !x - y

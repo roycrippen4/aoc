@@ -68,6 +68,17 @@ let rec combos = function
       let rec aux y = function [] -> [] | z :: zs -> (y, z) :: aux y zs in
       aux x xs @ combos xs
 
+let pow base exp =
+  if exp < 0 then invalid_arg "exponent can not be negative"
+  else
+    let rec aux acc base = function
+      | 0 -> acc
+      | 1 -> base * acc
+      | e when e mod 2 = 0 -> aux acc (base * base) (e / 2)
+      | e -> aux (base * acc) (base * base) ((e - 1) / 2)
+    in
+    aux 1 base exp
+
 let%test _ = combos [ 1; 2; 3 ] = [ (1, 2); (1, 3); (2, 3) ]
 
 let%test _ =

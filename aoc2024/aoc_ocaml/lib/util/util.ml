@@ -33,3 +33,10 @@ let windows = General.windows
 let combos = General.combos
 let char_of_int2 = General.char_of_int2
 let int_of_char2 = General.int_of_char2
+let pow = General.pow
+let range = Operators.range
+let range_i = Operators.range_i
+
+exception Todo of string
+
+let todo () : 'a = raise (Todo "Not yet implemented")

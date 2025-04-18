@@ -1,10 +1,16 @@
 type solution = Solution.solution
 type part = Solution.part
 
+val range : int -> int -> int list
+(** Rust-like range operator. End exclusive *)
+
 val ( /.. ) : int -> int -> int list
 (** Rust-like range operator. End exclusive *)
 
 val ( /..= ) : int -> int -> int list
+(** Rust-like range operator. End inclusive *)
+
+val range_i : int -> int -> int list
 (** Rust-like range operator. End inclusive *)
 
 val ( += ) : int ref -> int -> unit
@@ -82,3 +88,11 @@ val int_of_char2 : char -> int
 
 val char_of_int2 : int -> char
 (** Converts an [int] into a [char]. e.g. [1] becomes ['1'] *)
+
+val pow : int -> int -> int
+(** [pow base exponent] returns [base] raised to the power of [exponent]. It is
+    OK if [base <= 0]. [pow] raises if [exponent < 0], or an integer overflow
+    would occur.*)
+
+val todo : unit -> 'a
+(** Similar to Rust's [todo!()] macro *)
