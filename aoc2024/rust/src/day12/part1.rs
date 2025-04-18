@@ -27,17 +27,15 @@ fn flood(start: usize, g: &[u8], size: usize, seen: &mut [bool]) -> usize {
         for (dx, dy) in DIRECTIONS {
             let nx = x as isize + dx;
             let ny = y as isize + dy;
+            let nx_usize = nx as usize;
+            let ny_usize = ny as usize;
 
-            if nx < 0 || ny < 0 || nx >= size as isize || ny >= size as isize {
+            if nx < 0 || ny < 0 || nx_usize >= size || ny_usize >= size {
                 peri += 1;
-                continue;
-            }
-
-            let ni = ny as usize * size + nx as usize;
-            if g[ni] != current {
+            } else if g[ny_usize * size + nx_usize] != current {
                 peri += 1
-            } else if !seen[ni] {
-                stack.push(ni);
+            } else if !seen[ny_usize * size + nx_usize] {
+                stack.push(ny_usize * size + nx_usize);
             }
         }
     }
