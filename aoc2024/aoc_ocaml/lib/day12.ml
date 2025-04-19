@@ -70,6 +70,33 @@ let solve1 () =
 
 (* part 2 *)
 
+let count_corners (x, y, v) =
+  let ok_l = x > 0 in
+  let ok_r = x + 1 < size in
+  let ok_u = y > 0 in
+  let ok_d = y + 1 < size in
+
+  let same_l = ok_l && grid.(idx (x - 1) y) = v in
+  let same_r = ok_r && grid.(idx (x + 1) y) = v in
+  let same_t = ok_u && grid.(idx x (y - 1)) = v in
+  let same_b = ok_d && grid.(idx x (y + 1)) = v in
+
+  let same_bl = ok_d && ok_l && grid.(idx(x - 1) y + 1) = v in
+  let same_br = ok_d && ok_r && grid.(idx(x + 1) y + 1) = v in
+  let same_tl = ok_u && ok_l && grid.(idx(x - 1) y - 1) = v in
+  let same_tr = ok_u && ok_r && grid.(idx(x + 1) y - 1) = v in
+
+  let tl_corner = (not same_l && not same_t) || (same_l && same_t && not same_tl) in
+  let tr_corner = (not same_r && not same_t) || (same_r && same_t && not same_tr) in
+  let bl_corner = (not same_l && not same_b) || (same_l && same_b && not same_bl) in
+  let br_corner = (not same_r && not same_b) || (same_r && same_b && not same_br) in
+
+  if tl_corner then 1 else 0 +
+  if tr_corner then 1 else 0 +
+  if bl_corner then 1 else 0 +
+  if br_corner then 1 else 0
+  [@@ocamlformat "disable"]
+
 let solve2 () = 42
 
 (* exports *)
