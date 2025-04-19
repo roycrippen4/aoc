@@ -2,7 +2,7 @@ use rayon::prelude::*;
 
 use crate::data;
 
-use super::{parse_input, HEIGHT, WIDTH};
+use super::{HEIGHT, WIDTH, parse_input};
 
 pub fn solve() -> usize {
     let robots = parse_input(data!());
@@ -39,7 +39,7 @@ pub fn solve() -> usize {
 mod test {
     use crate::{
         day14::Robot,
-        util::{validate, Day::Day14, Part::Part2},
+        util::{Day::Day14, Part::Part2, validate},
     };
 
     use super::solve;

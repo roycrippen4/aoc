@@ -1,4 +1,4 @@
-use std::collections::{hash_map::Entry, HashMap};
+use std::collections::{HashMap, hash_map::Entry};
 
 use crate::data;
 
@@ -149,10 +149,10 @@ pub fn solve() -> usize {
 mod test {
     use crate::{
         example,
-        util::{validate, Day::Day05, Part::Part2},
+        util::{Day::Day05, Part::Part2, validate},
     };
 
-    use super::{fix_order, get_middle, parse_order_rules, parse_updates, solve, OrderMap};
+    use super::{OrderMap, fix_order, get_middle, parse_order_rules, parse_updates, solve};
 
     #[test]
     fn test_solve() {

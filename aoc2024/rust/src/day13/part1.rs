@@ -96,10 +96,10 @@ pub fn solve() -> usize {
 mod test {
     use crate::{
         example,
-        util::{validate, Day::Day13, Part::Part1},
+        util::{Day::Day13, Part::Part1, validate},
     };
 
-    use super::{evaluate, get_cheapest, parse_machine, solve, Button, PrizeTarget};
+    use super::{Button, PrizeTarget, evaluate, get_cheapest, parse_machine, solve};
 
     #[test]
     fn test_solve() {

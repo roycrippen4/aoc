@@ -192,10 +192,10 @@ pub fn solve() -> usize {
 mod test {
     use crate::{
         example,
-        util::{validate, Day::Day15, Part::Part1},
+        util::{Day::Day15, Part::Part1, validate},
     };
 
-    use super::{evaluate, solve, Direction, Grid, Kind};
+    use super::{Direction, Grid, Kind, evaluate, solve};
 
     #[test]
     fn test_solve() {

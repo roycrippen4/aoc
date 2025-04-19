@@ -1,4 +1,4 @@
-use super::{calculate_safty, parse_input, HEIGHT, WIDTH};
+use super::{HEIGHT, WIDTH, calculate_safty, parse_input};
 use crate::data;
 
 pub fn evaluate(data: &str, steps: isize, width: Option<isize>, height: Option<isize>) -> usize {
@@ -21,7 +21,7 @@ mod test {
     use crate::{
         day14::Robot,
         example,
-        util::{validate, Day::Day14, Part::Part1},
+        util::{Day::Day14, Part::Part1, validate},
     };
 
     use super::{evaluate, solve};

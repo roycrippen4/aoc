@@ -88,7 +88,7 @@ pub fn solve() -> usize {
 mod test {
     use crate::{
         example,
-        util::{validate, Day::Day10, Part::Part1},
+        util::{Day::Day10, Part::Part1, validate},
     };
 
     use super::{create_grid, evaluate, neighbors, score_path, solve};

@@ -55,7 +55,7 @@ mod test {
 
     use super::solve;
 
-    use crate::util::{validate, Day::Day04, Part::Part1};
+    use crate::util::{Day::Day04, Part::Part1, validate};
 
     #[test]
     fn test_solve() {

@@ -24,7 +24,7 @@ pub fn solve() -> usize {
 
 #[cfg(test)]
 mod test {
-    use crate::util::{validate, Day::Day02, Part::Part1};
+    use crate::util::{Day::Day02, Part::Part1, validate};
 
     use super::solve;
 

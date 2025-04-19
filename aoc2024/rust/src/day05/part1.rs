@@ -1,4 +1,4 @@
-use std::collections::{hash_map::Entry, HashMap};
+use std::collections::{HashMap, hash_map::Entry};
 
 use crate::data;
 
@@ -64,7 +64,7 @@ pub fn solve() -> usize {
 
 #[cfg(test)]
 mod test {
-    use crate::util::{validate, Day::Day05, Part::Part1};
+    use crate::util::{Day::Day05, Part::Part1, validate};
 
     use super::{get_middle, parse_order_rules, parse_updates, solve};
 

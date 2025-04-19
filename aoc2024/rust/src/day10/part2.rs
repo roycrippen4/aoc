@@ -1,6 +1,6 @@
 use rayon::prelude::*;
 
-use crate::{data, util::StringMethods, DIRECTIONS};
+use crate::{DIRECTIONS, data, util::StringMethods};
 
 type Point = (usize, usize, usize);
 
@@ -66,7 +66,7 @@ pub fn solve() -> usize {
 mod test {
     use crate::{
         example,
-        util::{validate, Day::Day10, Part::Part2},
+        util::{Day::Day10, Part::Part2, validate},
     };
 
     use super::{create_grid, evaluate, score_path, solve};

@@ -36,7 +36,7 @@ fn parse_mul(s: &str) -> usize {
 
 #[cfg(test)]
 mod test {
-    use crate::util::{validate, Day::Day03, Part::Part1};
+    use crate::util::{Day::Day03, Part::Part1, validate};
 
     use super::{p1_example, parse_mul, solve};
 
