@@ -3,6 +3,7 @@ open Batteries
 
 type prize = { x : int; y : int }
 type button = { x : int; y : int; cost : int }
+type machine = button * button * prize
 
 let input = read_to_string "/home/roy/dev/aoc/aoc2024/data/day13/data.txt"
 
@@ -29,7 +30,7 @@ let parse_machine s =
 let is_positive_integer v =
   v > 0. && v |> modf |> fst |> classify_float == FP_zero
 
-let get_cheapest (a, b, (p : prize)) =
+let get_cheapest ((a, b, p) : machine) =
   let determinant = (a.x * b.y) - (a.y * b.x) in
   if determinant <> 0 then
     let determinant_f = float determinant in
@@ -56,10 +57,12 @@ let solve1 () = machines |> List.fold (fun acc m -> acc + get_cheapest m) 0
 
 (* part 2 *)
 
-let update_target (a, b, (p : prize)) =
-  (a, b, { x = p.x + 10000000000000; y = p.y + 10000000000000 })
-
 let solve2 () =
+  let update_target ((a, b, p) : machine) : machine =
+    let p = { x = p.x + 10000000000000; y = p.y + 10000000000000 } in
+    (a, b, p)
+  in
+
   let accumulate acc m = acc + (m |> update_target |> get_cheapest) in
   machines |> List.fold accumulate 0
 
