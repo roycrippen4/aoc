@@ -56,41 +56,28 @@ fn parse_input(input: &str) -> Vec<Robot> {
     input.trim().split('\n').map(Robot::from).collect()
 }
 
+fn update_counts(robot: &Robot, skip_x: usize, skip_y: usize) -> (usize, usize, usize, usize) {
+    let (x, y) = robot.get_position();
+    if x == skip_x || y == skip_y {
+        return (0, 0, 0, 0);
+    }
+
+    match (x < skip_x, y < skip_y) {
+        (true, true) => (1, 0, 0, 0),
+        (false, true) => (0, 1, 0, 0),
+        (true, false) => (0, 0, 1, 0),
+        (false, false) => (0, 0, 0, 1),
+    }
+}
+
 fn calculate_safty(robots: &[Robot], width: isize, height: isize) -> usize {
     let skip_x = (width / 2) as usize;
     let skip_y = (height / 2) as usize;
-    let mut top_left_count = 0;
-    let mut top_right_count = 0;
-    let mut bot_left_count = 0;
-    let mut bot_right_count = 0;
+    let (tl, tr, bl, br) = robots
+        .iter()
+        .map(|bot| update_counts(bot, skip_x, skip_y))
+        .reduce(|(a, b, c, d), (tl, tr, bl, br)| (tl + a, tr + b, bl + c, br + d))
+        .unwrap();
 
-    for robot in robots {
-        let (x, y) = robot.get_position();
-        if x == skip_x || y == skip_y {
-            continue;
-        }
-
-        match (x < skip_x, y < skip_y) {
-            (true, true) => top_left_count += 1,
-            (true, false) => bot_left_count += 1,
-            (false, true) => top_right_count += 1,
-            (false, false) => bot_right_count += 1,
-        };
-    }
-
-    top_left_count * top_right_count * bot_left_count * bot_right_count
+    tl * tr * bl * br
 }
-
-// fn render(robots: &[Robot]) -> String {
-//     let mut grid: Vec<Vec<char>> = (0..HEIGHT)
-//         .map(|_| ".".repeat(WIDTH as usize).chars().collect())
-//         .collect();
-
-//     for robot in robots {
-//         grid[robot.pos_y as usize][robot.pos_x as usize] = '#';
-//     }
-
-//     grid.iter()
-//         .map(|row| row.iter().collect::<String>())
-//         .collect()
-// }
