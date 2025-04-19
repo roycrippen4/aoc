@@ -54,24 +54,13 @@ fn count_corners((x, y, v): (usize, usize, u8), grid: &Grid) -> usize {
     let bottom_left_is_corner  = (!same_left  && !same_bottom) || (same_left  && same_bottom && !same_bottom_left);
     let bottom_right_is_corner = (!same_right && !same_bottom) || (same_right && same_bottom && !same_bottom_right);
 
-    let mut total = 0;
-    if top_left_is_corner {
-        total += 1;
-    }
+    let corners: u8 = 
+          u8::from(top_left_is_corner)
+        + u8::from(top_right_is_corner)
+        + u8::from(bottom_left_is_corner)
+        + u8::from(bottom_right_is_corner);
 
-    if top_right_is_corner {
-        total += 1;
-    }
-
-    if bottom_left_is_corner {
-        total += 1;
-    }
-
-    if bottom_right_is_corner {
-        total += 1;
-    }
-
-    total
+    corners as usize
 }
 
 fn evaluate(data: &str) -> usize {
@@ -96,21 +85,19 @@ fn evaluate(data: &str) -> usize {
                 sides += count_corners((cx, cy, v), &grid);
                 for &(dx, dy) in &DIRECTIONS {
                     let (nx, ny) = (cx as isize + dx, cy as isize + dy);
-                    if nx < 0
-                        || nx >= grid.width as isize
-                        || ny < 0
-                        || ny >= grid.height as isize
-                        || grid.idx(nx as usize, ny as usize) != v
-                    {
+                    let (nx_usize, ny_usize) = (nx as usize, ny as usize);
+                    if nx < 0 || nx_usize >= grid.width || ny < 0 || ny_usize >= grid.height {
                         continue;
                     }
 
                     let (nx, ny) = (nx as usize, ny as usize);
                     let idx = ny * grid.width + nx;
-                    if !visited[idx] {
-                        visited[idx] = true;
-                        q.push((nx, ny));
+
+                    if grid.data[idx] != v || std::mem::replace(&mut visited[idx], true) {
+                        continue;
                     }
+
+                    q.push((nx, ny));
                 }
             }
             total_price += area * sides;
