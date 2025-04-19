@@ -1,18 +1,30 @@
 open Util
-module G = Grid
+
+module Array = struct
+  include Array
+
+  (** Replaces element at [i] with [v] and returns the original value *)
+  let replace arr i v =
+    let orig = arr.(i) in
+    arr.(i) <- v;
+    orig
+end
+
+let input_str = read_to_string "/home/roy/dev/aoc/aoc2024/data/day12/data.txt"
+let split = String.split_on_char
+let trim = String.trim
+
+let create_grid str =
+  let lines = str |> trim |> split '\n' |> List.map trim in
+  let size = List.length lines in
+  let grid = lines |> List.map str_explode |> List.flatten |> Array.of_list in
+  (size, grid)
+
+let size, grid = create_grid input_str
+
+(* helpers *)
 
 let directions = [ (1, 0); (-1, 0); (0, 1); (0, -1) ]
-
-(* *)
-
-let path = "/home/roy/dev/aoc/aoc2024/data/day12/data.txt"
-let lines = path |> read_to_lines |> List.map String.trim
-let size = List.length lines
-let grid = lines |> List.map str_explode |> List.flatten |> Array.of_list
-let seen = Array.init (Array.length grid) (fun _ -> false)
-
-(* helper functions *)
-
 let identity v = v
 let idx x y = (y * size) + x
 
@@ -22,40 +34,37 @@ let idx x y = (y * size) + x
     + Returns [(Some (nx, ny), 0)] if the neighbor is in bounds, equals the
       current coordinate's value, and has not been seen
     + Returns [(None, 0)] if none of the above conditions are met *)
-let nbor (x, y) (dx, dy) =
-  let nx = x + dx in
-  let ny = y + dy in
+let nbor seen (x, y) (dx, dy) =
+  let nx, ny = (x + dx, y + dy) in
   let ni = idx nx ny in
+  let i = idx x y in
 
-  let not_in_bounds = nx < 0 || ny < 0 || nx >= size || ny >= size in
-  let nbor_not_same =
-    try grid.(ni) <> grid.(idx x y) with Invalid_argument _ -> false
-  in
+  let out_of_bounds = nx < 0 || ny < 0 || nx >= size || ny >= size in
+  let not_same = try grid.(ni) <> grid.(i) with Invalid_argument _ -> false in
 
-  if not_in_bounds || nbor_not_same then (None, 1)
+  if out_of_bounds || not_same then (None, 1)
   else if not seen.(ni) then (Some ni, 0)
   else (None, 0)
 
 (** Iterates over orthoganal neighbors of a given index [i]. Returns all
     neighboring points that need to be added to the stack and the perimeter
     length relative to the current point *)
-let walk_neighbors i =
+let walk_neighbors seen i =
   let p = (i % size, i / size) in
-  let points, perimiters = directions |> List.map (nbor p) |> List.split in
+  let points, perimiters = directions |> List.map (nbor seen p) |> List.split in
   let points = List.filter_map identity points in
   let perimiter = List.fold_left ( + ) 0 perimiters in
   (points, perimiter)
 
 (* Flood-fill search *)
-let flood start =
+let flood seen start =
   let rec aux area perimeter = function
     | [] -> area * perimeter
     | i :: rest ->
         if seen.(i) then aux area perimeter rest
         else (
-          (* Only side effect? *)
           seen.(i) <- true;
-          let points, peri = walk_neighbors i in
+          let points, peri = walk_neighbors seen i in
           let perimeter = peri + perimeter in
           let area = area + 1 in
           aux area perimeter (points @ rest))
@@ -65,44 +74,79 @@ let flood start =
 (* *)
 
 let solve1 () =
-  let indices = Array.init (Array.length grid) identity in
-  Array.fold_left (fun acc i -> acc + flood i) 0 indices
+  let len = Array.length grid in
+  let seen = Array.init len (fun _ -> false) in
+  let indices = Array.init len identity in
+  Array.fold_left (fun acc i -> acc + flood seen i) 0 indices
 
 (* part 2 *)
 
 let count_corners (x, y, v) =
-  let ok_l = x > 0 in
-  let ok_r = x + 1 < size in
-  let ok_u = y > 0 in
-  let ok_d = y + 1 < size in
+  let l = x > 0 in
+  let r = x + 1 < size in
+  let t = y > 0 in
+  let b = y + 1 < size in
 
-  let same_l = ok_l && grid.(idx (x - 1) y) = v in
-  let same_r = ok_r && grid.(idx (x + 1) y) = v in
-  let same_t = ok_u && grid.(idx x (y - 1)) = v in
-  let same_b = ok_d && grid.(idx x (y + 1)) = v in
+  let sl = l && grid.(idx (x - 1) y) = v in
+  let sr = r && grid.(idx (x + 1) y) = v in
+  let st = t && grid.(idx x (y - 1)) = v in
+  let sb = b && grid.(idx x (y + 1)) = v in
 
-  let same_bl = ok_d && ok_l && grid.(idx(x - 1) y + 1) = v in
-  let same_br = ok_d && ok_r && grid.(idx(x + 1) y + 1) = v in
-  let same_tl = ok_u && ok_l && grid.(idx(x - 1) y - 1) = v in
-  let same_tr = ok_u && ok_r && grid.(idx(x + 1) y - 1) = v in
+  let sbl = b && l && grid.(idx (x - 1) (y + 1)) = v in
+  let sbr = b && r && grid.(idx (x + 1) (y + 1)) = v in
+  let stl = t && l && grid.(idx (x - 1) (y - 1)) = v in
+  let str = t && r && grid.(idx (x + 1) (y - 1)) = v in
 
-  let tl_corner = (not same_l && not same_t) || (same_l && same_t && not same_tl) in
-  let tr_corner = (not same_r && not same_t) || (same_r && same_t && not same_tr) in
-  let bl_corner = (not same_l && not same_b) || (same_l && same_b && not same_bl) in
-  let br_corner = (not same_r && not same_b) || (same_r && same_b && not same_br) in
+  let tlc = ((not sl) && not st) || (sl && st && not stl) in
+  let trc = ((not sr) && not st) || (sr && st && not str) in
+  let blc = ((not sl) && not sb) || (sl && sb && not sbl) in
+  let brc = ((not sr) && not sb) || (sr && sb && not sbr) in
 
-  if tl_corner then 1 else 0 +
-  if tr_corner then 1 else 0 +
-  if bl_corner then 1 else 0 +
-  if br_corner then 1 else 0
-  [@@ocamlformat "disable"]
+  let tl = if tlc then 1 else 0 in
+  let tr = if trc then 1 else 0 in
+  let bl = if blc then 1 else 0 in
+  let br = if brc then 1 else 0 in
+  tl + tr + bl + br
 
-let solve2 () = 42
+let nbor seen (x, y) (dx, dy) =
+  let nx, ny = (x + dx, y + dy) in
+  let ni = idx nx ny in
+  if
+    nx < 0
+    || ny < 0
+    || nx >= size
+    || ny >= size
+    || grid.(ni) <> grid.(idx x y)
+    || seen.(ni)
+  then None
+  else Some ni
+
+let walk_neighbors seen (x, y) =
+  directions |> List.filter_map (nbor seen (x, y))
+
+let flood seen start =
+  let rec aux area sides = function
+    | [] -> area * sides
+    | i :: rest ->
+        if seen.(i) then aux area sides rest
+        else (
+          seen.(i) <- true;
+          let x, y, v = (i % size, i / size, grid.(i)) in
+          let area = area + 1 in
+          let sides = sides + count_corners (x, y, v) in
+          let points = walk_neighbors seen (x, y) in
+          aux area sides (points @ rest))
+  in
+  aux 0 0 [ start ]
+
+let solve2 () =
+  let len = Array.length grid in
+  let seen = Array.init len (fun _ -> false) in
+  let indices = Array.init len identity in
+  Array.fold_left (fun acc i -> acc + flood seen i) 0 indices
 
 (* exports *)
 
 let part1 () = validate solve1 1361494 "12" One
-let part2 () = validate solve2 42 "12" Two
+let part2 () = validate solve2 830516 "12" Two
 let solution : solution = { part1; part2 }
-
-(* tests *)

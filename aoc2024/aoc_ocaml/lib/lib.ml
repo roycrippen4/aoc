@@ -9,3 +9,4 @@ let day08 = Day08.solution
 let day09 = Day09.solution
 let day10 = Day10.solution
 let day11 = Day11.solution
+let day12 = Day12.solution
