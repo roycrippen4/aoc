@@ -1,54 +1,45 @@
-use super::{HEIGHT, WIDTH, calculate_safty, parse_input};
+use super::{HALF_HEIGHT, HALF_WIDTH, Robot, parse_input, step};
 use crate::data;
 
-pub fn evaluate(data: &str, steps: isize, width: Option<isize>, height: Option<isize>) -> usize {
-    let mut robots: Vec<_> = parse_input(data);
-    let width = width.unwrap_or(WIDTH);
-    let height = height.unwrap_or(HEIGHT);
-    robots
-        .iter_mut()
-        .for_each(|r| r.move_to_final_pos(width, height, steps));
+fn update_counts(robot: Robot, skip_x: usize, skip_y: usize) -> (usize, usize, usize, usize) {
+    let (x, y) = (robot.pos_x as usize, robot.pos_y as usize);
+    if x == skip_x || y == skip_y {
+        return (0, 0, 0, 0);
+    }
 
-    calculate_safty(&robots, width, height)
+    match (x < skip_x, y < skip_y) {
+        (true, true) => (1, 0, 0, 0),
+        (false, true) => (0, 1, 0, 0),
+        (true, false) => (0, 0, 1, 0),
+        (false, false) => (0, 0, 0, 1),
+    }
+}
+
+pub fn evaluate(data: &str, steps: usize) -> usize {
+    let (tl, tr, bl, br) = parse_input(data)
+        .into_iter()
+        .map(|bot| update_counts(step(bot, steps), HALF_WIDTH, HALF_HEIGHT))
+        .reduce(|(a, b, c, d), (tl, tr, bl, br)| (tl + a, tr + b, bl + c, br + d))
+        .unwrap();
+    tl * tr * bl * br
 }
 
 pub fn solve() -> usize {
-    evaluate(data!(), 100, None, None)
+    evaluate(data!(), 100)
 }
 
 #[cfg(test)]
 mod test {
     use crate::{
         day14::Robot,
-        example,
         util::{Day::Day14, Part::Part1, validate},
     };
 
-    use super::{evaluate, solve};
+    use super::solve;
 
     #[test]
     fn test_solve() {
         validate(solve, 230900224, Day14(Part1));
-    }
-
-    #[test]
-    fn test_evaluate() {
-        assert_eq!(evaluate(example!(), 100, Some(11), Some(7)), 12);
-    }
-
-    #[test]
-    fn test_find_final_pos() {
-        let expected_x = 1;
-        let expected_y = 3;
-        let width = 11;
-        let height = 7;
-        let steps = 5;
-
-        let mut robot = Robot::from("p=2,4 v=2,-3");
-        robot.move_to_final_pos(width, height, steps);
-
-        assert_eq!(robot.pos_x, expected_x);
-        assert_eq!(robot.pos_y, expected_y);
     }
 
     #[test]
