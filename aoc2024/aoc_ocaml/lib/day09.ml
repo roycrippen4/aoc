@@ -14,7 +14,7 @@ let create_mem char_list =
     | char :: chars ->
         let length = int_of_char2 char in
         let next_mem_idx = mem_idx + length in
-        if char_idx % 2 = 0 then
+        if char_idx mod 2 = 0 then
           Array.fill mem mem_idx length (Bit (char_idx / 2));
         aux (succ char_idx) next_mem_idx chars
   in

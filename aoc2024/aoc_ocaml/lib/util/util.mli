@@ -37,9 +37,6 @@ val ( /= ) : int ref -> int -> unit
 val ( /=. ) : float ref -> float -> unit
 (** Floating point divide equal. [ref x] /=. [y] *)
 
-val ( % ) : int -> int -> int
-(** Integer modulo operator. [x] % [y] = [x] mod [y] *)
-
 val ( %= ) : int ref -> int -> unit
 (** Modulo Equal. [ref x] %= [y] *)
 

@@ -3,6 +3,7 @@ type 'a tl = 'a list list
 type position = int * int
 type 'a entry = int * int * 'a
 
+let ( % ) = Fun.compose
 let height g = Array.length g
 let width g = Array.length g.(0)
 let size g = (height g, width g)
@@ -25,8 +26,8 @@ let get_opt g (x, y) = try Some g.(y).(x) with Invalid_argument _ -> None
 
 (* *)
 
-let entry g (y, x) = (y, x, get g (y, x))
-let entry_opt g (y, x) = get_opt g (y, x) |> Option.map (fun v -> (y, x, v))
+let entry g (x, y) = (x, y, get g (x, y))
+let entry_opt g (x, y) = get_opt g (x, y) |> Option.map (fun v -> (x, y, v))
 
 (* *)
 
@@ -78,7 +79,11 @@ let rotate_right g =
   let h = height g and w = width g in
   init w h (fun (x, y) -> g.(h - 1 - x).(y))
 
-let map f g = init (height g) (width g) (fun ((x, y) as p) -> f (x, y, get g p))
+(* *)
+
+let map_values f g = init (height g) (width g) (f % get g)
+let map_coords f g = init (height g) (width g) @@ f
+let map_entries f g = init (height g) (width g) (f % entry g)
 
 (* *)
 
@@ -192,9 +197,10 @@ let read c =
 
 let of_string str =
   let g =
-    String.split_on_char '\n' str
+    str
+    |> String.split_on_char '\n'
     |> Array.of_list
-    |> Array.map (fun s -> Array.of_list (Batteries.String.explode s))
+    |> Array.map (Fun.compose Array.of_list Batteries.String.explode)
   in
   if Array.length g = 0 then invalid_arg "Grid.read";
   let w = Array.length g.(0) in
@@ -203,7 +209,7 @@ let of_string str =
   done;
   g
 
-let of_list l = l |> Array.of_list |> Array.map (fun l -> Array.of_list l)
+let of_list l = l |> Array.of_list |> Array.map Array.of_list
 
 let to_list g =
   let rec aux acc = function
@@ -212,7 +218,7 @@ let to_list g =
   in
   aux [] (Array.to_list g) |> List.rev
 
-let from_file path = In_channel.with_open_text path (fun ic -> read ic)
+let from_file path = In_channel.with_open_text path read
 
 let print ?(bol = fun _fmt _i -> ())
     ?(eol = fun fmt _i -> Format.pp_print_newline fmt ())

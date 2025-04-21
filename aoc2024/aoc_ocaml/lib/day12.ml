@@ -50,7 +50,7 @@ let nbor seen (x, y) (dx, dy) =
     neighboring points that need to be added to the stack and the perimeter
     length relative to the current point *)
 let walk_neighbors seen i =
-  let p = (i % size, i / size) in
+  let p = (i mod size, i / size) in
   let points, perimiters = directions |> List.map (nbor seen p) |> List.split in
   let points = List.filter_map identity points in
   let perimiter = List.fold_left ( + ) 0 perimiters in
@@ -131,7 +131,7 @@ let flood seen start =
         if seen.(i) then aux area sides rest
         else (
           seen.(i) <- true;
-          let x, y, v = (i % size, i / size, grid.(i)) in
+          let x, y, v = (i mod size, i / size, grid.(i)) in
           let area = area + 1 in
           let sides = sides + count_corners (x, y, v) in
           let points = walk_neighbors seen (x, y) in

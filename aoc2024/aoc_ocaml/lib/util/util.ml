@@ -11,7 +11,6 @@ let ( -= ) = Operators.( -= )
 let ( -=. ) = Operators.( -=. )
 let ( /= ) = Operators.( /= )
 let ( /=. ) = Operators.( /=. )
-let ( % ) = Operators.( % )
 let ( %= ) = Operators.( %= )
 let ( let* ) = Operators.( let* )
 let str_explode = General.str_explode

@@ -28,7 +28,7 @@ let rec eval target = function
   | [] -> false
   | [ v1; v2 ] -> v1 + v2 = target || v1 * v2 = target
   | v :: rest ->
-      let is_mul = target % v = 0 && eval (target / v) rest in
+      let is_mul = target mod v = 0 && eval (target / v) rest in
       let is_add = target >= v && eval (target - v) rest in
       is_mul || is_add
 
@@ -40,7 +40,7 @@ let solve1 () = map |> List.fold_left sum 0
 let ( ^^! ) joined right_side =
   let rec calc_div n d = if n >= 10 then calc_div (n / 10) (d * 10) else d in
   let divisor = calc_div right_side 10 in
-  if joined % divisor = right_side then Some (joined / divisor) else None
+  if joined mod divisor = right_side then Some (joined / divisor) else None
 
 let ( ^^ ) root next =
   let rec aux mult temp =
@@ -54,7 +54,7 @@ let rec eval2 target = function
   | [] -> false
   | [ v1; v2 ] -> v1 + v2 = target || v1 * v2 = target || v2 ^^ v1 = target
   | v :: rest ->
-      let is_mul = target % v = 0 && eval2 (target / v) rest in
+      let is_mul = target mod v = 0 && eval2 (target / v) rest in
       let is_add = target >= v && eval2 (target - v) rest in
       let is_concat =
         match target ^^! v with Some lhs -> eval2 lhs rest | None -> false

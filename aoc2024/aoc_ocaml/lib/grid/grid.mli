@@ -125,9 +125,17 @@ val rotate_left : 'a t -> 'a t
 val rotate_right : 'a t -> 'a t
 (** [rotate_right g] returns a new grid that is the right rotation of [g] *)
 
-val map : ('a entry -> 'b) -> 'a t -> 'b t
-(** [map f g] returns a fresh grid, with the size of the grid [g] and where the
-    value at position [p] is given by [f p (get g p)] *)
+val map_entries : ('a entry -> 'b) -> 'a t -> 'b t
+(** [map_entries f g] returns a fresh grid, with the size of the grid [g]. The
+    values of the grid are derived from the application of [f] ([x, y, v]) where
+    ([x, y]) is the coordinate pair and [v] is the value at [x], [y] in [g] *)
+
+val map_coords : (int * int -> 'a) -> 'b t -> 'a t
+(** [map_coords f g] returns a fresh grid, with the size of the grid [g]. The
+    values of the grid are derived from the application of [f] ([x, y]) where
+    ([x, y]) is the coordinate pair in [g] *)
+
+val map_values : ('a -> 'b) -> 'a t -> 'b t
 
 (** {e The following functions that iterate or fold over the neighbors of [p]
        all begin by calling [f] on the cell north of [p] and rotate clockwise.}
