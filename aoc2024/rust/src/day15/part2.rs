@@ -1,7 +1,6 @@
 use crate::data;
 
-fn evaluate(data: &str) -> usize {
-    dbg!(data);
+fn evaluate(_data: &str) -> usize {
     0
 }
 

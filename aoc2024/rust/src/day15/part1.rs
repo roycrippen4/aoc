@@ -164,7 +164,6 @@ fn parse_input(input: &str) -> (Grid, Vec<Direction>) {
     (grid, directions)
 }
 
-#[allow(unused)]
 fn evaluate(data: &str) -> usize {
     let (mut grid, directions) = parse_input(data);
     for d in directions {
