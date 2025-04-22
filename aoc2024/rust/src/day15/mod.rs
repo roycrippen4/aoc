@@ -26,6 +26,7 @@ enum Kind {
     Robot, // '@'
     Box,   // 'O'
     Empty, // '.'
+    Wall,  // '#'
 }
 
 impl From<char> for Kind {
@@ -34,6 +35,7 @@ impl From<char> for Kind {
             '@' => Self::Robot,
             'O' => Self::Box,
             '.' => Self::Empty,
+            '#' => Self::Wall,
             _ => unreachable!("Invalid character found"),
         }
     }
@@ -45,6 +47,7 @@ impl From<&char> for Kind {
             '@' => Self::Robot,
             'O' => Self::Box,
             '.' => Self::Empty,
+            '#' => Self::Wall,
             _ => unreachable!("Invalid character found"),
         }
     }
@@ -56,6 +59,7 @@ impl From<&Kind> for char {
             Kind::Robot => '@',
             Kind::Box => 'O',
             Kind::Empty => '.',
+            Kind::Wall => '#',
         }
     }
 }
@@ -66,6 +70,7 @@ impl From<Kind> for char {
             Kind::Robot => '@',
             Kind::Box => 'O',
             Kind::Empty => '.',
+            Kind::Wall => '#',
         }
     }
 }
