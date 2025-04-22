@@ -3,7 +3,6 @@ type 'a tl = 'a list list
 type position = int * int
 type 'a entry = int * int * 'a
 
-let ( % ) = Fun.compose
 let height g = Array.length g
 let width g = Array.length g.(0)
 let size g = (height g, width g)
@@ -14,7 +13,7 @@ let make h w v =
 
 let init h w f =
   if h < 1 || w < 1 then invalid_arg "Grid.init";
-  Array.init h (fun i -> Array.init w (fun j -> f (i, j)))
+  Array.init h (fun y -> Array.init w (fun x -> f (x, y)))
 
 let copy g = init (height g) (width g) (fun (x, y) -> g.(y).(x))
 let inside g (x, y) = 0 <= y && y < height g && 0 <= x && x < width g
@@ -81,7 +80,8 @@ let rotate_right g =
 
 (* *)
 
-let map_values f g = init (height g) (width g) (f % get g)
+let ( % ) = Fun.compose
+let map_values f g = init (height g) (width g) (fun (x, y) -> f (get g (x, y)))
 let map_coords f g = init (height g) (width g) @@ f
 let map_entries f g = init (height g) (width g) (f % entry g)
 
@@ -179,6 +179,12 @@ let find f g =
     raise Not_found
   with Found p -> p
 
+let find_replace f v g =
+  let ((x, y) as p) = find f g in
+  let old = get g p in
+  set g p v;
+  (x, y, old)
+
 let read c =
   let rec scan rows =
     match input_line c with
@@ -196,18 +202,10 @@ let read c =
   scan []
 
 let of_string str =
-  let g =
-    str
-    |> String.split_on_char '\n'
-    |> Array.of_list
-    |> Array.map (Fun.compose Array.of_list Batteries.String.explode)
-  in
-  if Array.length g = 0 then invalid_arg "Grid.read";
-  let w = Array.length g.(0) in
-  for y = 1 to height g - 1 do
-    if Array.length g.(y) <> w then invalid_arg "Grid.read"
-  done;
-  g
+  str
+  |> String.split_on_char '\n'
+  |> Array.of_list
+  |> Array.map (Fun.compose Array.of_list Batteries.String.explode)
 
 let of_list l = l |> Array.of_list |> Array.map Array.of_list
 
@@ -220,17 +218,22 @@ let to_list g =
 
 let from_file path = In_channel.with_open_text path read
 
-let print ?(bol = fun _fmt _i -> ())
+let print 
+    ?(bol = fun _fmt _i -> ())
+    ?(sep = fun _fmt _p -> ()) 
     ?(eol = fun fmt _i -> Format.pp_print_newline fmt ())
-    ?(sep = fun _fmt _p -> ()) p fmt g =
+    p 
+    fmt 
+    g =
   for y = 0 to height g - 1 do
     bol fmt y;
     for x = 0 to width g - 1 do
-      p fmt (y, x) g.(y).(x);
-      if x < width g - 1 then sep fmt (y, x)
+      p fmt (x, y) g.(y).(x);
+      if x < width g - 1 then sep fmt (x, y)
     done;
     eol fmt y
   done
+  [@@ocamlformat "disable"]
 
 let print_chars = print (fun fmt _ c -> Format.pp_print_char fmt c)
 

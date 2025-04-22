@@ -178,13 +178,17 @@ val find : (position -> 'a -> bool) -> 'a t -> position
     if there is none *)
 
 val find_opt : (position -> 'a -> bool) -> 'a t -> position option
-(** [find f g] returns [Some] position in [g] where [f] holds, or returns [None]
-*)
+(** [find f g] returns [Some] position in [g] where [f] holds, or returns [None]*)
+
+val find_replace : (position -> 'a -> bool) -> 'a -> 'a t -> 'a entry
+(** [find_replace f v g] finds the first element that satisfies the predicate
+    [f] in [g], replaces that element with [v], and returns entry of the
+    original element *)
 
 val print :
   ?bol:(Format.formatter -> int -> unit) ->
-  ?eol:(Format.formatter -> int -> unit) ->
   ?sep:(Format.formatter -> position -> unit) ->
+  ?eol:(Format.formatter -> int -> unit) ->
   (Format.formatter -> position -> 'a -> unit) ->
   Format.formatter ->
   'a t ->
