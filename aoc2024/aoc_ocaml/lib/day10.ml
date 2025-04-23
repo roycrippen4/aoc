@@ -22,8 +22,8 @@ let get_neighbors p =
 
 let start_points =
   grid
-  |> G.filter (fun _ v -> v = 0)
-  |> List.map (fun (x, y) -> { x; y; v = 0 })
+  |> G.filter_entries (fun (_, _, v) -> v = 0)
+  |> List.map (fun (x, y, _) -> { x; y; v = 0 })
 
 let solve1 () =
   let score_path p =

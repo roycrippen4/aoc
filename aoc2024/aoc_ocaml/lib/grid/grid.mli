@@ -136,6 +136,8 @@ val map_coords : (int * int -> 'a) -> 'b t -> 'a t
     ([x, y]) is the coordinate pair in [g] *)
 
 val map_values : ('a -> 'b) -> 'a t -> 'b t
+(** [map_values f g] returns a fresh grid, with the size of the grid [g]. The
+    values of the grid are derived from [g.(y).(x) <- f g.(y).(x)] *)
 
 (** {e The following functions that iterate or fold over the neighbors of [p]
        all begin by calling [f] on the cell north of [p] and rotate clockwise.}
@@ -169,9 +171,17 @@ val iter : (position -> 'a -> unit) -> 'a t -> unit
 val fold : ('acc -> 'a entry -> 'acc) -> 'acc -> 'a t -> 'acc
 (** [fold f g] folds function [f] over each position of [g] *)
 
-val filter : (position -> 'a -> bool) -> 'a t -> position list
-(** [filter f g] Returns the positions of elements that satisfy the predicate
-    [f] over each element of [g] *)
+val filter_entries : ('a entry -> bool) -> 'a t -> 'a entry list
+(** [filter_entries f g] Returns the entries, [(x, y, value)], that satisfy the
+    predicate [f] over each [entry] in [g] *)
+
+val filter_coords : (position -> bool) -> 'a t -> position list
+(** [filter_coords f g] Returns the coordiantes, [(x, y)], that satisfy the
+    predicate [f] over each [position] in [g] *)
+
+val filter_values : ('a -> bool) -> 'a t -> 'a list
+(** [filter_values f g] Returns the values that satisfy the predicate [f] over
+    each [value] in [g] *)
 
 val find : (position -> 'a -> bool) -> 'a t -> position
 (** [find f g] returns a position in [g] where [f] holds, or raises [Not_found]

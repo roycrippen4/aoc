@@ -1,7 +1,7 @@
 open Util
 
 let g = Grid.from_file "/home/roy/dev/aoc/aoc2024/data/day04/data.txt"
-let xs = Grid.filter (fun _ v -> v = 'X') g
+let xs = Grid.filter_entries (fun (_, _, v) -> v = 'X') g
 
 let is_mas_part1 = function
   | [ Some 'M'; Some 'A'; Some 'S' ] -> true
@@ -35,7 +35,7 @@ let count_xmas_part1 pos =
 
 (* Part 2 *)
 
-let a = Grid.filter (fun _ v -> v = 'A') g
+let a = Grid.filter_entries (fun (_, _, v) -> v = 'A') g
 
 let is_ms = function
   | Some 'M', Some 'S' -> true
@@ -52,8 +52,18 @@ let count_xmas_part2 pos =
 
 (* exports *)
 
-let solve1 () = List.fold_left (fun acc pos -> acc + count_xmas_part1 pos) 0 xs
-let solve2 () = List.fold_left (fun acc pos -> acc + count_xmas_part2 pos) 0 a
+let entries_to_positions l = List.map (fun (x, y, _) -> (x, y)) l
+
+let solve1 () =
+  xs
+  |> entries_to_positions
+  |> List.fold_left (fun acc pos -> acc + count_xmas_part1 pos) 0
+
+let solve2 () =
+  a
+  |> entries_to_positions
+  |> List.fold_left (fun acc pos -> acc + count_xmas_part2 pos) 0
+
 let part1 () = validate solve1 2483 "04" One
 let part2 () = validate solve2 1925 "04" Two
 let solution : solution = { part1; part2 }

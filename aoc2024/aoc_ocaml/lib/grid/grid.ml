@@ -161,8 +161,16 @@ let fold f acc g =
   in
   fold (0, 0) acc
 
-let filter f g =
-  let f' acc (x, y, v) = if f (x, y) v then (x, y) :: acc else acc in
+let filter_entries f g =
+  let f' acc entry = if f entry then entry :: acc else acc in
+  fold f' [] g
+
+let filter_coords f g =
+  let f' acc (x, y, _) = if f (x, y) then (x, y) :: acc else acc in
+  fold f' [] g
+
+let filter_values f g =
+  let f' acc (_, _, v) = if f v then v :: acc else acc in
   fold f' [] g
 
 let find_opt f g =
@@ -236,6 +244,3 @@ let print
   [@@ocamlformat "disable"]
 
 let print_chars = print (fun fmt _ c -> Format.pp_print_char fmt c)
-
-let%test _ =
-  "XMX\nMXA\nAMX" |> of_string |> filter (fun _ v -> v = 'X') |> List.length = 4
