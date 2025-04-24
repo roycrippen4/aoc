@@ -163,10 +163,15 @@ val fold8 : (position -> 'a -> 'acc -> 'acc) -> 'a t -> position -> 'acc -> 'acc
        right in each row from top to bottom.} *)
 
 val flatten : 'a t -> 'a array
-val enumerate : 'a t -> 'a entry t
 
-val iter : (position -> 'a -> unit) -> 'a t -> unit
-(** [iter f g] applies function [f] at each position of the grid [g] *)
+val iter_entries : ('a entry -> unit) -> 'a t -> unit
+(** [iter_entries f g] applies [f] at each entry [(x, y, 'a)], in [g] *)
+
+val iter_values : ('a -> unit) -> 'a t -> unit
+(** [iter_values f g] applies [f] at each value in [g] *)
+
+val iter_coords : (int * int -> unit) -> 'a t -> unit
+(** [iter_coords f g] applies [f] at each coordinate pair [(x, y)] in [g] *)
 
 val fold : ('acc -> 'a entry -> 'acc) -> 'acc -> 'a t -> 'acc
 (** [fold f g] folds function [f] over each position of [g] *)
@@ -183,14 +188,14 @@ val filter_values : ('a -> bool) -> 'a t -> 'a list
 (** [filter_values f g] Returns the values that satisfy the predicate [f] over
     each [value] in [g] *)
 
-val find : (position -> 'a -> bool) -> 'a t -> position
+val find : ('a entry -> bool) -> 'a t -> position
 (** [find f g] returns a position in [g] where [f] holds, or raises [Not_found]
     if there is none *)
 
-val find_opt : (position -> 'a -> bool) -> 'a t -> position option
+val find_opt : ('a entry -> bool) -> 'a t -> position option
 (** [find f g] returns [Some] position in [g] where [f] holds, or returns [None]*)
 
-val find_replace : (position -> 'a -> bool) -> 'a -> 'a t -> 'a entry
+val find_replace : ('a entry -> bool) -> 'a -> 'a t -> 'a entry
 (** [find_replace f v g] finds the first element that satisfies the predicate
     [f] in [g], replaces that element with [v], and returns entry of the
     original element *)

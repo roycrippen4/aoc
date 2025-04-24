@@ -140,18 +140,12 @@ let fold8 f g p acc =
   |> f (east p)
   |> f (north_east p)
 
-let iter f g =
-  for y = 0 to height g - 1 do
-    for x = 0 to width g - 1 do
-      f (x, y) g.(y).(x)
-    done
-  done
+let iter_entries f g =
+  Array.iteri (fun y -> Array.iteri (fun x v -> f (x, y, v))) g
 
+let iter_values f g = g |> iter_entries (fun (_, _, v) -> f v)
+let iter_coords f g = g |> iter_entries (fun (x, y, _) -> f (x, y))
 let flatten g = Array.fold_left Array.append [||] g
-
-let enumerate g =
-  g
-  |> Array.mapi (fun i row -> row |> Array.mapi (fun j value -> (i, j, value)))
 
 let fold f acc g =
   let rec fold (x, y) acc =
@@ -173,19 +167,14 @@ let filter_values f g =
   let f' acc (_, _, v) = if f v then v :: acc else acc in
   fold f' [] g
 
-let find_opt f g =
-  let exception Found of position in
-  try
-    iter (fun p c -> if f p c then raise (Found p)) g;
-    None
-  with Found p -> Some p
-
 let find f g =
   let exception Found of position in
   try
-    iter (fun p c -> if f p c then raise (Found p)) g;
+    iter_entries (fun (x, y, v) -> if f (x, y, v) then raise (Found (x, y))) g;
     raise Not_found
   with Found p -> p
+
+let find_opt f g = try Some (find f g) with Not_found -> None
 
 let find_replace f v g =
   let ((x, y) as p) = find f g in
