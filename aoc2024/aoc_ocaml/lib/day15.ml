@@ -40,7 +40,8 @@ let grid, directions =
   |> (string_of_grid <$> string_of_directions)
 
 let get_bot grid =
-  G.find_replace (fun _ k -> k = Bot) Empty grid |> fun (x, y, _) -> { x; y }
+  G.find_replace (fun (_, _, k) -> k = Bot) Empty grid |> fun (x, y, _) ->
+  { x; y }
 
 let bot = get_bot grid
 

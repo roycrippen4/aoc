@@ -25,13 +25,13 @@ let%test _ = is_alphanumeric 'a'
 
 (**)
 
-let update_antennas (y, x) v =
+let update_antennas (x, y, v) =
   if is_alphanumeric v then
     match Hashtbl.find_opt antennas v with
     | None -> Hashtbl.add antennas v [ (x, y) ]
     | Some entry -> Hashtbl.replace antennas v ((x, y) :: entry)
 
-let () = Grid.iter update_antennas grid
+let () = Grid.iter_entries update_antennas grid
 
 (* Unsigned integer subtraction of [x] - [y] with underflow protection *)
 let ( -| ) x y = if x < 1 || y < 0 || y > x then None else Some (x - y)
