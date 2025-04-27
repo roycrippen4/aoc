@@ -88,8 +88,8 @@ let map_entries f g = init (height g) (width g) (f % entry g)
 (* *)
 
 let neighbor4_coords p = [ north p; east p; south p; west p ]
-let neighbor4_values g p = p |> neighbor4_coords |> List.map (get_opt g)
-let neighbor4_entries g p = p |> neighbor4_coords |> List.map (entry_opt g)
+let neighbor4_values p g = p |> neighbor4_coords |> List.map (get_opt g)
+let neighbor4_entries p g = p |> neighbor4_coords |> List.map (entry_opt g)
 
 let neighbor8_coords p =
   [

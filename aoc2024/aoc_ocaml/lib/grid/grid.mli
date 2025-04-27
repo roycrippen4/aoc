@@ -246,7 +246,7 @@ val to_list : 'a t -> 'a tl
 val of_list : 'a tl -> 'a t
 (** [to_list g] converts a ['a list list] to a ['a array array] *)
 
-val neighbor4_values : 'a t -> position -> 'a option list
+val neighbor4_values : position -> 'a t -> 'a option list
 (** [neighbor4_values g] Get the values of all orthoganal neighbors from a given
     point [p] if neighbor [n] is in bounds. A neighbor is [None] if it is out of
     bounds. Order of the list starts at [N] and rotates clockwise. *)
@@ -256,7 +256,7 @@ val neighbor4_coords : position -> position list
     given point [p] regardless if neighbor [n] is in bounds. Order of the list
     starts at [N] and rotates clockwise. *)
 
-val neighbor4_entries : 'a t -> position -> 'a entry option list
+val neighbor4_entries : position -> 'a t -> 'a entry option list
 (** [neighbor4_values g] Get the coordinates and values of all orthoganal
     neighbors from a given point [p] if neighbor [n] is in bounds. A neighbor is
     [None] if it is out of bounds. Order of the list starts at [N] and rotates
