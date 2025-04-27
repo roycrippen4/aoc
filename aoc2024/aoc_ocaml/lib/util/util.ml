@@ -35,6 +35,7 @@ let int_of_char2 = General.int_of_char2
 let pow = General.pow
 let range = Operators.range
 let range_i = Operators.range_i
+let identity x = x
 
 exception Todo of string
 

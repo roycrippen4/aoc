@@ -93,3 +93,6 @@ val pow : int -> int -> int
 
 val todo : unit -> 'a
 (** Similar to Rust's [todo!()] macro *)
+
+val identity : 'a -> 'a
+(** Returns the input value transparently *)
