@@ -18,7 +18,7 @@ let get_neighbors p =
     | Some (x, y, v) -> if v = p.v + 1 then Some { x; y; v } else None
     | None -> None
   in
-  G.neighbor4_entries grid (p.x, p.y) |> List.filter_map point_of_entry
+  grid |> G.neighbor4_entries (p.x, p.y) |> List.filter_map point_of_entry
 
 let start_points =
   grid
