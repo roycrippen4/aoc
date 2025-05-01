@@ -1,0 +1,6 @@
+(library
+ (libraries batteries)
+ (name bheap)
+ (inline_tests)
+ (preprocess
+  (pps ppx_inline_test)))
