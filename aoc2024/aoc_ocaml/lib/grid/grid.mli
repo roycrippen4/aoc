@@ -45,21 +45,24 @@ val size : 'a t -> int * int
 
 val make : int -> int -> 'a -> 'a t
 (** [make h w v] returns a new grid with height [h] and width [w], where all
-    values are equal to [v]. Raises [Invalid_argument] if [h<1] or [w<1].
+    values are equal to [v]. For [h>=1] and [w>=1], this is equivalent to
+    [Array.make_matrix h w v].
 
-    For [h>=1] and [w>=1], this is equivalent to [Array.make_matrix h w v]. *)
+    @raise [Invalid_argument] if [h<1] or [w<1]. *)
 
 val init : int -> int -> (position -> 'a) -> 'a t
 (** [init h w f] returns a new grid with height [h] and width [w], where the
-    value at position [p] is [f p]. Raises [Invalid_argument] if [h<1] or [w<1].
-*)
+    value at position [p] is [f p].
+
+    @raise [Invalid_argument] if [h<1] or [w<1]. *)
 
 val copy : 'a t -> 'a t
 (** [copy g] returns a new grid that contains the same elements as [g] *)
 
 val get : 'a t -> position -> 'a
-(** [get g p] returns the value at position [p]. Raises [Invalid_argument] if
-    the position is out of bounds. *)
+(** [get g p] returns the value at position [p].
+
+    @raise [Invalid_argument] if the position is out of bounds. *)
 
 val get_opt : 'a t -> position -> 'a option
 (** [get_opt g p] returns [Some] value at position [p]. Returns [None] if the
@@ -69,8 +72,9 @@ val entry : 'a t -> position -> 'a entry
 val entry_opt : 'a t -> position -> 'a entry option
 
 val set : 'a t -> position -> 'a -> unit
-(** [set g p v] sets the value at position [p], with [v]. Raises
-    [Invalid_argument] if the position is out of bounds. *)
+(** [set g p v] sets the value at position [p], with [v].
+
+    @raise [Invalid_argument] if the position is out of bounds. *)
 
 val set_opt : 'a t -> position -> 'a -> unit option
 (** [set g p v] sets the value at position [p], with [v]. Returns [Some unit] if
@@ -189,8 +193,9 @@ val filter_values : ('a -> bool) -> 'a t -> 'a list
     each [value] in [g] *)
 
 val find : ('a entry -> bool) -> 'a t -> position
-(** [find f g] returns a position in [g] where [f] holds, or raises [Not_found]
-    if there is none *)
+(** [find f g] returns a position in [g] where [f] holds.
+
+    @raise [Not_found] if there is none *)
 
 val find_opt : ('a entry -> bool) -> 'a t -> position option
 (** [find f g] returns [Some] position in [g] where [f] holds, or returns [None]*)
@@ -226,19 +231,23 @@ val print_chars : Format.formatter -> char t -> unit
     [Format.printf "%a" print_chars g;] *)
 
 val read : in_channel -> char t
-(** [read c] reads a grid of characters from the input channel [c]. Raises
-    [Invalid_argument] if the lines do not have the same length, or there is no
-    line at all. *)
+(** [read c] reads a grid of characters from the input channel [c].
+
+    @raise [Invalid_argument]
+      if the lines do not have the same length, or there is no line at all. *)
 
 val from_file : string -> char t
 (** [read path] creates an input channel [c] from filepath [p] and reads a grid
-    of characters from [c]. Raises [Invalid_argument] if the lines do not have
-    the same length, or there is no line at all. *)
+    of characters from [c].
+
+    @raise [Invalid_argument]
+      if the lines do not have the same length, or there is no line at all. *)
 
 val of_string : string -> char t
-(** [grid_of_string s] reads a grid of characters from [s]. Raises
-    [Invalid_argument] if the lines do not have the same length, or there is no
-    line at all. *)
+(** [grid_of_string s] reads a grid of characters from [s].
+
+    @raise [Invalid_argument]
+      if the lines do not have the same length, or there is no line at all. *)
 
 val to_list : 'a t -> 'a tl
 (** [to_list g] converts a ['a array array] to a ['a list list] *)
@@ -276,3 +285,57 @@ val neighbor8_entries : 'a t -> position -> 'a entry option list
 (** [neighbor8_entries g] Get the coordinates and values of all neighbors from a
     given point [p] if neighbor [n] is in bounds. A neighbor is [None] if it is
     out of bounds. Order of the list starts at [N] and rotates clockwise. *)
+
+val pos_of_point : Point.t -> position
+(** [pos_of_point p] converts a [Point.t] into a [position] *)
+
+val point_of_pos : position -> Point.t
+(** [point_of_pos (x, y)] converts a [position] into a [Point.t] *)
+
+val contains_pt : 'a t -> Point.t -> bool
+(** [contains_pt g p] Returns true if the the given [Point.t] lives within the
+    bounds of the grid*)
+
+val get_pt : 'a t -> Point.t -> 'a
+(** [get_pt g p] gets the value in [g] at [p].
+
+    @raise [Not_found] if the point is not inside the grid *)
+
+val get_pt_opt : 'a t -> Point.t -> 'a option
+(** [get_pt_opt g p] returns [Some v] in [g] at [p] if it exists. Otherwise
+    returns [None] *)
+
+val set_pt : 'a t -> Point.t -> 'a -> unit
+(** [set_pt g p v] sets the value at [p] in [g] to [v].
+
+    @raise [Invalid_argument] if [p] is not inside [g] *)
+
+val set_pt_opt : 'a t -> Point.t -> 'a -> unit option
+(** [set_pt_opt g p v] sets the value at [p] in [g] to [v]. Returns [Some ()]
+    the mutation is successful, else [None] *)
+
+val find_value_pt : 'a -> 'a t -> Point.t option
+(** [find_value_pt v g] finds the first point in [g] that has the value [v].
+    Returns [Some v] if found, otherwise [None] *)
+
+val ( .%{} ) : 'a array array -> Point.t -> 'a
+(** Extended indexing syntax. Allows for `direct` indexing into the grid
+    {[
+      let grid : string t =
+        init 5 5 (fun (x, y) -> Printf.sprintf "x: %d, y: %d" x y)
+
+      let point : Point.t = Point.make 2 2
+      let () = Printf.printf "value is %s" grid.%{point}
+    ]} *)
+
+val ( .%{}<- ) : 'a array array -> Point.t -> 'a -> unit
+(** Extended indexing syntax. Allows setting the value in the grid via `direct`
+    indexing.
+    {[
+      let grid : string t =
+        init 5 5 (fun (x, y) -> Printf.sprintf "x: %d, y: %d" x y)
+
+      let point : Point.t = Point.make 2 2
+      let () = grid.%{point} <- "foobar"
+      let () = assert (foobar = grid.%{point})
+    ]} *)

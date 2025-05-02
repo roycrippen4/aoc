@@ -233,3 +233,29 @@ let print
   [@@ocamlformat "disable"]
 
 let print_chars = print (fun fmt _ c -> Format.pp_print_char fmt c)
+
+(*------------------------------------------------------------------*)
+(*  Point‑aware helpers                                             *)
+(*------------------------------------------------------------------*)
+
+let pos_of_point p = (p.Point.x, p.Point.y)
+let point_of_pos (x, y) = Point.make x y
+let contains_pt g p = pos_of_point p |> inside g
+
+(* *)
+
+let get_pt g p = get g (pos_of_point p)
+let get_pt_opt g p = get_opt g (pos_of_point p)
+
+(* *)
+
+let set_pt g p v = set g (pos_of_point p) v
+let set_pt_opt g p v = set_opt g (pos_of_point p) v
+
+let find_value_pt needle g =
+  match find_opt (fun (_, _, v) -> v = needle) g with
+  | None -> None
+  | Some (x, y) -> Some (Point.make x y)
+
+let ( .%{} ) g p = get g (p.Point.x, p.Point.y)
+let ( .%{}<- ) g p v = set g (p.Point.x, p.Point.y) v
