@@ -1,6 +1,6 @@
 (library
  (name lib)
- (libraries unix re grid util batteries option bheap)
+ (libraries unix re grid util batteries option bheap point core)
  (inline_tests)
  (preprocess
   (pps ppx_inline_test)))

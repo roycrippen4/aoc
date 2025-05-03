@@ -13,7 +13,7 @@ let ( /= ) = Operators.( /= )
 let ( /=. ) = Operators.( /=. )
 let ( %= ) = Operators.( %= )
 let ( let* ) = Operators.( let* )
-let str_explode = General.str_explode
+let chars = General.chars
 let map_tuple = General.map_tuple
 let pop = General.pop
 let pp_char_list = Fmt.pp_char_list

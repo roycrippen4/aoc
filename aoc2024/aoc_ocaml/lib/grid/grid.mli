@@ -318,7 +318,7 @@ val find_value_pt : 'a -> 'a t -> Point.t option
 (** [find_value_pt v g] finds the first point in [g] that has the value [v].
     Returns [Some v] if found, otherwise [None] *)
 
-val ( .%{} ) : 'a array array -> Point.t -> 'a
+val ( .%{} ) : 'a t -> Point.t -> 'a
 (** Extended indexing syntax. Allows for `direct` indexing into the grid
     {[
       let grid : string t =
@@ -328,7 +328,7 @@ val ( .%{} ) : 'a array array -> Point.t -> 'a
       let () = Printf.printf "value is %s" grid.%{point}
     ]} *)
 
-val ( .%{}<- ) : 'a array array -> Point.t -> 'a -> unit
+val ( .%{}<- ) : 'a t -> Point.t -> 'a -> unit
 (** Extended indexing syntax. Allows setting the value in the grid via `direct`
     indexing.
     {[
@@ -338,4 +338,19 @@ val ( .%{}<- ) : 'a array array -> Point.t -> 'a -> unit
       let point : Point.t = Point.make 2 2
       let () = grid.%{point} <- "foobar"
       let () = assert (foobar = grid.%{point})
+    ]} *)
+
+val same_size_with : 'b -> 'a t -> 'b t
+(** [same_size_with v g] creates a new grid with the same dimensions as [g]
+    where all values in the new grid are [v]. Useful for in
+    {{:https://en.wikipedia.org/wiki/Breadth-first_search}BFS algorithms} for
+    tracking visited location or for tracking cost in
+    {{:https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm}Djikstra}
+
+    {[
+      (* 5x5 grid of strings *)
+      let grid = Grid.init 5 5 (fun (x, y) -> Printf.sprintf "x: %d, y: %d" x y)
+
+      (* 5x5 grid of 0s *)
+      let costs : int Grid.t = grid |> Grid.same_size_with 0
     ]} *)

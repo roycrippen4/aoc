@@ -12,7 +12,7 @@ let split_to_int delim str =
   |> List.filter (fun s -> s <> "")
   |> List.map int_of_string
 
-let str_explode str =
+let chars str =
   let rec exp a b = if a < 0 then b else exp (a - 1) (str.[a] :: b) in
   exp (String.length str - 1) []
 

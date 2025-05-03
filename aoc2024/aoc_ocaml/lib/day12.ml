@@ -17,7 +17,7 @@ let trim = String.trim
 let create_grid str =
   let lines = str |> trim |> split '\n' |> List.map trim in
   let size = List.length lines in
-  let grid = lines |> List.map str_explode |> List.flatten |> Array.of_list in
+  let grid = lines |> List.map chars |> List.flatten |> Array.of_list in
   (size, grid)
 
 let size, grid = create_grid input_str

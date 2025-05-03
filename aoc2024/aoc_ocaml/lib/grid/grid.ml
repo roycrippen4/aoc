@@ -17,6 +17,7 @@ let init h w f =
 
 let copy g = init (height g) (width g) (fun (x, y) -> g.(y).(x))
 let inside g (x, y) = 0 <= y && y < height g && 0 <= x && x < width g
+let same_size_with v g = init (height g) (width g) (fun _ -> v)
 
 (* *)
 
@@ -202,7 +203,7 @@ let of_string str =
   str
   |> String.split_on_char '\n'
   |> Array.of_list
-  |> Array.map (Fun.compose Array.of_list Batteries.String.explode)
+  |> Array.map (Array.of_list % Batteries.String.explode)
 
 let of_list l = l |> Array.of_list |> Array.map Array.of_list
 

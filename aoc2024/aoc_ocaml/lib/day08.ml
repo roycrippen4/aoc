@@ -5,13 +5,11 @@ let width = Grid.width grid
 let height = Grid.height grid
 let antennas = Hashtbl.create 1024
 
-module Point = struct
+module PointSet = Set.Make (struct
   type t = int * int
 
   let compare = compare
-end
-
-module PointSet = Set.Make (Point)
+end)
 
 (* Ported from rust std *)
 let is_alphanumeric = function

@@ -38,9 +38,15 @@ let hash p = Hashtbl.hash (p.x, p.y)
 
 (* ---------- arithmetic (immutable) ---------- *)
 
-let ( + ) a b = make (a.x + b.x) (a.y + b.y)
-let ( - ) a b = make (a.x - b.x) (a.y - b.y)
-let ( * ) p k = make (p.x * k) (p.y * k)
+let add a b = make (a.x + b.x) (a.y + b.y)
+let sub a b = make (a.x - b.x) (a.y - b.y)
+let mul p k = make (p.x * k) (p.y * k)
+
+(* *)
+
+let ( ++ ) a b = add a b
+let ( -- ) a b = sub a b
+let ( ** ) p k = mul p k
 
 (* ---------- arithmetic (in‑place) ---------- *)
 

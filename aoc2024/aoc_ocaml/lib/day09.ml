@@ -27,7 +27,7 @@ let string_of_mem mem =
 
 let show_mem mem = mem |> string_of_mem |> Printf.printf "%s\n"
 let path = "/home/roy/dev/aoc/aoc2024/data/day09/data.txt"
-let input = path |> read_to_string |> String.trim |> str_explode
+let input = path |> read_to_string |> String.trim |> chars
 let mem = create_mem input
 
 (* Part 1 *)
@@ -130,11 +130,11 @@ let create_example () =
   "/home/roy/dev/aoc/aoc2024/data/day09/example.txt"
   |> read_to_string
   |> String.trim
-  |> str_explode
+  |> chars
   |> create_mem
 
 let%test _ =
-  let mem = "553" |> str_explode |> create_mem in
+  let mem = "553" |> chars |> create_mem in
   (0, 4) = find_file mem 5
 
 let%test _ =
