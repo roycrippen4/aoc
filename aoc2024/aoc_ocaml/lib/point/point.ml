@@ -58,4 +58,4 @@ let sub_assign p q =
   p.x <- Stdlib.( - ) p.x q.x;
   p.y <- Stdlib.( - ) p.x q.x
 
-let show p = Printf.printf "{ x: %d, y: %d }" p.x p.y
+let show p = Printf.printf "{ x: %d, y: %d }\n" p.x p.y
