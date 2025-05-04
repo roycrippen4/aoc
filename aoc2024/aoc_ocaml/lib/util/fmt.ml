@@ -60,10 +60,10 @@ let _pp_array pp_elt fmt arr =
     arr;
   Format.fprintf fmt "|]"
 
-let pp_int_list lst = printf "%a@." _pp_int_list lst
+let pp_int_list lst = printf "%a@.\n" _pp_int_list lst
 let pp_int_list_list lst = List.iter pp_int_list lst
-let pp_char_list lst = printf "%a@." _pp_char_list lst
+let pp_char_list lst = printf "%a@.\n" _pp_char_list lst
 let pp_char_list_list lst = List.iter pp_char_list lst
-let pp_string_list lst = printf "%a@." _pp_string_list lst
+let pp_string_list lst = printf "%a@.\n" _pp_string_list lst
 let pp_string_list_list lst = List.iter pp_string_list lst
 let pp_array pp_elt arr = printf "%a\n" (_pp_array pp_elt) arr
