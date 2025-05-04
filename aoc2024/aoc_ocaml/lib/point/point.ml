@@ -32,6 +32,8 @@ let of_char = function
   | '>' | 'R' -> right
   | c -> invalid_arg (Printf.sprintf "Point.of_char: %C" c)
 
+let of_tuple (x, y) = make x y
+
 (* ---------- hashing ---------- *)
 
 let hash p = Hashtbl.hash (p.x, p.y)

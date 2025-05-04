@@ -85,6 +85,9 @@ val of_char : char -> t
 (** Convert a direction character: ['^'|'U' → up], ['v'|'D' → down],
     ['<'|'L' → left], ['>'|'R' → right]. *)
 
+val of_tuple : int * int -> t
+(** Convert an [(x, y)] tuple into a [Point.t] *)
+
 val hash : t -> int
 (** Deterministic hash value, suitable for {!Hashtbl}. *)
 
