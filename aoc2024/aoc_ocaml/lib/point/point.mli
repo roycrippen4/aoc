@@ -100,3 +100,4 @@ val ( ** ) : t -> int -> t
 
 val add_assign : t -> t -> unit
 val sub_assign : t -> t -> unit
+val show : t -> unit
