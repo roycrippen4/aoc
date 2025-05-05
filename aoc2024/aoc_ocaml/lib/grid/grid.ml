@@ -241,7 +241,7 @@ let print_chars = print (fun fmt _ c -> Format.pp_print_char fmt c)
 
 let pos_of_point p = (p.Point.x, p.Point.y)
 let point_of_pos (x, y) = Point.make x y
-let contains_pt g p = pos_of_point p |> inside g
+let inside_pt g p = pos_of_point p |> inside g
 
 (* *)
 
@@ -260,3 +260,76 @@ let find_value_pt needle g =
 
 let ( .%{} ) g p = get g (p.Point.x, p.Point.y)
 let ( .%{}<- ) g p v = set g (p.Point.x, p.Point.y) v
+
+module type Walkable = sig
+  type cell
+  type t
+
+  val compare : t -> t -> int
+  val add : t -> t -> t
+  val zero : t
+  val passable : cell -> bool
+  val cost : cell -> t
+end
+
+module Dijkstra (W : Walkable) = struct
+  module P = Point
+
+  module Node = struct
+    type t = W.t * (int * int)
+
+    let compare (d1, _) (d2, _) = W.compare d2 d1 (* ← flipped *)
+  end
+
+  module Q = Bheap.Make (Node)
+
+  let walk (g : W.cell t) (start : P.t) (goal : P.t) : P.t list option =
+    let start_pos = (start.x, start.y) and goal_pos = (goal.x, goal.y) in
+
+    if not (inside g start_pos && inside g goal_pos) then None
+    else if not (W.passable (get g start_pos) && W.passable (get g goal_pos))
+    then None
+    else
+      let dist = Hashtbl.create 97 and prev = Hashtbl.create 97 in
+      Hashtbl.add dist start_pos W.zero;
+
+      let pq = Q.create () in
+      Q.push pq (W.zero, start_pos);
+
+      (* helper to rebuild the path once we reach the goal *)
+      let rec reconstruct p acc =
+        let pt = P.make (fst p) (snd p) in
+        match Hashtbl.find_opt prev p with
+        | None -> List.rev (pt :: acc)
+        | Some pre -> reconstruct pre (pt :: acc)
+      in
+
+      let rec loop () =
+        match Q.pop pq with
+        | None -> None
+        | Some (d, u) -> (
+            match Hashtbl.find_opt dist u with
+            | Some best when W.compare d best > 0 -> loop ()
+            | _ ->
+                if u = goal_pos then Some (reconstruct u []) (* success *)
+                else (
+                  neighbor4_coords u
+                  |> List.iter (fun v ->
+                         if inside g v then
+                           let cell = get g v in
+                           if W.passable cell then
+                             let alt = W.add d (W.cost cell) in
+                             match Hashtbl.find_opt dist v with
+                             | None ->
+                                 Hashtbl.add dist v alt;
+                                 Hashtbl.add prev v u;
+                                 Q.push pq (alt, v)
+                             | Some old when W.compare alt old < 0 ->
+                                 Hashtbl.replace dist v alt;
+                                 Hashtbl.replace prev v u;
+                                 Q.push pq (alt, v)
+                             | _ -> ());
+                  loop ()))
+      in
+      loop ()
+end

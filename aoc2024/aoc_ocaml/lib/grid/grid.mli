@@ -292,8 +292,8 @@ val pos_of_point : Point.t -> position
 val point_of_pos : position -> Point.t
 (** [point_of_pos (x, y)] converts a [position] into a [Point.t] *)
 
-val contains_pt : 'a t -> Point.t -> bool
-(** [contains_pt g p] Returns true if the the given [Point.t] lives within the
+val inside_pt : 'a t -> Point.t -> bool
+(** [inside_pt g p] Returns true if the the given [Point.t] lives within the
     bounds of the grid*)
 
 val get_pt : 'a t -> Point.t -> 'a
@@ -354,3 +354,62 @@ val same_size_with : 'b -> 'a t -> 'b t
       (* 5x5 grid of 0s *)
       let costs : int Grid.t = grid |> Grid.same_size_with 0
     ]} *)
+
+(** {1 Generic shortest‑path functor} *)
+
+(** A “type‑class” describing how to walk on a grid.
+
+    - ['cell] is the type stored in the grid (e.g. [char], [terrain]).
+    - ['t] is the accumulated cost / distance (e.g. [int], [float]).
+
+    The functor needs:
+    - a total order on distances ([compare])
+    - an addition on distances ([add]) and its neutral element ([zero])
+    - a predicate that says whether a cell is enterable ([passable])
+    - a function that returns the cost of stepping onto a cell ([cost_of]) *)
+module type Walkable = sig
+  type cell
+  type t
+
+  val compare : t -> t -> int
+  (** Total order on costs (≤ 0 → “no cheaper”). *)
+
+  val add : t -> t -> t
+  (** [add a b] = cost of doing [a] then [b]. *)
+
+  val zero : t
+  (** Cost at the start position. *)
+
+  val passable : cell -> bool
+  (** May we walk onto this cell? *)
+
+  val cost : cell -> t
+  (** Cost incurred when entering this cell. *)
+end
+
+(** {2 Functor: 4‑directional Dijkstra}
+
+    [module D = Grid.Dijkstra (W)] produces a module with one function:
+
+    {[
+      val walk :
+        W.cell Grid.t (** terrain grid *) ->
+        Point.t (** start *) ->
+        Point.t (** goal *) ->
+        Point.t list option
+      (** [Some [p0; …; pn]] if a shortest path exists (p0 = start, pn = goal),
+          [None] if no path. *)
+    ]}
+
+    The algorithm:
+
+    - considers the 4 von‑Neumann neighbours (N E S W);
+    - treats a neighbour only if [W.passable cell] is true;
+    - accumulates cost with [W.add d (W.cost_of cell)];
+    - breaks ties with [W.compare].
+
+    Complexity is O(E log V) with E ≤ 4·V for a grid (E = edges, V = passable
+    cells). *)
+module Dijkstra (W : Walkable) : sig
+  val walk : W.cell t -> Point.t -> Point.t -> Point.t list option
+end

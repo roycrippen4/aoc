@@ -1,5 +1,5 @@
 (library
- (libraries batteries point)
+ (libraries batteries point bheap)
  (name grid)
  (inline_tests)
  (preprocess
