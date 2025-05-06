@@ -17,6 +17,12 @@ let chars str =
   exp (String.length str - 1) []
 
 let map_tuple f (a, b) = (f a, f b)
+let map_tuple2 f g (a, b) = (f a, g b)
+let map2_tuple f (a1, a2) (b1, b2) = (f a1 b1, f a2 b2)
+
+(* *)
+
+let flip f x y = f y x
 let pop = function x :: xs -> (x, xs) | [] -> failwith "List is empty"
 
 let windows n lst =

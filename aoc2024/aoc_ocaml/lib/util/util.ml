@@ -15,6 +15,9 @@ let ( %= ) = Operators.( %= )
 let ( let* ) = Operators.( let* )
 let chars = General.chars
 let map_tuple = General.map_tuple
+let map_tuple2 = General.map_tuple2
+let map2_tuple = General.map2_tuple
+let flip = General.flip
 let pop = General.pop
 let pp_char_list = Fmt.pp_char_list
 let pp_char_list_list = Fmt.pp_char_list_list

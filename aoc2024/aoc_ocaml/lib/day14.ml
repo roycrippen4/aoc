@@ -1,12 +1,11 @@
 open Util
-open Batteries
 
 let width = 101
 let height = 103
 let size = width * height
 let lines = read_to_lines "/home/roy/dev/aoc/aoc2024/data/day14/data.txt"
 
-type robot = { mutable px : int; mutable py : int; vx : int; vy : int }
+type robot = { px : int; py : int; vx : int; vy : int }
 
 module Robot = struct
   type t = robot
@@ -19,22 +18,18 @@ module Robot = struct
       vy = r.vy;
     }
 
-  let step r =
-    r.px <- (((r.px + r.vx) mod width) + width) mod width;
-    r.py <- (((r.py + r.vy) mod height) + height) mod height
-
   let of_string s =
+    let open Batteries.String in
     s
-    |> String.trim
-    |> String.split ~by:" "
-    |> map_tuple (String.chop ~l:2 ~r:0)
-    |> map_tuple (String.split ~by:",")
+    |> trim
+    |> split ~by:" "
+    |> map_tuple (chop ~l:2 ~r:0)
+    |> map_tuple (split ~by:",")
     |> map_tuple (map_tuple int_of_string)
     |> fun ((px, py), (vx, vy)) -> { px; py; vx; vy }
-
-  let show r =
-    Printf.printf "{ px: %d, py: %d, vx: %d, vy: %d }\n" r.px r.py r.vx r.vy
 end
+
+let bots = lines |> List.map Robot.of_string
 
 let update_counts skipx skipy r =
   let x, y = (r.px, r.py) in
@@ -46,7 +41,7 @@ let update_counts skipx skipy r =
     | true, false -> (0, 0, 1, 0)
     | false, false -> (0, 0, 0, 1)
 
-let calc_safty bots =
+let calc_safty _ =
   let skipx = width / 2 in
   let skipy = height / 2 in
   let mul (a, b, c, d) = a * b * c * d in
@@ -56,49 +51,45 @@ let calc_safty bots =
   let accumulate acc bot = bot |> update_counts skipx skipy |> sum4 acc in
   bots |> List.fold_left accumulate (0, 0, 0, 0) |> mul
 
-let solve1 () =
-  lines
-  |> List.map Robot.of_string
-  |> List.map (Robot.step_n ~steps:100)
-  |> calc_safty
+let solve1 () = bots |> List.map (Robot.step_n ~steps:100) |> calc_safty
 
 (* part 2 *)
-
 let occupied = Array.make size (-1)
-let idx x y = (y * width) + x
+let row_count = Array.make height 0
 
 let has_run step =
-  let rec rows base =
-    if base >= size then false
-    else
-      let rec scan x run =
-        if run > 6 then true
-        else if x = width then rows (base + width) (* next row *)
-        else
-          let run' = if occupied.(base + x) = step then run + 1 else 0 in
-          scan (x + 1) run'
-      in
-      scan 0 0
-  in
-  rows 0
+  let found = ref false in
 
-let rec search step bots =
-  let mark_bot bot =
-    Robot.step bot;
-    occupied.(idx bot.px bot.py) <- step
-  in
+  for row = 0 to height - 1 do
+    if row_count.(row) >= 7 then
+      let run = ref 0 in
+      let base = row * width in
 
-  bots |> Array.iter mark_bot;
-  if has_run step then step else search (step + 1) bots
+      for x = 0 to width - 1 do
+        if occupied.(base + x) = step then (
+          incr run;
+          if !run = 7 then found := true)
+        else run := 0
+      done
+  done;
 
-let solve2 () =
-  let bots = lines |> Array.of_list |> Array.map Robot.of_string in
-  search 1 bots
+  !found
+
+let rec search step =
+  Array.fill row_count 0 height 0;
+
+  bots
+  |> List.iter (fun bot ->
+         let x = (bot.px + (bot.vx * step mod width) + width) mod width in
+         let y = (bot.py + (bot.vy * step mod height) + height) mod height in
+         occupied.((y * width) + x) <- step;
+         row_count.(y) <- row_count.(y) + 1);
+
+  if has_run step then step else search (step + 1)
+
+let solve2 () = search 1
 
 (* exports *)
-
 let part1 () = validate solve1 230900224 "14" One
 let part2 () = validate solve2 6532 "14" Two
 let solution : solution = { part1; part2 }
-
-(* tests *)
