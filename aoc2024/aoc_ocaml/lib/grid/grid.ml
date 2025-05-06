@@ -203,7 +203,7 @@ let of_string str =
   str
   |> String.split_on_char '\n'
   |> Array.of_list
-  |> Array.map (Array.of_list % Batteries.String.explode)
+  |> Array.map (Array.of_list % String.explode)
 
 let of_list l = l |> Array.of_list |> Array.map Array.of_list
 

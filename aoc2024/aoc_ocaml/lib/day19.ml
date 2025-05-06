@@ -15,7 +15,6 @@ let path = "/home/roy/dev/aoc/aoc2024/data/day19/data.txt"
 let input = read_to_string path
 
 (* let parse_patterns s = *)
-(**)
 
 (* let parse s = *)
 (* let module String = Batteries.String in *)

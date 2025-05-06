@@ -1,6 +1,5 @@
 open Util
 module G = Grid
-module String = Batteries.String
 
 (* BoxEnd is only used in part 2 *)
 type kind = Bot | Start | End | Empty | Wall
@@ -116,7 +115,7 @@ let string_of_grid s =
 let parse str =
   str
   |> String.trim
-  |> Batteries.String.split ~by:"\n\n"
+  |> String.split ~by:"\n\n"
   |> map_tuple String.trim
   |> (string_of_grid <$> string_of_directions)
 

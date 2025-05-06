@@ -13,7 +13,6 @@ depends: [
   "dune" {>= "3.17"}
   "ppx_inline_test" {with-test}
   "re"
-  "batteries"
   "core"
   "odoc" {with-doc}
 ]

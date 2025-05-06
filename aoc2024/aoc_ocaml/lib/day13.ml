@@ -1,5 +1,4 @@
 open Util
-open Batteries
 
 type prize = { x : int; y : int }
 type button = { x : int; y : int; cost : int }
@@ -53,7 +52,7 @@ let get_cheapest ((a, b, p) : machine) =
 let machines =
   input |> String.split_on_string ~by:"\n\n" |> List.map parse_machine
 
-let solve1 () = machines |> List.fold (fun acc m -> acc + get_cheapest m) 0
+let solve1 () = machines |> List.fold_left (fun acc m -> acc + get_cheapest m) 0
 
 (* part 2 *)
 
@@ -64,7 +63,7 @@ let solve2 () =
   in
 
   let accumulate acc m = acc + (m |> update_target |> get_cheapest) in
-  machines |> List.fold accumulate 0
+  machines |> List.fold_left accumulate 0
 
 (* exports *)
 

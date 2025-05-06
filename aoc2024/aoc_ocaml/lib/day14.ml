@@ -19,12 +19,11 @@ module Robot = struct
     }
 
   let of_string s =
-    let open Batteries.String in
     s
-    |> trim
-    |> split ~by:" "
-    |> map_tuple (chop ~l:2 ~r:0)
-    |> map_tuple (split ~by:",")
+    |> String.trim
+    |> String.split ~by:" "
+    |> map_tuple (String.chop ~l:2 ~r:0)
+    |> map_tuple (String.split ~by:",")
     |> map_tuple (map_tuple int_of_string)
     |> fun ((px, py), (vx, vy)) -> { px; py; vx; vy }
 end

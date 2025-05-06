@@ -1,5 +1,4 @@
 open Util
-open Batteries
 
 let input = read_to_string "/home/roy/dev/aoc/aoc2024/data/day05/data.txt"
 

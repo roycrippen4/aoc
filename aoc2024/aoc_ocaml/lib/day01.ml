@@ -1,5 +1,4 @@
 open Util
-open Batteries
 
 let split_to_side (left, right) line =
   let sl, sr = String.split ~by:"   " line |> map_tuple int_of_string in

@@ -1,5 +1,4 @@
 open Util
-module String = Batteries.String
 
 (* part 1 *)
 
