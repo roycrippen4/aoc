@@ -41,7 +41,7 @@ let update_counts skipx skipy r =
     | true, false -> (0, 0, 1, 0)
     | false, false -> (0, 0, 0, 1)
 
-let calc_safty _ =
+let calc_safty bots =
   let skipx = width / 2 in
   let skipy = height / 2 in
   let mul (a, b, c, d) = a * b * c * d in
