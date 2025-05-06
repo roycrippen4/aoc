@@ -14,9 +14,19 @@ let example =
 let path = "/home/roy/dev/aoc/aoc2024/data/day19/data.txt"
 let input = read_to_string path
 
-let[@warning "-26-27-39"] parse s =
-  let open! Batteries.String in
-  todo ()
+(* let parse_patterns s = *)
+(**)
+
+(* let parse s = *)
+(* let module String = Batteries.String in *)
+(* let patterns, designs = String.split ~by:"\n\n" s in *)
+
+(* todo () *)
+
+let%test _ =
+  let foo = "foo" in
+  let bar = "bar" in
+  foo = bar
 
 let solve1 () = 42
 
