@@ -120,21 +120,6 @@ let parse str =
   |> map_tuple String.trim
   |> (string_of_grid <$> string_of_directions)
 
-let pp_kind fmt _ k =
-  Format.fprintf fmt "%c"
-    (match k with
-    | Bot -> '@'
-    | Start -> '['
-    | End -> ']'
-    | Empty -> '.'
-    | Wall -> '#')
-
-let show_grid grid bot =
-  grid.(bot.y).(bot.x) <- Bot;
-  G.print pp_kind Format.std_formatter grid;
-  grid.(bot.y).(bot.x) <- Empty;
-  print_endline ""
-
 let g, directions = parse input
 let width = G.width g
 let height = G.height g
@@ -176,12 +161,10 @@ let move_left x =
 
   aux x
 
-let false_array = fun _ -> Array.init width (fun _ -> false)
-let make_seen () = Array.init height false_array
-
 let move_vert x y up =
   let dy = if up then -1 else 1 in
-  let seen = make_seen () in
+  let all_false = Array.init width (fun _ -> false) in
+  let seen = Array.init height (fun _ -> Array.copy all_false) in
 
   let rec get_moves x y =
     match g.(y).(x) with
@@ -211,15 +194,13 @@ let move_vert x y up =
     | _ -> None
   in
 
-  let apply_move (x, y, k) =
-    g.(y).(x) <- Empty;
-    g.(y + dy).(x) <- k
-  in
-
   match get_moves x y with
   | None -> ()
   | Some moves ->
-      moves |> List.iter apply_move;
+      moves
+      |> List.iter (fun (x, y, k) ->
+             g.(y).(x) <- Empty;
+             g.(y + dy).(x) <- k);
       bot.y <- y
 
 let next d =
