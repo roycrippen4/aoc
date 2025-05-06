@@ -29,12 +29,10 @@ let points =
   |> split_on_char '\n'
   |> List.map (split ~by:"," >> map_tuple int_of_string >> Point.of_tuple)
 
-let n_walls = 1024
-
 let grid =
   let size = 71 in
   let g = Grid.init size size (fun _ -> Kind.Empty) in
-  points |> List.take n_walls |> List.iter (fun p -> g.Grid.%{p} <- Kind.Wall);
+  points |> List.take 1024 |> List.iter (fun p -> g.Grid.%{p} <- Kind.Wall);
   g
 
 let start = Point.{ x = 0; y = 0 }
@@ -46,16 +44,30 @@ let solve1 () =
   Dijkstra.walk grid start goal |> Option.get |> List.length |> pred
 
 (* part 2 *)
-let solve2 () =
-  let points = Array.of_list points in
+let points = Array.of_list points
+
+let fill_graph stop_idx =
+  let new_grid = Grid.copy grid in
 
   let rec loop idx =
-    grid.Grid.%{points.(idx)} <- Wall;
-    match Dijkstra.walk grid start goal with
-    | Some _ -> loop (idx + 1)
-    | None -> points.(idx)
+    new_grid.Grid.%{points.(idx)} <- Kind.Wall;
+    if idx = stop_idx then new_grid else loop (idx + 1)
   in
-  let point = loop n_walls in
+
+  loop 1024
+
+let rec search lo hi =
+  if lo = hi then lo
+  else
+    let mid = (lo + hi) lsr 1 in
+    let graph = fill_graph mid in
+    match Dijkstra.walk graph start goal with
+    | None -> search lo mid
+    | Some _ -> search (mid + 1) hi
+
+let solve2 () =
+  let idx = search 1024 (Array.length points - 1) in
+  let point = points.(idx) in
   point.x * point.y
 
 (* exports *)
