@@ -20,7 +20,7 @@ let value o ~default = match o with Some v -> v | None -> default
 let get = function Some v -> v | None -> invalid_arg "option is None"
 let bind o f = match o with None -> None | Some v -> f v
 let join = function Some o -> o | None -> None
-let map f o = match o with None -> None | Some v -> Some (f v)
+let map ~f o = match o with None -> None | Some v -> Some (f v)
 let fold ~none ~some = function Some v -> some v | None -> none
 let iter f = function Some v -> f v | None -> ()
 let is_none = function None -> true | Some _ -> false
@@ -42,3 +42,13 @@ let compare cmp o0 o1 =
 let to_result ~none = function None -> Error none | Some v -> Ok v
 let to_list = function None -> [] | Some v -> [ v ]
 let to_seq = function None -> Seq.empty | Some v -> Seq.return v
+
+(* operators *)
+let ( >>| ) t f = map ~f t
+
+(* applicative *)
+let ( *> ) a b = match (a, b) with Some _, Some y -> Some y | _ -> None
+let ( <* ) a b = match (a, b) with Some x, Some _ -> Some x | _ -> None
+
+let ( <*> ) f_opt x_opt =
+  match (f_opt, x_opt) with Some f, Some x -> Some (f x) | _ -> None

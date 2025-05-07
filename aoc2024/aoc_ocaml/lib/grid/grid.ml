@@ -81,10 +81,9 @@ let rotate_right g =
 
 (* *)
 
-let ( % ) = Fun.compose
 let map_values f g = init (height g) (width g) (fun (x, y) -> f (get g (x, y)))
 let map_coords f g = init (height g) (width g) @@ f
-let map_entries f g = init (height g) (width g) (f % entry g)
+let map_entries f g = init (height g) (width g) (Fun.compose f (entry g))
 
 (* *)
 
@@ -203,7 +202,7 @@ let of_string str =
   str
   |> String.split_on_char '\n'
   |> Array.of_list
-  |> Array.map (Array.of_list % String.explode)
+  |> Array.map (Fun.compose Array.of_list String.explode)
 
 let of_list l = l |> Array.of_list |> Array.map Array.of_list
 

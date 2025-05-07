@@ -25,6 +25,8 @@ let ( %= ) x y = x := !x mod y
 let ( *= ) x y = x := !x * y
 let ( *=. ) x y = x := !x *. y
 let ( let* ) x f = Option.bind x f
+let ( >> ) f g x = g (f x)
+let ( << ) f g x = f (g x)
 
 let%test _ =
   let x = ref 5 in

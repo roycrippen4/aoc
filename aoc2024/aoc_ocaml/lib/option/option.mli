@@ -36,7 +36,7 @@ val bind : 'a option -> ('a -> 'b option) -> 'b option
 val join : 'a option option -> 'a option
 (** [join oo] is [Some v] if [oo] is [Some (Some v)] and [None] otherwise. *)
 
-val map : ('a -> 'b) -> 'a option -> 'b option
+val map : f:('a -> 'b) -> 'a t -> 'b t
 (** [map f o] is [None] if [o] is [None] and [Some (f v)] if [o] is [Some v]. *)
 
 val fold : none:'a -> some:('b -> 'a) -> 'b option -> 'a
@@ -107,3 +107,7 @@ val is_none_or : ('a -> bool) -> 'a t -> bool
 val expect : string -> 'a t -> 'a
 val and_then : ('a -> 'b t) -> 'a t -> 'b t
 val and_ : 'a t -> 'b t -> 'a t
+val ( >>| ) : 'a t -> ('a -> 'b) -> 'b t
+val ( *> ) : 'a t -> 'b t -> 'b t
+val ( <* ) : 'a t -> 'b t -> 'a t
+val ( <*> ) : ('a -> 'b) t -> 'a t -> 'b t

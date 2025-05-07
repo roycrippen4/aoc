@@ -20,7 +20,6 @@ end
 let show_grid grid = Grid.print Kind.pp_kind Format.std_formatter grid
 
 let points =
-  let ( >> ) f g x = g (f x) in
   let open String in
   "/home/roy/dev/aoc/aoc2024/data/day18/data.txt"
   |> read_to_string

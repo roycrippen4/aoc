@@ -13,6 +13,8 @@ let ( /= ) = Operators.( /= )
 let ( /=. ) = Operators.( /=. )
 let ( %= ) = Operators.( %= )
 let ( let* ) = Operators.( let* )
+let ( >> ) = Operators.( >> )
+let ( << ) = Operators.( << )
 let chars = General.chars
 let map_tuple = General.map_tuple
 let map_tuple2 = General.map_tuple2

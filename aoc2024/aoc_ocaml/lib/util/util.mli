@@ -40,6 +40,8 @@ val ( /=. ) : float ref -> float -> unit
 val ( %= ) : int ref -> int -> unit
 (** Modulo Equal. [ref x] %= [y] *)
 
+val ( << ) : ('a -> 'b) -> ('c -> 'a) -> 'c -> 'b
+val ( >> ) : ('a -> 'b) -> ('b -> 'c) -> 'a -> 'c
 val ( let* ) : 'a option -> ('a -> 'b option) -> 'b option
 (* This is like Gleam's `use` expressions *)
 
