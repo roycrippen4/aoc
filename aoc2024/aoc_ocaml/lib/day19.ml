@@ -1,71 +1,82 @@
 open Util
 
 let input = read_to_string "/home/roy/dev/aoc/aoc2024/data/day19/data.txt"
-
-let matcher_of_string pattern =
-  let module Search = Core.String.Search_pattern in
-  let pat = Search.create pattern in
-  let len = String.length pattern - 1 in
-  fun s -> Search.index ~in_:s pat |> Option.map ~f:(fun i -> (i, i + len))
+let split_by ch s = String.(trim s |> split_on_char ch |> List.map trim)
 
 let parse s =
-  let split_by ch s = String.(trim s |> split_on_char ch |> List.map trim) in
+  s |> String.split ~by:"\n\n" |> map_tuple2 (split_by ',') (split_by '\n')
 
-  let make_matchers s =
-    s
-    |> split_by ','
-    |> List.map (fun s -> (s, String.length s))
-    |> List.sort (fun (_, a) (_, b) -> compare a b)
-    |> List.map (fst >> matcher_of_string)
+type pattern = { txt : string; len : int }
+
+let pat s = { txt = s; len = String.length s }
+
+let starts_with s i p =
+  let rec loop k = k = p.len || (s.[i + k] = p.txt.[k] && loop (k + 1)) in
+  i + p.len <= String.length s && loop 0
+
+let bucket_by_head pats =
+  let bs = Array.make 256 [] in
+  pats |> List.iter Char.(fun s -> bs.(code s.[0]) <- pat s :: bs.(code s.[0]));
+  bs
+
+let can_combine buckets s =
+  let n = String.length s in
+  let dp = Array.make (n + 1) false in
+  dp.(n) <- true;
+
+  let rec try_pats i = function
+    | [] -> ()
+    | ({ len; _ } as p) :: rest ->
+        if i + len <= n && dp.(i + len) && starts_with s i p then dp.(i) <- true
+        else try_pats i rest
   in
 
-  s |> String.split ~by:"\n\n" |> map_tuple2 make_matchers (split_by '\n')
-
-let split_on_slice s (lo, hi) =
-  let len = String.length s in
-  if lo < 0 || hi < lo || hi >= len then invalid_arg "split_on_slice";
-
-  let l = String.sub s 0 lo in
-  let r = String.sub s (hi + 1) (len - hi - 1) in
-
-  (l, r)
-
-let memo = Hashtbl.create 0
-
-let can_combine matchers str =
-  let rec aux s =
-    if s = "" then true
-    else
-      match Hashtbl.find_opt memo s with
-      | Some v -> v
-      | None ->
-          let result =
-            let split_match matcher = Option.(matcher s >>| split_on_slice s) in
-            let try_branches (l, r) = aux l && aux r in
-            matchers |> List.filter_map split_match |> List.exists try_branches
-          in
-          Hashtbl.add memo s result;
-          result
+  let rec loop i =
+    if i <> -1 then
+      let () = try_pats i buckets.(Char.code s.[i]) in
+      pred i |> loop
   in
-  aux str
 
-let solve1 () =
-  let matchers, designs = parse input in
-  let accumulate acc str = if can_combine matchers str then acc + 1 else acc in
-  List.fold_left accumulate 0 designs
+  pred n |> loop;
+
+  dp.(0)
 
 (* part 2 *)
+let count_ways buckets s =
+  let n = String.length s in
+  let dp = Array.make (n + 1) 0 in
+  dp.(n) <- 1;
 
-let solve2 () = 42
+  let rec try_pats i = function
+    | [] -> ()
+    | ({ len; _ } as p) :: rest ->
+        if i + len <= n && starts_with s i p then
+          dp.(i) <- dp.(i) + dp.(i + len);
+        try_pats i rest
+  in
+
+  let rec loop i =
+    if i <> -1 then
+      let () = try_pats i buckets.(Char.code s.[i]) in
+      pred i |> loop
+  in
+
+  pred n |> loop;
+  dp.(0)
+
+let patterns, designs = parse input
+let buckets = bucket_by_head patterns
+
+let solve1 () =
+  let accumulate acc d = if can_combine buckets d then succ acc else acc in
+  List.fold_left accumulate 0 designs
+
+let solve2 () =
+  let accumulate acc d = acc + count_ways buckets d in
+  List.fold_left accumulate 0 designs
 
 (* exports *)
 
 let part1 () = validate solve1 287 "19" One
-let part2 () = validate solve2 42 "19" Two
+let part2 () = validate solve2 571894474468161 "19" Two
 let solution : solution = { part1; part2 }
-
-(* tests *)
-let%test _ =
-  let eq (foo, bar) = String.equal foo "foo" && String.equal bar "bar" in
-  let s = "fooquxbar" in
-  s |> matcher_of_string "qux" |> Option.get |> split_on_slice s |> eq
