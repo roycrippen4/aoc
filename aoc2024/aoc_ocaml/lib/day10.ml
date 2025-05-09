@@ -18,11 +18,11 @@ let get_neighbors p =
     | Some (x, y, v) -> if v = p.v + 1 then Some { x; y; v } else None
     | None -> None
   in
-  grid |> G.nbor4_entries (p.x, p.y) |> List.filter_map point_of_entry
+  grid |> G.nbor4 (p.x, p.y) |> List.filter_map point_of_entry
 
 let start_points =
   grid
-  |> G.filter_entries (fun (_, _, v) -> v = 0)
+  |> G.filter (fun (_, _, v) -> v = 0)
   |> List.map (fun (x, y, _) -> { x; y; v = 0 })
 
 let solve1 () =

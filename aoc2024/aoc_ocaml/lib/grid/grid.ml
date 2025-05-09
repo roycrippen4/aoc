@@ -99,13 +99,13 @@ let strip_edges g = g |> strip_edge_cols |> strip_edge_rows
 
 let map_values f g = init (height g) (width g) (fun (x, y) -> f (get g (x, y)))
 let map_coords f g = init (height g) (width g) @@ f
-let map_entries f g = init (height g) (width g) (f % entry g)
+let map f g = init (height g) (width g) (f % entry g)
 
 (* *)
 
 let nbor4_coords p = [ north p; east p; south p; west p ]
 let nbor4_values p g = p |> nbor4_coords |> List.map (get_opt g)
-let nbor4_entries p g = p |> nbor4_coords |> List.map (entry_opt g)
+let nbor4 p g = p |> nbor4_coords |> List.map (entry_opt g)
 
 let nbor8_coords p =
   [
@@ -120,7 +120,7 @@ let nbor8_coords p =
   ]
 
 let nbor8_values g p = p |> nbor8_coords |> List.map (get_opt g)
-let nbor8_entries g p = p |> nbor8_coords |> List.map (entry_opt g)
+let nbor8 g p = p |> nbor8_coords |> List.map (entry_opt g)
 
 let iter4 f g p =
   let f p = if inside g p then f p (get g p) in
@@ -156,9 +156,9 @@ let fold8 f g p acc =
   |> f (east p)
   |> f (north_east p)
 
-let iter_entries f g = Array.(iteri (fun y -> iteri (fun x v -> f (x, y, v))) g)
-let iter_values f g = g |> iter_entries (fun (_, _, v) -> f v)
-let iter_coords f g = g |> iter_entries (fun (x, y, _) -> f (x, y))
+let iter f g = Array.(iteri (fun y -> iteri (fun x v -> f (x, y, v))) g)
+let iter_values f g = g |> iter (fun (_, _, v) -> f v)
+let iter_coords f g = g |> iter (fun (x, y, _) -> f (x, y))
 let flatten g = Array.fold_left Array.append [||] g
 
 let fold f acc g =
@@ -169,7 +169,7 @@ let fold f acc g =
   in
   fold (0, 0) acc
 
-let filter_entries f g =
+let filter f g =
   let f' acc entry = if f entry then entry :: acc else acc in
   fold f' [] g
 
@@ -184,7 +184,7 @@ let filter_values f g =
 let find f g =
   let exception Found of position in
   try
-    iter_entries (fun (x, y, v) -> if f (x, y, v) then raise (Found (x, y))) g;
+    iter (fun (x, y, v) -> if f (x, y, v) then raise (Found (x, y))) g;
     raise Not_found
   with Found p -> p
 
@@ -307,7 +307,6 @@ module Dijkstra (W : Walkable) = struct
       let pq = Q.create () in
       Q.push pq (W.zero, start_pos);
 
-      (* helper to rebuild the path once we reach the goal *)
       let rec reconstruct p acc =
         let pt = P.make (fst p) (snd p) in
         match Hashtbl.find_opt prev p with

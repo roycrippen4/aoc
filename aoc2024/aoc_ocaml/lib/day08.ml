@@ -29,7 +29,7 @@ let update_antennas (x, y, v) =
     | None -> Hashtbl.add antennas v [ (x, y) ]
     | Some entry -> Hashtbl.replace antennas v ((x, y) :: entry)
 
-let () = Grid.iter_entries update_antennas grid
+let () = Grid.iter update_antennas grid
 
 (* Unsigned integer subtraction of [x] - [y] with underflow protection *)
 let ( -| ) x y = if x < 1 || y < 0 || y > x then None else Some (x - y)

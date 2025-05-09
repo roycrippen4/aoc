@@ -1,7 +1,7 @@
 open Util
 
 let g = Grid.from_file "/home/roy/dev/aoc/aoc2024/data/day04/data.txt"
-let xs = Grid.filter_entries (fun (_, _, v) -> v = 'X') g
+let xs = Grid.filter (fun (_, _, v) -> v = 'X') g
 
 let is_mas_part1 = function
   | [ Some 'M'; Some 'A'; Some 'S' ] -> true
@@ -35,7 +35,7 @@ let count_xmas_part1 pos =
 
 (* Part 2 *)
 
-let a = Grid.filter_entries (fun (_, _, v) -> v = 'A') g
+let a = Grid.filter (fun (_, _, v) -> v = 'A') g
 
 let is_ms = function
   | Some 'M', Some 'S' -> true

@@ -138,10 +138,10 @@ val strip_edge_cols : 'a t -> 'a t
 val strip_edges : 'a t -> 'a t
 (** [strip_edges g] new grid with the first and last rows and columns removed *)
 
-val map_entries : ('a entry -> 'b) -> 'a t -> 'b t
-(** [map_entries f g] returns a fresh grid, with the size of the grid [g]. The
-    values of the grid are derived from the application of [f] ([x, y, v]) where
-    ([x, y]) is the coordinate pair and [v] is the value at [x], [y] in [g] *)
+val map : ('a entry -> 'b) -> 'a t -> 'b t
+(** [map f g] returns a fresh grid, with the size of the grid [g]. The values of
+    the grid are derived from the application of [f] ([x, y, v]) where ([x, y])
+    is the coordinate pair and [v] is the value at [x], [y] in [g] *)
 
 val map_coords : (int * int -> 'a) -> 'b t -> 'a t
 (** [map_coords f g] returns a fresh grid, with the size of the grid [g]. The
@@ -177,8 +177,8 @@ val fold8 : (position -> 'a -> 'acc -> 'acc) -> 'a t -> position -> 'acc -> 'acc
 
 val flatten : 'a t -> 'a array
 
-val iter_entries : ('a entry -> unit) -> 'a t -> unit
-(** [iter_entries f g] applies [f] at each entry [(x, y, 'a)], in [g] *)
+val iter : ('a entry -> unit) -> 'a t -> unit
+(** [iter f g] applies [f] at each entry [(x, y, 'a)], in [g] *)
 
 val iter_values : ('a -> unit) -> 'a t -> unit
 (** [iter_values f g] applies [f] at each value in [g] *)
@@ -189,8 +189,8 @@ val iter_coords : (int * int -> unit) -> 'a t -> unit
 val fold : ('acc -> 'a entry -> 'acc) -> 'acc -> 'a t -> 'acc
 (** [fold f g] folds function [f] over each position of [g] *)
 
-val filter_entries : ('a entry -> bool) -> 'a t -> 'a entry list
-(** [filter_entries f g] Returns the entries, [(x, y, value)], that satisfy the
+val filter : ('a entry -> bool) -> 'a t -> 'a entry list
+(** [filter f g] Returns the entries, [(x, y, value)], that satisfy the
     predicate [f] over each [entry] in [g] *)
 
 val filter_coords : (position -> bool) -> 'a t -> position list
@@ -265,35 +265,34 @@ val of_list : 'a tl -> 'a t
 (** [to_list g] converts a ['a list list] to a ['a array array] *)
 
 val nbor4_values : position -> 'a t -> 'a option list
-(** [neighbor4_values g] Get the values of all orthoganal neighbors from a given
+(** [nbor4_values g] Get the values of all orthoganal neighbors from a given
     point [p] if neighbor [n] is in bounds. A neighbor is [None] if it is out of
     bounds. Order of the list starts at [N] and rotates clockwise. *)
 
 val nbor4_coords : position -> position list
-(** [neighbor4_coords g] Get the coordinates of all orthoganal neighbors from a
+(** [nbor4_coords g] Get the coordinates of all orthoganal neighbors from a
     given point [p] regardless if neighbor [n] is in bounds. Order of the list
     starts at [N] and rotates clockwise. *)
 
-val nbor4_entries : position -> 'a t -> 'a entry option list
-(** [neighbor4_values g] Get the coordinates and values of all orthoganal
-    neighbors from a given point [p] if neighbor [n] is in bounds. A neighbor is
-    [None] if it is out of bounds. Order of the list starts at [N] and rotates
-    clockwise. *)
+val nbor4 : position -> 'a t -> 'a entry option list
+(** [nbor4 g] Get the entries of all orthoganal neighbors from a given point [p]
+    if neighbor [n] is in bounds. A neighbor is [None] if it is out of bounds.
+    Order of the list starts at [N] and rotates clockwise. *)
 
 val nbor8_values : 'a t -> position -> 'a option list
-(** [neighbor8_values g] returns the values of all neighbors from a given point
-    [p]. A neighbor is [None] if it is out of bounds. Order of the list starts
-    at [N] and rotates clockwise. *)
-
-val nbor8_coords : position -> position list
-(** [neighbor8_coords g] Get the coordinates of all neighbors from a given point
-    [p] regardless if neighbor [n] is in bounds. Order of the list starts at [N]
+(** [nbor8_values g] returns the values of all neighbors from a given point [p].
+    A neighbor is [None] if it is out of bounds. Order of the list starts at [N]
     and rotates clockwise. *)
 
-val nbor8_entries : 'a t -> position -> 'a entry option list
-(** [neighbor8_entries g] Get the coordinates and values of all neighbors from a
-    given point [p] if neighbor [n] is in bounds. A neighbor is [None] if it is
-    out of bounds. Order of the list starts at [N] and rotates clockwise. *)
+val nbor8_coords : position -> position list
+(** [nbor8_coords g] Get the coordinates of all neighbors from a given point [p]
+    regardless if neighbor [n] is in bounds. Order of the list starts at [N] and
+    rotates clockwise. *)
+
+val nbor8 : 'a t -> position -> 'a entry option list
+(** [nbor8 g] Get the coordinates and values of all neighbors from a given point
+    [p] if neighbor [n] is in bounds. A neighbor is [None] if it is out of
+    bounds. Order of the list starts at [N] and rotates clockwise. *)
 
 val pos_of_point : Point.t -> position
 (** [pos_of_point p] converts a [Point.t] into a [position] *)

@@ -226,7 +226,7 @@ let next d =
 let solve2 () =
   List.iter next directions;
   g
-  |> G.filter_entries (fun (_, _, v) -> v = Start)
+  |> G.filter (fun (_, _, v) -> v = Start)
   |> List.fold_left (fun acc (x, y, _) -> acc + (100 * y) + x) 0
 
 (* exports *)
