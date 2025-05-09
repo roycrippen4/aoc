@@ -1,3 +1,5 @@
+open Util
+
 type 'a t = 'a array array
 type 'a tl = 'a list list
 type position = int * int
@@ -81,17 +83,31 @@ let rotate_right g =
 
 (* *)
 
-let map_values f g = init (height g) (width g) (fun (x, y) -> f (get g (x, y)))
-let map_coords f g = init (height g) (width g) @@ f
-let map_entries f g = init (height g) (width g) (Fun.compose f (entry g))
+let rec pop_last = function
+  | [] | [ _ ] -> []
+  | hd :: rest -> hd :: pop_last rest
+
+let pop = function [] | [ _ ] -> [] | _ :: rest -> rest
+
+let strip_edge_rows g =
+  Array.(g |> to_list |> List.drop 1 |> pop_last |> of_list)
+
+let strip_edge_cols g = Array.(g |> map (to_list >> pop_last >> pop >> of_list))
+let strip_edges g = g |> strip_edge_cols |> strip_edge_rows
 
 (* *)
 
-let neighbor4_coords p = [ north p; east p; south p; west p ]
-let neighbor4_values p g = p |> neighbor4_coords |> List.map (get_opt g)
-let neighbor4_entries p g = p |> neighbor4_coords |> List.map (entry_opt g)
+let map_values f g = init (height g) (width g) (fun (x, y) -> f (get g (x, y)))
+let map_coords f g = init (height g) (width g) @@ f
+let map_entries f g = init (height g) (width g) (f % entry g)
 
-let neighbor8_coords p =
+(* *)
+
+let nbor4_coords p = [ north p; east p; south p; west p ]
+let nbor4_values p g = p |> nbor4_coords |> List.map (get_opt g)
+let nbor4_entries p g = p |> nbor4_coords |> List.map (entry_opt g)
+
+let nbor8_coords p =
   [
     north p;
     north_east p;
@@ -103,8 +119,8 @@ let neighbor8_coords p =
     north_west p;
   ]
 
-let neighbor8_values g p = p |> neighbor8_coords |> List.map (get_opt g)
-let neighbor8_entries g p = p |> neighbor8_coords |> List.map (entry_opt g)
+let nbor8_values g p = p |> nbor8_coords |> List.map (get_opt g)
+let nbor8_entries g p = p |> nbor8_coords |> List.map (entry_opt g)
 
 let iter4 f g p =
   let f p = if inside g p then f p (get g p) in
@@ -140,9 +156,7 @@ let fold8 f g p acc =
   |> f (east p)
   |> f (north_east p)
 
-let iter_entries f g =
-  Array.iteri (fun y -> Array.iteri (fun x v -> f (x, y, v))) g
-
+let iter_entries f g = Array.(iteri (fun y -> iteri (fun x v -> f (x, y, v))) g)
 let iter_values f g = g |> iter_entries (fun (_, _, v) -> f v)
 let iter_coords f g = g |> iter_entries (fun (x, y, _) -> f (x, y))
 let flatten g = Array.fold_left Array.append [||] g
@@ -199,12 +213,10 @@ let read c =
   scan []
 
 let of_string str =
-  str
-  |> String.split_on_char '\n'
-  |> Array.of_list
-  |> Array.map (Fun.compose Array.of_list String.explode)
+  let open Array in
+  str |> String.lines |> of_list |> map (of_list % String.explode)
 
-let of_list l = l |> Array.of_list |> Array.map Array.of_list
+let of_list l = Array.(l |> of_list |> map of_list)
 
 let to_list g =
   let rec aux acc = function
@@ -312,7 +324,7 @@ module Dijkstra (W : Walkable) = struct
             | _ ->
                 if u = goal_pos then Some (reconstruct u []) (* success *)
                 else (
-                  neighbor4_coords u
+                  nbor4_coords u
                   |> List.iter (fun v ->
                          if inside g v then
                            let cell = get g v in

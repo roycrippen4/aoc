@@ -40,8 +40,45 @@ val ( /=. ) : float ref -> float -> unit
 val ( %= ) : int ref -> int -> unit
 (** Modulo Equal. [ref x] %= [y] *)
 
-val ( << ) : ('a -> 'b) -> ('c -> 'a) -> 'c -> 'b
+(** Function Application / Combinatory Logic *)
+
+val ( % ) : ('a -> 'b) -> ('c -> 'a) -> 'c -> 'b
+(** [g % f] is backward function composition (like Haskell's infix [(.)]). It
+    returns a new function [h] such that [h x = g (f x)].
+    - The first argument [g] has type ['a -> 'b].
+    - The second argument [f] has type ['c -> 'a].
+    - The resulting function [h] has type ['c -> 'b]. *)
+
 val ( >> ) : ('a -> 'b) -> ('b -> 'c) -> 'a -> 'c
+(** [f >> g] is forward function composition (sometimes called "pipe forward" or
+    "and_then"). It returns a new function [h] such that [h x = g (f x)].
+    - The first argument [f] has type ['a -> 'b].
+    - The second argument [g] has type ['b -> 'c].
+    - The resulting function [h] has type ['a -> 'c]. *)
+
+val ( <$> ) : ('a -> 'b) -> ('c -> 'a) -> 'c -> 'b
+(** [h <$> f_ctx] is the "fmap" or "map" operator for the function
+    applicative/functor. It lifts a function [h] to operate on the output of
+    another function [f_ctx]. It is equivalent to backward composition:
+    [h % f_ctx]. It returns a new function [fn] such that [fn x = h (f_ctx x)].
+    - The first argument [h] (the function to lift) has type ['a -> 'b].
+    - The second argument [f_ctx] (the function "context") has type ['c -> 'a].
+    - The resulting function [fn] has type ['c -> 'b]. *)
+
+val ( <*> ) : ('a -> 'b -> 'c) -> ('a -> 'b) -> 'a -> 'c
+(** [ff <*> fx] is the "ap" or "apply" operator for the function applicative. It
+    applies a wrapped function (the result of [ff x]) to a wrapped argument (the
+    result of [fx x]), where [x] is the shared input to both [ff] and [fx]. It
+    returns a new function [fn] such that [fn x = (ff x) (fx x)]. This is useful
+    for combining functions that share the same input type ['a].
+    - The first argument [ff] has type ['a -> 'b -> 'c]. When applied to [x:'a],
+      it yields a function of type ['b -> 'c].
+    - The second argument [fx] has type ['a -> 'b]. When applied to [x:'a], it
+      yields a value of type ['b].
+    - The resulting function [fn] has type ['a -> 'c]. *)
+
+(* *)
+
 val ( let* ) : 'a option -> ('a -> 'b option) -> 'b option
 (* This is like Gleam's `use` expressions *)
 

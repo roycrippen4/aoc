@@ -21,8 +21,7 @@ let button_of_string s =
   { x; y; cost }
 
 let parse_machine s =
-  s |> String.trim |> String.split_on_char '\n' |> List.map String.trim
-  |> function
+  String.(s |> trim |> lines |> List.map trim) |> function
   | [ a; b; c ] -> (button_of_string a, button_of_string b, prize_of_string c)
   | _ -> failwith "unreachable"
 

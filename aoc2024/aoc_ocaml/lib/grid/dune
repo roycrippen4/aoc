@@ -1,5 +1,5 @@
 (library
- (libraries point bheap string)
+ (libraries point bheap string util)
  (name grid)
  (inline_tests)
  (preprocess

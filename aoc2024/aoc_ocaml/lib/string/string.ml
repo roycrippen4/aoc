@@ -95,3 +95,5 @@ let split_on_char sep str =
     in
     let len = length str in
     loop [] (len - 1) len
+
+let lines str = split_on_char '\n' str

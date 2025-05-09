@@ -18,7 +18,7 @@ let string_of_grid s =
 
 let string_of_directions s =
   s
-  |> String.split_on_char '\n'
+  |> String.lines
   |> List.map String.explode
   |> List.flatten
   |> List.map (function

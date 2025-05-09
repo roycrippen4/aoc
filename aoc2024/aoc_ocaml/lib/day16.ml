@@ -8,7 +8,7 @@ let swap a b =
 
 let path = "/home/roy/dev/aoc/aoc2024/data/day16/data.txt"
 let input = path |> read_to_string |> String.trim
-let lines = input |> String.split_on_char '\n'
+let lines = input |> String.lines
 
 (* dimensions *)
 let height = List.length lines

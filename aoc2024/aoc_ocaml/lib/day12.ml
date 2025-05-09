@@ -11,14 +11,12 @@ module Array = struct
 end
 
 let input_str = read_to_string "/home/roy/dev/aoc/aoc2024/data/day12/data.txt"
-let split = String.split_on_char
-let trim = String.trim
 
 let create_grid str =
-  let lines = str |> trim |> split '\n' |> List.map trim in
-  let size = List.length lines in
-  let grid = lines |> List.map chars |> List.flatten |> Array.of_list in
-  (size, grid)
+  let open List in
+  let lines = String.(str |> trim |> lines |> List.map trim) in
+  let grid = lines |> map chars |> flatten |> Array.of_list in
+  (length lines, grid)
 
 let size, grid = create_grid input_str
 

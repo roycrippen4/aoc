@@ -20,13 +20,17 @@ let ( -= ) x y = x := !x - y
 let ( -=. ) x y = x := !x -. y
 let ( /= ) x y = x := !x / y
 let ( /=. ) x y = x := !x /. y
-let ( % ) x y = x mod y
 let ( %= ) x y = x := !x mod y
 let ( *= ) x y = x := !x * y
 let ( *=. ) x y = x := !x *. y
 let ( let* ) x f = Option.bind x f
-let ( >> ) f g x = g (f x)
-let ( << ) f g x = f (g x)
+
+(* Combinators and function application *)
+
+let ( >> ) f g = fun x -> g (f x)
+let ( % ) f g = fun x -> f (g x)
+let ( <$> ) h f = h % f
+let ( <*> ) f_a_b f_a = fun x -> (f_a_b x) (f_a x)
 
 let%test _ =
   let x = ref 5 in
@@ -43,6 +47,5 @@ let%test _ =
   x /= 5;
   !x = 1
 
-let%test _ = 6 % 5 = 1
 let%test _ = 0 /.. 5 = [ 0; 1; 2; 3; 4 ]
 let%test _ = 0 /..= 5 = [ 0; 1; 2; 3; 4; 5 ]

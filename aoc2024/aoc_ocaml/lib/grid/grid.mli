@@ -129,6 +129,15 @@ val rotate_left : 'a t -> 'a t
 val rotate_right : 'a t -> 'a t
 (** [rotate_right g] returns a new grid that is the right rotation of [g] *)
 
+val strip_edge_rows : 'a t -> 'a t
+(** [strip_edge_rows g] new grid with the first and last rows removed *)
+
+val strip_edge_cols : 'a t -> 'a t
+(** [strip_edge_cols g] new grid with the first and last columns removed *)
+
+val strip_edges : 'a t -> 'a t
+(** [strip_edges g] new grid with the first and last rows and columns removed *)
+
 val map_entries : ('a entry -> 'b) -> 'a t -> 'b t
 (** [map_entries f g] returns a fresh grid, with the size of the grid [g]. The
     values of the grid are derived from the application of [f] ([x, y, v]) where
@@ -255,33 +264,33 @@ val to_list : 'a t -> 'a tl
 val of_list : 'a tl -> 'a t
 (** [to_list g] converts a ['a list list] to a ['a array array] *)
 
-val neighbor4_values : position -> 'a t -> 'a option list
+val nbor4_values : position -> 'a t -> 'a option list
 (** [neighbor4_values g] Get the values of all orthoganal neighbors from a given
     point [p] if neighbor [n] is in bounds. A neighbor is [None] if it is out of
     bounds. Order of the list starts at [N] and rotates clockwise. *)
 
-val neighbor4_coords : position -> position list
+val nbor4_coords : position -> position list
 (** [neighbor4_coords g] Get the coordinates of all orthoganal neighbors from a
     given point [p] regardless if neighbor [n] is in bounds. Order of the list
     starts at [N] and rotates clockwise. *)
 
-val neighbor4_entries : position -> 'a t -> 'a entry option list
+val nbor4_entries : position -> 'a t -> 'a entry option list
 (** [neighbor4_values g] Get the coordinates and values of all orthoganal
     neighbors from a given point [p] if neighbor [n] is in bounds. A neighbor is
     [None] if it is out of bounds. Order of the list starts at [N] and rotates
     clockwise. *)
 
-val neighbor8_values : 'a t -> position -> 'a option list
+val nbor8_values : 'a t -> position -> 'a option list
 (** [neighbor8_values g] returns the values of all neighbors from a given point
     [p]. A neighbor is [None] if it is out of bounds. Order of the list starts
     at [N] and rotates clockwise. *)
 
-val neighbor8_coords : position -> position list
+val nbor8_coords : position -> position list
 (** [neighbor8_coords g] Get the coordinates of all neighbors from a given point
     [p] regardless if neighbor [n] is in bounds. Order of the list starts at [N]
     and rotates clockwise. *)
 
-val neighbor8_entries : 'a t -> position -> 'a entry option list
+val nbor8_entries : 'a t -> position -> 'a entry option list
 (** [neighbor8_entries g] Get the coordinates and values of all neighbors from a
     given point [p] if neighbor [n] is in bounds. A neighbor is [None] if it is
     out of bounds. Order of the list starts at [N] and rotates clockwise. *)

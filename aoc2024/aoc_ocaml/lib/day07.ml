@@ -21,7 +21,7 @@ let parse_line s =
 let map =
   read_to_string "/home/roy/dev/aoc/aoc2024/data/day07/data.txt"
   |> String.trim
-  |> String.split_on_char '\n'
+  |> String.lines
   |> List.map parse_line
 
 let rec eval target = function

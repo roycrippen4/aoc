@@ -477,3 +477,6 @@ val explode : t -> char list
 val split : t -> by:t -> t * t
 val ends_with : t -> t -> bool
 val split_on_string : by:t -> t -> t list
+
+val lines : t -> t list
+(** [lines s] splits [s] by ['\n'] and returns the list of strings *)
