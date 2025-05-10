@@ -8,10 +8,7 @@ let split_once delim s =
   | _ -> failwith "InvalidString"
 
 let parse_nums s =
-  s
-  |> String.trim
-  |> String.split_on_char ' '
-  |> List.map int_of_string
+  String.trim s |> String.split_on_char ' ' |> List.map int_of_string
   |> List.rev
 
 let parse_line s =
@@ -20,9 +17,7 @@ let parse_line s =
 
 let map =
   read_to_string "/home/roy/dev/aoc/aoc2024/data/day07/data.txt"
-  |> String.trim
-  |> String.lines
-  |> List.map parse_line
+  |> String.trim |> String.lines |> List.map parse_line
 
 let rec eval target = function
   | [] -> false

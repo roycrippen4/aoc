@@ -110,10 +110,7 @@ let nbor seen (x, y) (dx, dy) =
   let nx, ny = (x + dx, y + dy) in
   let ni = idx nx ny in
   if
-    nx < 0
-    || ny < 0
-    || nx >= size
-    || ny >= size
+    nx < 0 || ny < 0 || nx >= size || ny >= size
     || grid.(ni) <> grid.(idx x y)
     || seen.(ni)
   then None

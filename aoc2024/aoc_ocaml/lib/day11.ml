@@ -49,8 +49,7 @@ let rec blink it stones new_stones =
 
 let initial_stones =
   read_to_string "/home/roy/dev/aoc/aoc2024/data/day11/data.txt"
-  |> String.trim
-  |> String.split_on_char ' '
+  |> String.trim |> String.split_on_char ' '
   |> List.map (fun v -> (int_of_string v, 1))
 
 let solve1 () =

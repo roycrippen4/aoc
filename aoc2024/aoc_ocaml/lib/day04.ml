@@ -55,13 +55,11 @@ let count_xmas_part2 pos =
 let entries_to_positions l = List.map (fun (x, y, _) -> (x, y)) l
 
 let solve1 () =
-  xs
-  |> entries_to_positions
+  xs |> entries_to_positions
   |> List.fold_left (fun acc pos -> acc + count_xmas_part1 pos) 0
 
 let solve2 () =
-  a
-  |> entries_to_positions
+  entries_to_positions a
   |> List.fold_left (fun acc pos -> acc + count_xmas_part2 pos) 0
 
 let part1 () = validate solve1 2483 "04" One

@@ -12,8 +12,7 @@ let eval_mul acc lst =
 let solve1 () =
   let re = Re.Perl.compile_pat "mul\\(\\d{1,3},\\d{1,3}\\)" in
   List.map trim (Re.matches re input)
-  |> List.map split_on_comma
-  |> List.fold_left eval_mul 0
+  |> List.map split_on_comma |> List.fold_left eval_mul 0
 
 let solve2 () =
   let pat = "do\\(\\)|don't\\(\\)|mul\\(\\d{1,3},\\d{1,3}\\)" in

@@ -7,8 +7,7 @@ type direction = Up | Down | Left | Right
 type bot = { mutable x : int; mutable y : int }
 
 let string_of_grid s =
-  s
-  |> G.of_string
+  G.of_string s
   |> G.map_values (function
        | '@' -> Bot
        | 'O' -> Start
@@ -17,10 +16,7 @@ let string_of_grid s =
        | _ -> assert false)
 
 let string_of_directions s =
-  s
-  |> String.lines
-  |> List.map String.explode
-  |> List.flatten
+  String.lines s |> List.map String.explode |> List.flatten
   |> List.map (function
        | '^' -> Up
        | 'v' -> Down
@@ -32,10 +28,7 @@ let ( <$> ) f g (x, y) = (f x, g y)
 let input = "/home/roy/dev/aoc/aoc2024/data/day15/data.txt" |> read_to_string
 
 let grid, directions =
-  input
-  |> String.trim
-  |> String.split ~by:"\n\n"
-  |> map_tuple String.trim
+  String.trim input |> String.split ~by:"\n\n" |> map_tuple String.trim
   |> (string_of_grid <$> string_of_directions)
 
 let get_bot grid =
@@ -102,8 +95,7 @@ let string_of_grid s =
 
   String.iter add_to_buf s;
 
-  Buffer.contents buf
-  |> G.of_string
+  Buffer.contents buf |> G.of_string
   |> G.map_values (function
        | '@' -> Bot
        | '[' -> Start
@@ -113,10 +105,7 @@ let string_of_grid s =
        | _ -> assert false)
 
 let parse str =
-  str
-  |> String.trim
-  |> String.split ~by:"\n\n"
-  |> map_tuple String.trim
+  String.trim str |> String.split ~by:"\n\n" |> map_tuple String.trim
   |> (string_of_grid <$> string_of_directions)
 
 let g, directions = parse input

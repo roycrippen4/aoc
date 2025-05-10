@@ -61,8 +61,7 @@ let process_positions _ positions acc =
 
 let solve1 () =
   Hashtbl.fold process_positions antennas []
-  |> PointSet.of_list
-  |> PointSet.cardinal
+  |> PointSet.of_list |> PointSet.cardinal
 
 (* part 2 *)
 
@@ -84,8 +83,7 @@ let process_positions _ positions acc =
 
 let solve2 () =
   Hashtbl.fold process_positions antennas []
-  |> PointSet.of_list
-  |> PointSet.cardinal
+  |> PointSet.of_list |> PointSet.cardinal
 
 (* exports *)
 

@@ -7,10 +7,7 @@ type machine = button * button * prize
 let input = read_to_string "/home/roy/dev/aoc/aoc2024/data/day13/data.txt"
 
 let prize_of_string s =
-  s
-  |> String.chop ~l:9 ~r:0
-  |> String.split ~by:", Y="
-  |> map_tuple int_of_string
+  String.chop s ~l:9 ~r:0 |> String.split ~by:", Y=" |> map_tuple int_of_string
   |> fun (x, y) -> { x; y }
 
 let button_of_string s =
@@ -96,9 +93,7 @@ let%test _ =
 
 let%test _ =
   "Button A: X+94, Y+34\nButton B: X+22, Y+67\nPrize: X=8400, Y=5400"
-  |> parse_machine
-  |> get_cheapest
-  = 280
+  |> parse_machine |> get_cheapest = 280
 
 let%test _ = not (is_positive_integer (-1.0001))
 let%test _ = not (is_positive_integer (-1.0))

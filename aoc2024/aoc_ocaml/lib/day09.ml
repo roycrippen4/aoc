@@ -127,11 +127,8 @@ let solution : solution = { part1; part2 }
 (* tests *)
 
 let create_example () =
-  "/home/roy/dev/aoc/aoc2024/data/day09/example.txt"
-  |> read_to_string
-  |> String.trim
-  |> chars
-  |> create_mem
+  "/home/roy/dev/aoc/aoc2024/data/day09/example.txt" |> read_to_string
+  |> String.trim |> chars |> create_mem
 
 let%test _ =
   let mem = "553" |> chars |> create_mem in
