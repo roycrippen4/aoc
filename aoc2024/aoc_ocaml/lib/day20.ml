@@ -1,110 +1,90 @@
 open Util
+module H = Hashtbl
+module G = Grid
 
 let path = "/home/roy/dev/aoc/aoc2024/data/day20/data.txt"
 let input = path |> read_to_string |> String.trim
 
-module Kind = struct
-  type t = Wall | Path | Start | End | Try
+type kind = Wall | Path | Start | End
 
-  let to_char = function
-    | Wall -> '#'
-    | Path -> '.'
-    | Start -> 'S'
-    | End -> 'E'
-    | Try -> '*'
-
-  let of_char = function
-    | '#' -> Wall
-    | '.' -> Path
-    | 'S' -> Start
-    | 'E' -> End
-    | _ -> assert false
-
-  let is_start (_, _, v) = v = Start
-  let is_goal (_, _, v) = v = End
-  let is_path (_, _, v) = v = Path
-  let pp fmt _ k = Format.fprintf fmt "%c" (to_char k)
-end
-
-let grid = Grid.(input |> of_string |> strip_edges |> map_values Kind.of_char)
-
-type direction = UpDown | LeftRight
-
-let next_point tbl (x, y, _) =
-  let not_in_tbl (x, y) = Hashtbl.mem tbl (x, y) |> not in
-  let path_or_end v = Kind.(Path = v || End = v) in
-  let is_new (x, y, v) = path_or_end v && not_in_tbl (x, y) in
-
-  grid
-  |> Grid.nbor4 (x, y)
-  |> List.filter_map identity
-  |> List.filter is_new
-  |> List.hd
-
-let rec fill_tbl (x, y, v) steps tbl =
-  match v with
-  | Kind.End ->
-      Hashtbl.add tbl (x, y) steps;
-      tbl
-  | Kind.Path | Kind.Start ->
-      Hashtbl.add tbl (x, y) steps;
-      let next = next_point tbl (x, y, v) in
-      fill_tbl next (succ steps) tbl
+let kind_of_char = function
+  | '#' -> Wall
+  | '.' -> Path
+  | 'S' -> Start
+  | 'E' -> End
   | _ -> assert false
 
-let cheat_diff tbl (x, y, d) =
-  let p = (x, y) in
-  match d with
-  | LeftRight ->
-      let l = p |> Grid.west |> Hashtbl.find tbl in
-      let r = p |> Grid.east |> Hashtbl.find tbl in
-      abs (l - r) - 2
-  | UpDown ->
-      let u = p |> Grid.north |> Hashtbl.find tbl in
-      let d = p |> Grid.south |> Hashtbl.find tbl in
-      abs (u - d) - 2
+let kind_is_start (_, _, v) = v = Start
+and kind_is_goal (_, _, v) = v = End
 
-let into_cheat_pt (x, y, v) =
-  let v_okay v' = Kind.(v' = Path || v' = Start || v' = End) in
-  let same_y (_, y', v') = y' = y && v_okay v' in
-  let same_x (x', _, v') = x' = x && v_okay v' in
+let grid = G.(input |> of_string |> strip_edges |> map_values kind_of_char)
+let start = G.(grid |> find (fun (_, _, v) -> v = Start) |> entry grid)
 
-  let left_right lst = lst |> List.filter same_y |> List.length = 2 in
-  let up_down lst = lst |> List.filter same_x |> List.length = 2 in
+let width = G.width grid
+and height = G.height grid
 
-  let nbors = grid |> Grid.nbor4 (x, y) |> List.filter_map identity in
-  let is_lr = left_right nbors in
-  let is_ud = up_down nbors in
-  let is_candidate = Kind.Wall = v && is_lr <> is_ud in
+let make_path () =
+  let s = Array.make_matrix height width (-1) in
 
-  match is_candidate with
-  | true when is_lr -> Some (x, y, LeftRight)
-  | true when is_ud -> Some (x, y, UpDown)
-  | _ -> None
+  let rec walk (x, y, v) i acc =
+    s.(y).(x) <- i;
+    let acc = (x, y, v) :: acc in
 
-(* part 1 *)
-let solve1 () =
-  let open Grid in
-  let start = grid |> find Kind.is_start |> entry grid in
-  let path = fill_tbl start 0 (Hashtbl.create 1024) in
+    if v = End then acc
+    else
+      let is_valid (x, y, v) = s.(y).(x) = -1 && (v = Path || v = End) in
+      let valid_opt = function Some p when is_valid p -> Some p | _ -> None in
+      let next = List.(G.nbor4 (x, y) grid |> filter_map valid_opt |> hd) in
 
-  let steps_saved = 100 in
-  let gt = fun x -> x >= steps_saved in
+      walk next (i + 1) acc
+  in
 
-  grid
-  |> filter (fun _ -> true)
-  |> List.filter_map into_cheat_pt
-  |> List.map (cheat_diff path)
-  |> List.filter gt
-  |> List.length
+  (s, walk start 0 [])
 
-(* part 2 *)
-let solve2 () = 42
+let steps, path = make_path ()
+
+let diamond20 =
+  let rec row dx l acc =
+    if dx > l then acc
+    else
+      let dy = l - dx in
+      let acc = (dx, dy, l) :: acc in
+      let acc = if dx <> 0 then (-dx, dy, l) :: acc else acc in
+      let acc = if dy <> 0 then (dx, -dy, l) :: acc else acc in
+      let acc = if dx <> 0 && dy <> 0 then (-dx, -dy, l) :: acc else acc in
+      row (dx + 1) l acc
+  in
+  let rec layers l acc = if l = 0 then acc else layers (l - 1) (row 0 l acc) in
+  layers 20 []
+
+let cheats (cx, cy) radius =
+  let center_steps = steps.(cy).(cx) in
+  let rec loop acc = function
+    | [] -> acc
+    | (dx, dy, dist) :: rest ->
+        if dist > radius then loop acc rest
+        else
+          let x, y = (cx + dx, cy + dy) in
+          let inside x y = x >= 0 && x < width && y >= 0 && y < height in
+          if not (inside x y) then loop acc rest
+          else
+            let s = steps.(y).(x) in
+            if s > center_steps then
+              let saved_steps = s - center_steps - dist in
+              let acc = if saved_steps >= 100 then acc + 1 else acc in
+              loop acc rest
+            else loop acc rest
+  in
+  loop 0 diamond20
+
+let solve radius =
+  List.fold_left (fun acc (x, y, _) -> acc + cheats (x, y) radius) 0 path
+
+let solve1 () = solve 2
+let solve2 () = solve 20
 
 (* exports *)
 
 let part1 () = validate solve1 1387 "20" One
-let part2 () = validate solve2 42 "20" Two
+let part2 () = validate solve2 1015092 "20" Two
 let solution : solution = { part1; part2 }
-
-(* tests *)
