@@ -132,6 +132,17 @@ val windows : int -> 'a list -> 'a list list
 val combos : 'a list -> ('a * 'a) list
 (** Produces the list of unique element pairs in a list *)
 
+val pairs : 'a list -> ('a * 'a) list
+(** [pairs l] creates a new list where each element is paired with the next
+    element in the list. If the list contains only one element an empty list
+    will be returned
+
+    {[
+      let lst = [ 'l'; 'o'; 'r'; 'e'; 'm' ]
+      let expected = [ ('l', 'o'); ('o', 'r'); ('r', 'e'); ('e', 'm') ]
+      let () = assert (pairs lst = expected)
+    ]} *)
+
 val chars : string -> char list
 
 val int_of_char2 : char -> int

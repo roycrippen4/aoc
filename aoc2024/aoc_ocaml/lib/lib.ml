@@ -18,3 +18,4 @@ let day17 = Day17.solution
 let day18 = Day18.solution
 let day19 = Day19.solution
 let day20 = Day20.solution
+let day21 = Day21.solution

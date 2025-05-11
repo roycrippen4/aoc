@@ -39,6 +39,15 @@ let windows n lst =
   in
   aux [] lst
 
+let pairs lst =
+  let rec aux items = function
+    | [] | [ _ ] -> items
+    | a :: rest ->
+        let item = (a, List.hd rest) in
+        aux (item :: items) rest
+  in
+  aux [] lst |> List.rev
+
 let enumerate_list lst = List.mapi (fun i x -> (i, x)) lst
 let enumerate_array arr = Array.mapi (fun i x -> (i, x)) arr
 
@@ -88,8 +97,7 @@ let pow base exp =
 let%test _ = combos [ 1; 2; 3 ] = [ (1, 2); (1, 3); (2, 3) ]
 
 let%test _ =
-  let expected = [ (1, 2); (1, 3); (1, 4); (2, 3); (2, 4); (3, 4) ] in
-  combos [ 1; 2; 3; 4 ] = expected
+  combos [ 1; 2; 3; 4 ] = [ (1, 2); (1, 3); (1, 4); (2, 3); (2, 4); (3, 4) ]
 
 let%test _ = windows 3 [] = []
 let%test _ = windows 1 [ 1; 2; 3 ] = [ [ 1 ]; [ 2 ]; [ 3 ] ]
@@ -100,3 +108,10 @@ let%test _ = windows 4 [ 1; 2; 3 ] = []
 let%test _ =
   let win = windows 3 [ 1; 2; 3; 4; 5 ] in
   win = [ [ 1; 2; 3 ]; [ 2; 3; 4 ]; [ 3; 4; 5 ] ]
+
+let%test _ =
+  let lst = [ 'l'; 'o'; 'r'; 'e'; 'm' ] in
+  pairs lst = [ ('l', 'o'); ('o', 'r'); ('r', 'e'); ('e', 'm') ]
+
+let%test _ = pairs [ 1; 2 ] = [ (1, 2) ]
+let%test _ = pairs [ 1 ] = []
