@@ -313,9 +313,6 @@ let find_code_paths code =
     | pair :: rest ->
         let a, b = map_tuple NumKey.of_char pair in
         let paths = NumKey.find_all_paths_to a b in
-
-        assert (paths <> []);
-
         let map_base = fun path -> List.map (fun base -> base @ path) acc in
         let acc = List.concat_map map_base paths in
 
@@ -372,9 +369,6 @@ let solve1 () = complexity codes 2
 let solve2 () = complexity codes 25
 
 (* exports *)
-
 let part1 () = validate solve1 222670 "21" One
 let part2 () = validate solve2 271397390297138 "21" Two
 let solution : solution = { part1; part2 }
-
-(* tests *)
