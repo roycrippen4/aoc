@@ -13,6 +13,8 @@ let ( /= ) = Operators.( /= )
 let ( /=. ) = Operators.( /=. )
 let ( %= ) = Operators.( %= )
 let ( let* ) = Operators.( let* )
+let ( /+ ) = Operators.( /+ )
+let ( /- ) = Operators.( /- )
 
 (* Function application / Combinatory logic *)
 let ( >> ) = Operators.( >> )

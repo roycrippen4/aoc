@@ -40,6 +40,12 @@ val ( /=. ) : float ref -> float -> unit
 val ( %= ) : int ref -> int -> unit
 (** Modulo Equal. [ref x] %= [y] *)
 
+val ( /- ) : int -> int -> int
+(** Integer floor division *)
+
+val ( /+ ) : int -> int -> int
+(** Integer ceiling division *)
+
 (** Function Application / Combinatory Logic *)
 
 val ( % ) : ('a -> 'b) -> ('c -> 'a) -> 'c -> 'b

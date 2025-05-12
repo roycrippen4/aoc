@@ -24,6 +24,8 @@ let ( %= ) x y = x := !x mod y
 let ( *= ) x y = x := !x * y
 let ( *=. ) x y = x := !x *. y
 let ( let* ) x f = Option.bind x f
+let ( /- ) n d = if n >= 0 || n mod d = 0 then n / d else pred (n / d)
+let ( /+ ) n d = if n <= 0 || n mod d = 0 then n / d else succ (n / d)
 
 (* Combinators and function application *)
 
@@ -49,3 +51,8 @@ let%test _ =
 
 let%test _ = 0 /.. 5 = [ 0; 1; 2; 3; 4 ]
 let%test _ = 0 /..= 5 = [ 0; 1; 2; 3; 4; 5 ]
+let%test _ = -3 /- 2 = -2
+let%test _ = 7 /- 3 = 2
+let%test _ = 7 /+ 3 = 3
+let%test _ = -7 /+ 3 = -2
+let%test _ = 9 /+ 3 = 3
