@@ -26,6 +26,7 @@ let ( *=. ) x y = x := !x *. y
 let ( let* ) x f = Option.bind x f
 let ( /- ) n d = if n >= 0 || n mod d = 0 then n / d else pred (n / d)
 let ( /+ ) n d = if n <= 0 || n mod d = 0 then n / d else succ (n / d)
+let ( ** ) a b = General.pow a b
 
 (* Combinators and function application *)
 

@@ -46,6 +46,9 @@ val ( /- ) : int -> int -> int
 val ( /+ ) : int -> int -> int
 (** Integer ceiling division *)
 
+val ( ** ) : int -> int -> int
+(** Integer exponentiation *)
+
 (** Function Application / Combinatory Logic *)
 
 val ( % ) : ('a -> 'b) -> ('c -> 'a) -> 'c -> 'b
