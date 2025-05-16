@@ -45,16 +45,16 @@ val size : 'a t -> int * int
 
 val make : int -> int -> 'a -> 'a t
 (** [make h w v] returns a new grid with height [h] and width [w], where all
-    values are equal to [v]. For [h>=1] and [w>=1], this is equivalent to
+    values are equal to [v]. For [h >= 1] and [w >= 1], this is equivalent to
     [Array.make_matrix h w v].
 
-    @raise [Invalid_argument] if [h<1] or [w<1]. *)
+    @raise Invalid_argument if [h < 1] or [w < 1]. *)
 
 val init : int -> int -> (position -> 'a) -> 'a t
 (** [init h w f] returns a new grid with height [h] and width [w], where the
     value at position [p] is [f p].
 
-    @raise [Invalid_argument] if [h<1] or [w<1]. *)
+    @raise Invalid_argument if [h < 1] or [w < 1]. *)
 
 val copy : 'a t -> 'a t
 (** [copy g] returns a new grid that contains the same elements as [g] *)
@@ -62,7 +62,7 @@ val copy : 'a t -> 'a t
 val get : 'a t -> position -> 'a
 (** [get g p] returns the value at position [p].
 
-    @raise [Invalid_argument] if the position is out of bounds. *)
+    @raise Invalid_argument if the position is out of bounds. *)
 
 val get_opt : 'a t -> position -> 'a option
 (** [get_opt g p] returns [Some] value at position [p]. Returns [None] if the
@@ -74,7 +74,7 @@ val entry_opt : 'a t -> position -> 'a entry option
 val set : 'a t -> position -> 'a -> unit
 (** [set g p v] sets the value at position [p], with [v].
 
-    @raise [Invalid_argument] if the position is out of bounds. *)
+    @raise Invalid_argument if the position is out of bounds. *)
 
 val set_opt : 'a t -> position -> 'a -> unit option
 (** [set g p v] sets the value at position [p], with [v]. Returns [Some unit] if
@@ -242,20 +242,20 @@ val print_chars : Format.formatter -> char t -> unit
 val read : in_channel -> char t
 (** [read c] reads a grid of characters from the input channel [c].
 
-    @raise [Invalid_argument]
+    @raise Invalid_argument
       if the lines do not have the same length, or there is no line at all. *)
 
 val from_file : string -> char t
 (** [read path] creates an input channel [c] from filepath [p] and reads a grid
     of characters from [c].
 
-    @raise [Invalid_argument]
+    @raise Invalid_argument
       if the lines do not have the same length, or there is no line at all. *)
 
 val of_string : string -> char t
 (** [grid_of_string s] reads a grid of characters from [s].
 
-    @raise [Invalid_argument]
+    @raise Invalid_argument
       if the lines do not have the same length, or there is no line at all. *)
 
 val to_list : 'a t -> 'a tl
@@ -316,7 +316,7 @@ val get_pt_opt : 'a t -> Point.t -> 'a option
 val set_pt : 'a t -> Point.t -> 'a -> unit
 (** [set_pt g p v] sets the value at [p] in [g] to [v].
 
-    @raise [Invalid_argument] if [p] is not inside [g] *)
+    @raise Invalid_argument if [p] is not inside [g] *)
 
 val set_pt_opt : 'a t -> Point.t -> 'a -> unit option
 (** [set_pt_opt g p v] sets the value at [p] in [g] to [v]. Returns [Some ()]

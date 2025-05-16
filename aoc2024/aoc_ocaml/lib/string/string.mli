@@ -347,7 +347,7 @@ val is_valid_utf_16le : t -> bool
 
 (** The functions in this section binary decode integers from strings.
 
-    All following functions raise [Invalid_argument] if the characters needed at
+    All following functions raise Invalid_argument if the characters needed at
     index [i] to decode the integer are not available.
 
     Little-endian (resp. big-endian) encoding means that least (resp. most)
