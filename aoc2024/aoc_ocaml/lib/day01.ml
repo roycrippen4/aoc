@@ -1,7 +1,7 @@
 open Util
 
 let split_to_side (left, right) line =
-  let sl, sr = String.split ~by:"   " line |> map_tuple int_of_string in
+  let sl, sr = String.split ~by:"   " line |> Tuple.map int_of_string in
   (sl :: left, sr :: right)
 
 let rec parse_lines tup = function
@@ -30,7 +30,7 @@ let into_frequency_map lst =
   map
 
 let solve2 () =
-  let left_map, right_map = map_tuple into_frequency_map (left, right) in
+  let left_map, right_map = Tuple.map into_frequency_map (left, right) in
   let aux n count acc =
     match Hashtbl.find_opt right_map n with
     | Some count_right -> acc + (n * count * count_right)

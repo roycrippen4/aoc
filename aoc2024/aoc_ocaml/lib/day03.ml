@@ -7,7 +7,7 @@ let multiply_tuple (x, y) = x * y
 let tuple_of_list_pair = function x :: y :: _ -> (x, y) | _ -> assert false
 
 let eval_mul acc lst =
-  acc + (tuple_of_list_pair lst |> map_tuple int_of_string |> multiply_tuple)
+  acc + (tuple_of_list_pair lst |> Tuple.map int_of_string |> multiply_tuple)
 
 let solve1 () =
   let re = Re.Perl.compile_pat "mul\\(\\d{1,3},\\d{1,3}\\)" in

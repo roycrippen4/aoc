@@ -7,7 +7,7 @@ type machine = button * button * prize
 let input = read_to_string "/home/roy/dev/aoc/aoc2024/data/day13/data.txt"
 
 let prize_of_string s =
-  String.chop s ~l:9 ~r:0 |> String.split ~by:", Y=" |> map_tuple int_of_string
+  String.chop s ~l:9 ~r:0 |> String.split ~by:", Y=" |> Tuple.map int_of_string
   |> fun (x, y) -> { x; y }
 
 let button_of_string s =

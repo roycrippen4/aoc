@@ -16,10 +16,6 @@ let chars str =
   let rec exp a b = if a < 0 then b else exp (a - 1) (str.[a] :: b) in
   exp (String.length str - 1) []
 
-let map_tuple f (a, b) = (f a, f b)
-let map_tuple2 f g (a, b) = (f a, g b)
-let map2_tuple f (a1, a2) (b1, b2) = (f a1 b1, f a2 b2)
-
 (* *)
 
 let flip f x y = f y x

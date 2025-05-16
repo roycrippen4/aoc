@@ -311,7 +311,7 @@ let find_code_paths code =
     match pairs with
     | [] -> acc
     | pair :: rest ->
-        let a, b = map_tuple NumKey.of_char pair in
+        let a, b = Tuple.map NumKey.of_char pair in
         let paths = NumKey.find_all_paths_to a b in
         let map_base = fun path -> List.map (fun base -> base @ path) acc in
         let acc = List.concat_map map_base paths in

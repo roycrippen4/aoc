@@ -91,20 +91,6 @@ val ( <*> ) : ('a -> 'b -> 'c) -> ('a -> 'b) -> 'a -> 'c
 val ( let* ) : 'a option -> ('a -> 'b option) -> 'b option
 (* This is like Gleam's `use` expressions *)
 
-val map_tuple : ('a -> 'b) -> 'a * 'a -> 'b * 'b
-(** [map_tuple  f (x, y)] returns [(f x, f y)] — it applies the same unary
-    function [f] to both components of the pair. *)
-
-val map_tuple2 : ('a -> 'b) -> ('c -> 'd) -> 'a * 'c -> 'b * 'd
-(** [map_tuple2 f g (x, y)] returns [(f x, g y)]. It lets you transform the
-    first and second components independently with two different unary
-    functions. *)
-
-val map2_tuple : ('a -> 'b -> 'c) -> 'a * 'a -> 'b * 'b -> 'c * 'c
-(** [map2_tuple f (a1, b1) (a2, b2)] returns [(f a1 a2, f b1 b2)]. It lifts a
-    binary function so that it is applied *point‑wise* to the two pairs. This is
-    the pair‑wise analogue of [List.map2]. *)
-
 val flip : ('a -> 'b -> 'c) -> 'b -> 'a -> 'c
 (** [flip f x y] flips the parameters passed to [f] such that [f x y] becomes
     [f y x] *)

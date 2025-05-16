@@ -28,7 +28,7 @@ let ( <$> ) f g (x, y) = (f x, g y)
 let input = "/home/roy/dev/aoc/aoc2024/data/day15/data.txt" |> read_to_string
 
 let grid, directions =
-  String.trim input |> String.split ~by:"\n\n" |> map_tuple String.trim
+  String.trim input |> String.split ~by:"\n\n" |> Tuple.map String.trim
   |> (string_of_grid <$> string_of_directions)
 
 let get_bot grid =
@@ -105,7 +105,7 @@ let string_of_grid s =
        | _ -> assert false)
 
 let parse str =
-  String.trim str |> String.split ~by:"\n\n" |> map_tuple String.trim
+  String.trim str |> String.split ~by:"\n\n" |> Tuple.map String.trim
   |> (string_of_grid <$> string_of_directions)
 
 let g, directions = parse input

@@ -1,10 +1,11 @@
 open Util
+module T = Tuple
 
 let input = read_to_string "/home/roy/dev/aoc/aoc2024/data/day19/data.txt"
 let split_by ch s = String.(trim s |> split_on_char ch |> List.map trim)
 
 let parse s =
-  s |> String.split ~by:"\n\n" |> map_tuple2 (split_by ',') (split_by '\n')
+  s |> String.split ~by:"\n\n" |> T.bimap ~f1:(split_by ',') ~f2:(split_by '\n')
 
 type pattern = { txt : string; len : int }
 

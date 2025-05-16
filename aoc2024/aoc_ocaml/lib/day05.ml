@@ -3,7 +3,7 @@ open Util
 let input = read_to_string "/home/roy/dev/aoc/aoc2024/data/day05/data.txt"
 
 (* parses rules *)
-let rule s = String.(trim s |> split ~by:"|") |> map_tuple int_of_string
+let rule s = String.(trim s |> split ~by:"|") |> Tuple.map int_of_string
 let parse_rules s = s |> String.lines |> List.map rule
 
 (* parses updates *)
