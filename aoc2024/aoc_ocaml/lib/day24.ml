@@ -1,4 +1,5 @@
 open Util
+module S = String
 
 module H = struct
   include Hashtbl
@@ -19,27 +20,59 @@ module Op = struct
     | "XOR" -> XOR
     | "AND" -> AND
     | _ -> assert false
+
+  let apply a op b =
+    match op with OR -> a lor b | XOR -> a lxor b | AND -> a land b
 end
 
-type instruction = string * Op.t * string
+type instruction = { a : string; b : string; op : Op.t }
 
-let input = read_to_string "/home/roy/dev/aoc/aoc2024/data/day24/example.txt"
+module Instruction = struct
+  type t = instruction
 
-let parse =
-  String.trim >> String.split ~by:"\n\n" >> Tuple.map String.lines
-  >> Tuple.bimap
-       ~f1:
-         (List.map (String.split ~by:": " >> Tuple.map_snd int_of_string)
-         >> H.of_list)
-       ~f2:
-         (List.map
-            (String.split ~by:" -> "
-            >> Tuple.map_fst
-                 ( String.split_on_char ' ' >> function
-                   | [ arg1; op; arg2 ] -> (arg1, Op.of_string op, arg2)
-                   | _ -> raise (Invalid_argument "FUCK") )
-            >> Tuple.swap)
-         >> H.of_list)
+  let to_string { a; b; op } = Printf.sprintf "%s %s %s" a (Op.to_string op) b
+
+  let of_list = function
+    | [ a; op; b ] -> { a; op = Op.of_string op; b }
+    | _ -> assert false
+
+  let of_string s = S.split_on_char ' ' s |> of_list
+  let parse_fst tup = Tuple.map_fst of_string tup |> Tuple.swap
+end
+
+(** [bfw XOR mjb -> z00] where [z00] is the value derived from computing
+    [bfw XOR mjb] *)
+module Expr = struct
+  type t = string * Instruction.t
+
+  let of_string =
+    S.split ~by:" -> " >> Tuple.swap >> Tuple.map_snd Instruction.of_string
+
+  let to_string (label, instruction) =
+    Printf.printf "%s = %s\n" label (Instruction.to_string instruction)
+end
+
+let partition_zs = function
+  | a, b when a.[0] <> 'z' -> Either.Left (a, b)
+  | a, b -> Either.Right (a, b)
+
+let cmp = fun a b -> S.compare (fst a) (fst b)
+let get_zs = fun z -> List.sort cmp z |> List.map snd
+
+let parse_undefined ls =
+  let split_map s = S.split ~by:" -> " s |> Instruction.parse_fst in
+
+  ls
+  |> List.partition_map (fun s -> split_map s |> partition_zs)
+  |> Tuple.bimap ~f1:H.of_list ~f2:get_zs
+
+let parse_defined ls =
+  List.map (S.split ~by:": " >> Tuple.map_snd int_of_string) ls |> H.of_list
+
+let defined, (undefined, zs) =
+  read_to_string "/home/roy/dev/aoc/aoc2024/data/day24/example.txt"
+  |> S.trim |> S.split ~by:"\n\n" |> Tuple.map S.lines
+  |> Tuple.bimap ~f1:parse_defined ~f2:parse_undefined
 
 (*
 
@@ -100,7 +133,32 @@ z11 = gnj AND tgd
 z12 = tgd XOR rvg
 *)
 
-let solve1 () = 42
+let rec define arg =
+  let open Hashtbl in
+  let eval a b op =
+    let result = Op.apply a op b in
+    add defined arg result;
+    remove undefined arg;
+    result
+  in
+
+  try find defined arg
+  with Not_found -> (
+    let { a; b; op } = find undefined arg in
+
+    match (find_opt defined a, find_opt defined b) with
+    | Some a', Some b' -> eval a' b' op
+    | Some a', None -> eval a' (define b) op
+    | None, Some b' -> eval (define a) b' op
+    | None, None -> eval (define a) (define b) op)
+
+let solve1 () =
+  let eval { a; b; op } = Op.apply (define a) op (define b) in
+  let result = zs |> List.rev_map eval in
+
+  result |> List.iter (fun v -> Printf.printf "%d" v);
+  print_endline "";
+  42
 
 (* part 2 *)
 
