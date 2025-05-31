@@ -1,5 +1,27 @@
 include String
 
+let rec char_list_mem l (c : char) =
+  match l with [] -> false | hd :: tl -> Char.equal hd c || char_list_mem tl c
+
+let split_gen str ~on =
+  let is_delim =
+    match on with
+    | `char c' -> fun c -> Char.equal c c'
+    | `char_list l -> fun c -> char_list_mem l c
+  in
+  let len = length str in
+  let rec loop acc last_pos pos =
+    if pos = -1 then sub str 0 last_pos :: acc
+    else if is_delim str.[pos] then
+      let pos1 = pos + 1 in
+      let sub_str = sub str pos1 (last_pos - pos1) in
+      loop (sub_str :: acc) pos (pos - 1)
+    else loop acc last_pos (pos - 1)
+  in
+  loop [] len (len - 1)
+
+let split_on_chars str ~on:chars = split_gen str ~on:(`char_list chars)
+
 let explode s =
   let rec loop i l =
     if i < 0 then l
@@ -42,11 +64,65 @@ let find_from str pos sub =
 
 let find str sub = find_from str 0 sub
 
-let split str ~by:sep =
+let split_once str ~by:sep =
   let p = find str sep in
   let len = length sep in
   let slen = length str in
   (sub str 0 p, sub str (p + len) (slen - p - len))
+
+let implode chars = List.to_seq chars |> of_seq
+
+let split_at str ~idx =
+  let rec loop left right pos = function
+    | [] -> (implode (List.rev left), implode (List.rev right))
+    | char :: rest ->
+        if pos >= idx then loop left (char :: right) (succ pos) rest
+        else loop (char :: left) right (succ pos) rest
+  in
+
+  let len = length str in
+  if idx >= len then (str, "")
+  else if idx < 0 then ("", str)
+  else loop [] [] 0 (explode str)
+
+let%test _ =
+  let s = "Per Martin-Löf" in
+  let first, last = split_at s ~idx:3 in
+  first = "Per" && last = " Martin-Löf"
+
+let split_whitespace str : string list =
+  let is_whitespace = function
+    | ' ' | '\t' | '\r' | '\n' -> true
+    | _ -> false
+  in
+
+  let len = String.length str in
+
+  let rec skip_from idx : int =
+    if idx >= len then idx
+    else if is_whitespace str.[idx] then skip_from (idx + 1)
+    else idx
+  in
+
+  let rec find_word_end idx : int =
+    if idx >= len then idx
+    else if not (is_whitespace str.[idx]) then find_word_end (idx + 1)
+    else idx
+  in
+
+  let rec loop i strs : string list =
+    let word_start = skip_from i in
+    if word_start >= len then List.rev strs
+    else
+      let word_end = find_word_end word_start in
+      let word = sub str word_start (word_end - word_start) in
+      loop word_end (word :: strs)
+  in
+
+  if len = 0 then [] else loop 0 []
+
+let%test _ =
+  split_whitespace "hello world foo bar" = [ "hello"; "world"; "foo"; "bar" ]
 
 let ends_with str p =
   let el = length p and sl = length str in

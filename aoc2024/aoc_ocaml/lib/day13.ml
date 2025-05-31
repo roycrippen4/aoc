@@ -7,11 +7,13 @@ type machine = button * button * prize
 let input = read_to_string "/home/roy/dev/aoc/aoc2024/data/day13/data.txt"
 
 let prize_of_string s =
-  String.chop s ~l:9 ~r:0 |> String.split ~by:", Y=" |> Tuple.map int_of_string
+  String.chop s ~l:9 ~r:0
+  |> String.split_once ~by:", Y="
+  |> Tuple.map int_of_string
   |> fun (x, y) -> { x; y }
 
 let button_of_string s =
-  let left, right = s |> String.split ~by:": " in
+  let left, right = s |> String.split_once ~by:": " in
   let cost = if String.ends_with left "A" then 3 else 1 in
   let x = String.sub right 2 2 |> int_of_string in
   let y = String.sub right 8 2 |> int_of_string in

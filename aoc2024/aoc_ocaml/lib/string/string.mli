@@ -474,7 +474,11 @@ external unsafe_blit : string -> int -> bytes -> int -> int -> unit
 val chop : ?l:int -> ?r:int -> t -> t
 val to_list : t -> char list
 val explode : t -> char list
-val split : t -> by:t -> t * t
+val implode : char list -> t
+val split_on_chars : t -> on:char list -> t list
+val split_at : t -> idx:int -> t * t
+val split_whitespace : t -> t list
+val split_once : t -> by:t -> t * t
 val ends_with : t -> t -> bool
 val split_on_string : by:t -> t -> t list
 

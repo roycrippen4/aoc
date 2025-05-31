@@ -1,7 +1,7 @@
 open Util
 
 let split_to_side (left, right) line =
-  let sl, sr = String.split ~by:"   " line |> Tuple.map int_of_string in
+  let sl, sr = String.split_once ~by:"   " line |> Tuple.map int_of_string in
   (sl :: left, sr :: right)
 
 let rec parse_lines tup = function

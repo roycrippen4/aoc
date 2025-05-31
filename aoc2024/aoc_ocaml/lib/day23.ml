@@ -15,7 +15,7 @@ module H = Hashtbl
 let vertices, edges =
   let process_line (vertices, edges) line =
     let open H in
-    let left, right = String.split ~by:"-" line in
+    let left, right = String.split_once ~by:"-" line in
 
     let s = (try find edges left with _ -> SS.empty) |> SS.add right in
     replace edges left s;

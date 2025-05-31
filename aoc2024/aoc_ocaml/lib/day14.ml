@@ -19,10 +19,12 @@ module Robot = struct
     }
 
   let of_string s =
-    String.trim s |> String.split ~by:" "
-    |> Tuple.map (String.chop ~l:2 ~r:0)
-    |> Tuple.map (String.split ~by:",")
-    |> Tuple.map (Tuple.map int_of_string)
+    let open String in
+    let module T = Tuple in
+    trim s |> split_once ~by:" "
+    |> T.map (chop ~l:2 ~r:0)
+    |> T.map (split_once ~by:",")
+    |> T.map (T.map int_of_string)
     |> fun ((px, py), (vx, vy)) -> { px; py; vx; vy }
 end
 

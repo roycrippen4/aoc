@@ -3,7 +3,7 @@ open Util
 let input = read_to_string "/home/roy/dev/aoc/aoc2024/data/day05/data.txt"
 
 (* parses rules *)
-let rule s = String.(trim s |> split ~by:"|") |> Tuple.map int_of_string
+let rule s = String.(trim s |> split_once ~by:"|") |> Tuple.map int_of_string
 let parse_rules s = s |> String.lines |> List.map rule
 
 (* parses updates *)
@@ -14,7 +14,7 @@ let parse_updates s = String.(trim s |> split_on_char '\n') |> List.map update
 let middle vs = List.nth vs (List.length vs / 2)
 
 let rules, updates =
-  let rs, us = String.split input ~by:"\n\n" in
+  let rs, us = String.split_once input ~by:"\n\n" in
   (parse_rules rs, parse_updates us)
 
 let insert_or_update tbl (k, v) =

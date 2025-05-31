@@ -23,7 +23,7 @@ let points =
   let open String in
   "/home/roy/dev/aoc/aoc2024/data/day18/data.txt" |> read_to_string |> trim
   |> split_on_char '\n'
-  |> List.map (split ~by:"," >> Tuple.map int_of_string >> Point.of_tuple)
+  |> List.map (split_once ~by:"," >> Tuple.map int_of_string >> Point.of_tuple)
 
 let grid =
   let size = 71 in
