@@ -156,3 +156,5 @@ val todo : unit -> 'a
 
 val identity : 'a -> 'a
 (** Returns the input value transparently *)
+
+val pp_time : float -> string

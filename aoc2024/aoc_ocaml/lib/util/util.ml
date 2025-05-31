@@ -53,3 +53,4 @@ let identity x = x
 exception Todo of string
 
 let todo () : 'a = raise (Todo "Not yet implemented")
+let pp_time = Time.pp_time
