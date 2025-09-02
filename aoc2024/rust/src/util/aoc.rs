@@ -74,6 +74,6 @@ impl fmt::Display for Day {
             Day::Day24(part) => format!("Day 24 {part}"),
             Day::Day25(part) => format!("Day 25 {part}"),
         };
-        write!(f, "{}", day_str)
+        write!(f, "{day_str}")
     }
 }

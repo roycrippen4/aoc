@@ -1,4 +1,4 @@
-use std::{iter, str::FromStr};
+use std::str::FromStr;
 
 pub trait StringMethods {
     fn create_pad(len: usize, ch: char) -> String;
@@ -14,7 +14,7 @@ pub trait StringMethods {
 
 impl StringMethods for String {
     fn create_pad(len: usize, ch: char) -> String {
-        iter::repeat(ch).take(len).collect::<String>()
+        std::iter::repeat_n(ch, len).collect::<String>()
     }
 
     fn to_char_vec(&self) -> Vec<char> {
@@ -69,7 +69,7 @@ impl StringMethods for &str {
     }
 
     fn create_pad(len: usize, ch: char) -> String {
-        iter::repeat(ch).take(len).collect::<String>()
+        std::iter::repeat_n(ch, len).collect::<String>()
     }
 
     fn to_char_vec(&self) -> Vec<char> {
