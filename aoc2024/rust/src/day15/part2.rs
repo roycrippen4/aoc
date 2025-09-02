@@ -1,4 +1,22 @@
+#![allow(unused)]
+
 use crate::data;
+use crate::util::Grid;
+
+enum Kind {
+    Bot,
+    Start,
+    End,
+    Empty,
+    Wall,
+}
+
+enum Direction {
+    Up,
+    Down,
+    Left,
+    Right,
+}
 
 fn evaluate(_data: &str) -> usize {
     0
