@@ -11,3 +11,5 @@ regex = "1.11.1"
 rayon = "1.10.0"
 itertools = "0.14.0"
 comfy-table = { version = "7.1", features = ["custom_styling"] }
+num-traits = "0.2"
+anyhow = "1.0"

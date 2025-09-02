@@ -42,7 +42,7 @@ fn main() {
         ]);
     }
 
-    println!("\nTotal combined time: {:#?}", total_time);
+    println!("\nTotal combined time: {total_time:#?}");
     println!("{table}");
 }
 
