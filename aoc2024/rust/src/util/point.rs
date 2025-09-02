@@ -1,12 +1,19 @@
+use super::Direction;
+
 use std::ops::{Add, Div, Mul, Sub};
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+use num_traits::Num;
+
+#[derive(Clone, Copy, Debug, PartialEq, Hash)]
 pub struct Point<T> {
     pub x: T,
     pub y: T,
 }
 
-impl<T: Div<Output = T>> Div for Point<T> {
+impl<T> Div for Point<T>
+where
+    T: Div<Output = T> + num_traits::Num + std::marker::Copy,
+{
     type Output = Point<T>;
 
     fn div(self, other: Self) -> Self::Output {
@@ -16,7 +23,10 @@ impl<T: Div<Output = T>> Div for Point<T> {
     }
 }
 
-impl<T: Mul<Output = T>> Mul for Point<T> {
+impl<T> Mul for Point<T>
+where
+    T: Div<Output = T> + num_traits::Num + std::marker::Copy,
+{
     type Output = Point<T>;
 
     fn mul(self, other: Self) -> Self::Output {
@@ -26,7 +36,10 @@ impl<T: Mul<Output = T>> Mul for Point<T> {
     }
 }
 
-impl<T: Add<Output = T>> Add for Point<T> {
+impl<T> Add for Point<T>
+where
+    T: Div<Output = T> + num_traits::Num + std::marker::Copy,
+{
     type Output = Point<T>;
 
     fn add(self, other: Self) -> Self::Output {
@@ -37,7 +50,10 @@ impl<T: Add<Output = T>> Add for Point<T> {
     }
 }
 
-impl<T: Sub<Output = T>> Sub for Point<T> {
+impl<T> Sub for Point<T>
+where
+    T: Div<Output = T> + num_traits::Num + std::marker::Copy,
+{
     type Output = Point<T>;
 
     fn sub(self, other: Self) -> Self::Output {
@@ -47,9 +63,142 @@ impl<T: Sub<Output = T>> Sub for Point<T> {
     }
 }
 
-impl<T> Point<T> {
+impl<T> Point<T>
+where
+    T: Num + Copy,
+{
     pub fn new(x: T, y: T) -> Self {
         Point { x, y }
+    }
+
+    fn unit_step(&self, d: Direction) -> Self {
+        let Point { x, y } = *self;
+
+        let one = T::one();
+
+        match d {
+            Direction::North => Point::new(x, y - one),
+            Direction::South => Point::new(x, y + one),
+            Direction::West => Point::new(x - one, y),
+            Direction::East => Point::new(x + one, y),
+            Direction::NorthEast => Point::new(x + one, y - one),
+            Direction::NorthWest => Point::new(x - one, y - one),
+            Direction::SouthEast => Point::new(x + one, y + one),
+            Direction::SouthWest => Point::new(x - one, y + one),
+        }
+    }
+
+    // =============== Immutable ===============
+
+    /// Returns a new point shifted one unit north
+    pub fn north(&self) -> Self {
+        self.unit_step(Direction::North)
+    }
+
+    /// Returns a new point shifted one unit south
+    pub fn south(&self) -> Self {
+        self.unit_step(Direction::South)
+    }
+
+    /// Returns a new point shifted one unit east
+    pub fn east(&self) -> Self {
+        self.unit_step(Direction::East)
+    }
+
+    /// Returns a new point shifted one unit west
+    pub fn west(&self) -> Self {
+        self.unit_step(Direction::West)
+    }
+
+    /// Returns a new point shifted one unit south-east
+    pub fn southeast(&self) -> Self {
+        self.unit_step(Direction::SouthEast)
+    }
+
+    /// Returns a new point shifted one unit south-west
+    pub fn southwest(&self) -> Self {
+        self.unit_step(Direction::SouthWest)
+    }
+
+    /// Returns a new point shifted one unit north-east
+    pub fn northeast(&self) -> Self {
+        self.unit_step(Direction::NorthEast)
+    }
+
+    /// Returns a new point shifted one unit north-west
+    pub fn northwest(&self) -> Self {
+        self.unit_step(Direction::NorthWest)
+    }
+
+    // =============== Mutable ===============
+
+    fn unit_step_mut(&mut self, d: Direction) -> &mut Self {
+        let one = T::one();
+
+        match d {
+            Direction::North => self.y = self.y - one,
+            Direction::South => self.y = self.y + one,
+            Direction::West => self.x = self.x - one,
+            Direction::East => self.x = self.x + one,
+            Direction::NorthEast => {
+                self.x = self.x + one;
+                self.y = self.y - one;
+            }
+            Direction::NorthWest => {
+                self.x = self.x - one;
+                self.y = self.y - one;
+            }
+            Direction::SouthEast => {
+                self.x = self.x + one;
+                self.y = self.y + one;
+            }
+            Direction::SouthWest => {
+                self.x = self.x - one;
+                self.y = self.y + one;
+            }
+        };
+
+        self
+    }
+
+    /// Mutates this point to move one unit north
+    pub fn north_mut(&mut self) -> &mut Self {
+        self.unit_step_mut(Direction::North)
+    }
+
+    /// Mutates this point to move one unit south
+    pub fn south_mut(&mut self) -> &mut Self {
+        self.unit_step_mut(Direction::South)
+    }
+
+    /// Mutates this point to move one unit east
+    pub fn east_mut(&mut self) -> &mut Self {
+        self.unit_step_mut(Direction::East)
+    }
+
+    /// Mutates this point to move one unit west
+    pub fn west_mut(&mut self) -> &mut Self {
+        self.unit_step_mut(Direction::West)
+    }
+
+    /// Mutates this point to move one unit south-east
+    pub fn southeast_mut(&mut self) -> &mut Self {
+        self.unit_step_mut(Direction::SouthEast)
+    }
+
+    /// Mutates this point to move one unit south-west
+    pub fn southwest_mut(&mut self) -> &mut Self {
+        self.unit_step_mut(Direction::SouthWest)
+    }
+
+    /// Mutates this point to move one unit north-east
+    pub fn northeast_mut(&mut self) -> &mut Self {
+        self.unit_step_mut(Direction::NorthEast)
+    }
+
+    /// Mutates this point to move one unit north-west
+    pub fn northwest_mut(&mut self) -> &mut Self {
+        self.unit_step_mut(Direction::NorthWest)
     }
 }
 

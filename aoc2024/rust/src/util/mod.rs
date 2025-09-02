@@ -1,11 +1,16 @@
-mod aoc;
 pub mod macros;
+
+mod aoc;
+mod direction;
+mod grid;
 mod point;
 mod quicksort;
 mod string_methods;
 mod timing;
 
 pub use aoc::{Day, Part};
+pub use direction::Direction;
+pub use grid::Grid;
 pub use point::Point;
 pub use quicksort::quicksort;
 pub use string_methods::StringMethods;
