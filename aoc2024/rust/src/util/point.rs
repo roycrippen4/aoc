@@ -200,6 +200,37 @@ where
     pub fn northwest_mut(&mut self) -> &mut Self {
         self.unit_step_mut(Direction::NorthWest)
     }
+
+    /// Get the coordinates of all orthoganal neighbors from a given point `p`.
+    ///
+    /// Order of the Array starts at `Direction::North`, rotates clockwise, and ends with
+    /// `Direction::West`.
+    pub fn nbor4(&self) -> [Self; 4] {
+        [self.north(), self.east(), self.south(), self.west()]
+    }
+
+    /// Get the coordinates of the eight surrounding neighbors (cardinal and intercardinal directions)
+    /// from a given point `p`, often referred to as the [8-wind compass rose](https://en.wikipedia.org/wiki/Points_of_the_compass#8-wind_compass_rose).
+    ///
+    /// The order of the array starts at `Direction::North` and rotates clockwise.
+    pub fn nbor8(&self) -> [Self; 8] {
+        [
+            self.north(),
+            self.northeast(),
+            self.east(),
+            self.southeast(),
+            self.south(),
+            self.southwest(),
+            self.west(),
+            self.northwest(),
+        ]
+    }
+}
+
+impl std::fmt::Display for Point<usize> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "({}, {})", self.x, self.y)
+    }
 }
 
 #[cfg(test)]

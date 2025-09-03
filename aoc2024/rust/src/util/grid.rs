@@ -1,7 +1,8 @@
 use anyhow::Result;
 
-use super::Direction;
 use super::Point;
+
+pub type Entry<T> = (usize, usize, T);
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Grid<T>
@@ -18,6 +19,10 @@ impl<T> Grid<T>
 where
     T: std::fmt::Debug + Clone,
 {
+    // ==========================================================
+    // ===================== Static Methods =====================
+    // ==========================================================
+
     /// Initializes a `height` by `width` Grid where all values are `value`
     pub fn make(height: usize, width: usize, value: T) -> Self {
         let row: Vec<_> = std::iter::repeat_n(value, width).collect();
@@ -32,24 +37,48 @@ where
         }
     }
 
-    /// Creates a new grid of `height` by `width` and runs the function `f` for each element in the
-    /// grid. `f` will receive a `Point<usize>` for each point in the grid.
-    pub fn new(height: usize, width: usize, f: impl Fn(Point<usize>) -> T) -> Self {
-        let inner: Vec<Vec<T>> = (0..height)
-            .map(|y| (0..width).map(|x| f(Point::new(x, y))).collect())
-            .collect();
-
+    /// Creates a new `Grid` of `height` by `width`.
+    pub fn new(height: usize, width: usize) -> Self {
         Self {
             size: width * height,
             height,
             width,
-            inner,
+            inner: vec![],
         }
     }
 
+    /// Creates a new `Grid` by rotating the provided grid 90-degrees clockwise.
+    ///
+    /// This is a non-destructive operation that returns a new Grid instance.
+    /// It correctly handles non-square grids by swapping width and height.
+    ///
+    /// [WARN!]: This should only be used with square, e.g. 3x3, grids!
+    pub fn rotate_clockwise(g: &Self) -> Self {
+        Self::new(g.height, g.width)
+            .map_coords(|p| g[Point::new(p.y, (g.height - 1) - p.x)].clone())
+    }
+
+    /// Creates a new `Grid` by rotating the provided grid 90-degrees counter-clockwise.
+    ///
+    /// This is a non-destructive operation that returns a new Grid instance.
+    /// It correctly handles non-square grids by swapping width and height.
+    ///
+    /// [WARN!]: This should only be used with square, e.g. 3x3, grids!
+    pub fn rotate_counter_clockwise(grid: &Self) -> Self {
+        Self::new(grid.height, grid.width).map_coords(|p_new| {
+            let p_old = Point::new((grid.width - 1) - p_new.y, p_new.x);
+            grid[p_old].clone()
+        })
+    }
+
+    // ==========================================================
+    // ===================== Immutable API ======================
+    // ==========================================================
+
     /// Takes a `Point<usize>` and returns true if that point is contained in the grid
-    pub fn inside(&self, p: Point<usize>) -> bool {
-        p.y < self.height && p.x < self.width
+    pub fn inside<P: GridPoint>(&self, p: P) -> bool {
+        let (x, y) = p.to_coordinate_pair();
+        y < self.height && x < self.width
     }
 
     /// Makes a new grid with the same dimensions as the current grid with all values initialized to `value`
@@ -57,28 +86,163 @@ where
         Self::make(self.height, self.width, value)
     }
 
+    /// Safely gets an immutable reference to a value in the grid.
+    ///
+    /// This method is generic and accepts any type that implements the `GridIndex`
+    /// trait, such as `Point<usize>` or `(usize, usize)`.
+    ///
+    /// Returns `Some(&T)` if the coordinates are within the grid bounds,
+    /// otherwise returns `None`.
+    pub fn get<P: GridPoint>(&self, idx: P) -> Option<&T> {
+        let (x, y) = idx.to_coordinate_pair();
+        if y < self.height && x < self.width {
+            Some(&self[(x, y)])
+        } else {
+            None
+        }
+    }
+
+    /// Returns the values of the cardinal neighbors around point `p`.
+    /// If a value does not exist or is outside the `grid` the value will be `None`.
+    /// Otherwise the value will be `Some(T)`.
+    pub fn nbor4_values<P: GridPoint>(&self, p: P) -> [Option<&T>; 4] {
+        p.to_point().nbor4().map(|p| self.get(p))
+    }
+
+    /// Get the `entries` - `(x, y, T)` of all cardinal neighbors around point `p`.
+    /// A neighbor is [None] if it is out of bounds.
+    /// Order of the list starts at `N` and rotates clockwise.
+    pub fn nbor4<P: GridPoint>(&self, p: P) -> [Option<Entry<&T>>; 4] {
+        p.to_point()
+            .nbor4()
+            .map(|p| self.get(p).map(|v| (p.x, p.y, v)))
+    }
+
+    /// Returns the values of the cardinal and intercardinal neighbors around point `p`.
+    /// If a value does not exist or is outside the `grid` the value will be `None`.
+    /// Otherwise the value will be `Some(T)`.
+    pub fn nbor8_values<P: GridPoint>(&self, p: P) -> [Option<&T>; 8] {
+        p.to_point().nbor8().map(|p| self.get(p))
+    }
+
+    /// Get the entries of all cardinal and intercardinal neighbors around point `p`.
+    /// A neighbor is [None] if it is out of bounds.
+    /// Order of the list starts at `N` and rotates clockwise.
+    pub fn nbor8<P: GridPoint>(&self, p: P) -> [Option<Entry<&T>>; 8] {
+        p.to_point()
+            .nbor8()
+            .map(|p| self.get(p).map(|v| (p.x, p.y, v)))
+    }
+
+    /// Returns an iterator over the entries in the grid
+    pub fn entries(&self) -> impl Iterator<Item = (usize, usize, &T)> + '_ {
+        self.inner
+            .iter()
+            .enumerate()
+            .flat_map(|(y, row)| row.iter().enumerate().map(move |(x, v)| (x, y, v)))
+    }
+
+    /// Filters the `grid` by predicate `p` for each entry in the `grid`
+    pub fn filter<P>(&self, p: P) -> Vec<Entry<&T>>
+    where
+        P: FnMut(&Entry<&T>) -> bool,
+    {
+        self.entries().filter(p).collect()
+    }
+
+    /// Returns all values `T` that match predicate `P` for each element in the grid.
+    pub fn filter_values<P>(&self, mut p: P) -> Vec<&T>
+    where
+        P: FnMut(&T) -> bool,
+    {
+        self.inner.iter().flatten().filter(|&v| p(v)).collect()
+    }
+
+    /// Returns all coordinates `(x, y)` that satisfy the predicate `P` over each `coordinate` in
+    /// the `grid`
+    pub fn filter_coords<P>(&self, mut p: P) -> Vec<(usize, usize)>
+    where
+        P: FnMut((usize, usize)) -> bool,
+    {
+        self.entries().fold(vec![], |mut acc, (x, y, _)| {
+            if p((x, y)) {
+                acc.push((x, y));
+            }
+            acc
+        })
+    }
+
+    // ==========================================================
+    // ===================== Grid Mutations =====================
+    // ==========================================================
+
+    /// Safely gets a mutable reference to a value in the grid.
+    ///
+    /// This method is generic and accepts any type that implements the `GridIndex`
+    /// trait, such as `Point<usize>` or `(usize, usize)`.
+    ///
+    /// Returns `Some(&mut T)` if the coordinates are within the grid bounds,
+    /// otherwise returns `None`.
+    pub fn get_mut<P: GridPoint>(&mut self, p: P) -> Option<&mut T> {
+        let (x, y) = p.to_coordinate_pair();
+        if y < self.height && x < self.width {
+            Some(&mut self[(x, y)])
+        } else {
+            None
+        }
+    }
+
+    /// Applies the function `f` to each coordinate `p` in the `grid`, replacing the original value
+    pub fn map_coords(mut self, f: impl Fn(Point<usize>) -> T) -> Self {
+        self.inner = (0..self.height)
+            .map(|y| (0..self.width).map(|x| f(Point::new(x, y))).collect())
+            .collect();
+
+        self
+    }
+
+    /// Applies the function `f` to each value `v` in the `grid`, replacing the original value
+    pub fn map_values(mut self, f: impl Fn(&T) -> T) -> Self {
+        self.inner = (0..self.height)
+            .map(|y| (0..self.width).map(|x| f(&self[(x, y)])).collect())
+            .collect();
+
+        self
+    }
+
+    /// Applies the function `f` to each entry `e` in the `grid`, replacing the original value
+    pub fn map(mut self, f: impl Fn(Entry<&T>) -> T) -> Self {
+        self.inner = (0..self.height)
+            .map(|y| (0..self.width).map(|x| f((x, y, &self[(x, y)]))).collect())
+            .collect();
+
+        self
+    }
+
     /// Set the value in the grid.
-    /// Directly indexes the grid.
+    /// Directly indexes the grid without checking bounds.
     /// If the point is invalid this function will panic
-    pub fn set_unchecked(&mut self, p: Point<usize>, value: T) {
+    pub fn set_unchecked<P: GridPoint>(&mut self, p: P, value: T) {
         self[p] = value;
     }
 
     /// Safely set the value in the grid.
-    /// Returns `Ok(())` if the update was successful.
-    /// Returns `Err(())` if the update failed.
-    pub fn set(&mut self, p: Point<usize>, value: T) -> Result<()> {
+    /// Returns `Ok(self)` if the update was successful.
+    /// Returns `Err` if the update failed.
+    pub fn set<P: GridPoint>(&mut self, p: P, value: T) -> Result<&mut Self> {
         if self.inside(p) {
             self[p] = value;
-            Ok(())
+            Ok(self)
         } else {
             anyhow::bail!("Point {p:?} is not inside the grid.")
         }
     }
 
-    pub fn rotate_clockwise_mut(&mut self) {
+    /// In-place, clockwise rotation of the grid
+    /// [WARN!]: This should only be used with square, e.g. 3x3, grids!
+    pub fn rotate_clockwise_mut(&mut self) -> &mut Self {
         if self.inner.is_empty() {
-            return;
+            return self;
         }
 
         let n = self.inner.len();
@@ -95,11 +259,15 @@ where
         for row in &mut self.inner {
             row.reverse();
         }
+
+        self
     }
 
-    pub fn rotate_counter_clockwise_mut(&mut self) {
+    /// In-place, counter-clockwise rotation of the grid
+    /// [WARN!]: This should only be used with square, e.g. 3x3, grids!
+    pub fn rotate_counter_clockwise_mut(&mut self) -> &mut Self {
         if self.inner.is_empty() {
-            return;
+            return self;
         }
 
         let n = self.inner.len();
@@ -114,28 +282,67 @@ where
         }
 
         self.inner.reverse();
+        self
     }
 
-    /// Creates a new `Grid` by rotating the provided grid 90-degrees clockwise.
-    ///
-    /// This is a non-destructive operation that returns a new Grid instance.
-    /// It correctly handles non-square grids by swapping width and height.
-    pub fn rotate_clockwise(grid: &Self) -> Self {
-        Self::new(grid.height, grid.width, |p_new| {
-            let p_old = Point::new(p_new.y, (grid.height - 1) - p_new.x);
-            grid[p_old].clone()
-        })
+    /// Strips the first and last columns from the grid
+    pub fn strip_bounding_cols_mut(&mut self) -> &mut Self {
+        if self.width < 3 {
+            return self;
+        }
+
+        for row in &mut self.inner {
+            row.remove(0);
+            row.pop();
+        }
+
+        self.width -= 2;
+        self.size = self.width * self.height;
+
+        self
     }
 
-    /// Creates a new `Grid` by rotating the provided grid 90-degrees counter-clockwise.
-    ///
-    /// This is a non-destructive operation that returns a new Grid instance.
-    /// It correctly handles non-square grids by swapping width and height.
-    pub fn rotate_counter_clockwise(grid: &Self) -> Self {
-        Self::new(grid.height, grid.width, |p_new| {
-            let p_old = Point::new((grid.width - 1) - p_new.y, p_new.x);
-            grid[p_old].clone()
-        })
+    /// Strips the first and last rows from the grid
+    pub fn strip_bounding_rows_mut(&mut self) -> &mut Self {
+        if self.height < 3 {
+            return self;
+        }
+
+        self.inner.remove(0);
+        self.inner.pop();
+        self.height -= 2;
+        self.size = self.width * self.height;
+
+        self
+    }
+
+    /// Strips the entire boundary around the grid
+    pub fn strip_boundaries_mut(&mut self) -> &mut Self {
+        if self.width < 3 || self.height < 3 {
+            return self;
+        }
+
+        self.strip_bounding_rows_mut().strip_bounding_cols_mut()
+    }
+
+    // ==========================================================
+    // ===================== Consuming API ======================
+    // ==========================================================
+
+    /// Returns an iterator over the `Entry<T>` for each element in the grid. Consumes the grid.
+    pub fn into_entries(self) -> impl Iterator<Item = Entry<T>> {
+        self.inner
+            .into_iter()
+            .enumerate()
+            .flat_map(|(y, row)| row.into_iter().enumerate().map(move |(x, v)| (x, y, v)))
+    }
+
+    /// Folds over the grid via application of `f` over each entry, consuming the grid
+    pub fn fold<F, Acc>(self, accum: Acc, f: F) -> Acc
+    where
+        F: FnMut(Acc, Entry<T>) -> Acc,
+    {
+        self.into_entries().fold(accum, f)
     }
 }
 
@@ -169,23 +376,56 @@ where
     }
 }
 
-impl<T> std::ops::Index<Point<usize>> for Grid<T>
+/// A trait for types that can be converted into grid coordinates.
+pub trait GridPoint: std::fmt::Debug + Copy + Clone {
+    /// Returns the (x, y) coordinates represented by this index.
+    fn to_coordinate_pair(&self) -> (usize, usize);
+
+    /// Returns the `Point<usize>` represented by this index.
+    fn to_point(&self) -> Point<usize>;
+}
+
+impl GridPoint for Point<usize> {
+    fn to_coordinate_pair(&self) -> (usize, usize) {
+        (self.x, self.y)
+    }
+
+    fn to_point(&self) -> Point<usize> {
+        *self
+    }
+}
+
+impl GridPoint for (usize, usize) {
+    fn to_coordinate_pair(&self) -> (usize, usize) {
+        *self
+    }
+
+    fn to_point(&self) -> Point<usize> {
+        Point::new(self.0, self.1)
+    }
+}
+
+impl<T, P> std::ops::IndexMut<P> for Grid<T>
 where
+    P: GridPoint,
+    T: std::fmt::Debug + Clone,
+{
+    fn index_mut(&mut self, p: P) -> &mut Self::Output {
+        let (x, y) = p.to_coordinate_pair();
+        &mut self.inner[y][x]
+    }
+}
+
+impl<T, P> std::ops::Index<P> for Grid<T>
+where
+    P: GridPoint,
     T: std::fmt::Debug + Clone,
 {
     type Output = T;
 
-    fn index(&self, p: Point<usize>) -> &Self::Output {
-        &self.inner[p.y][p.x]
-    }
-}
-
-impl<T> std::ops::IndexMut<Point<usize>> for Grid<T>
-where
-    T: std::fmt::Debug + Clone,
-{
-    fn index_mut(&mut self, p: Point<usize>) -> &mut Self::Output {
-        &mut self.inner[p.y][p.x]
+    fn index(&self, p: P) -> &Self::Output {
+        let (x, y) = p.to_coordinate_pair();
+        &self.inner[y][x]
     }
 }
 
@@ -194,7 +434,7 @@ mod tests {
     use super::*;
 
     fn get_original_grid() -> Grid<i32> {
-        Grid::new(5, 5, |p| p.x as i32 + p.y as i32)
+        Grid::new(5, 5).map_coords(|p| p.x as i32 + p.y as i32)
     }
 
     #[test]
@@ -249,5 +489,63 @@ mod tests {
         grid.rotate_counter_clockwise_mut();
 
         assert_eq!(grid, original);
+    }
+
+    #[test]
+    fn test_strip_bounding_rows_mut() {
+        let mut grid = Grid::new(5, 3).map_coords(|p| (p.y * 10 + p.x) as i32);
+        grid.strip_bounding_rows_mut();
+
+        let expected_inner = vec![vec![10, 11, 12], vec![20, 21, 22], vec![30, 31, 32]];
+
+        assert_eq!(grid.height, 3);
+        assert_eq!(grid.width, 3); // Width should be unchanged
+        assert_eq!(grid.inner, expected_inner);
+        assert_eq!(grid.size, 9);
+    }
+
+    #[test]
+    fn test_strip_boundaries_mut_happy_path() {
+        let mut grid = Grid::new(5, 4).map_coords(|p| (p.y * 10 + p.x) as i32);
+        let expected = Grid::new(3, 2).map_coords(|p| ((p.y + 1) * 10 + (p.x + 1)) as i32);
+
+        grid.strip_boundaries_mut();
+
+        assert_eq!(grid.height, 3, "Grid height should be reduced by 2");
+        assert_eq!(grid.width, 2, "Grid width should be reduced by 2");
+        assert_eq!(grid, expected, "The inner data of the grid is incorrect");
+    }
+
+    #[test]
+    fn test_strip_boundaries_mut_minimum_size() {
+        let mut grid = Grid::new(3, 3).map_coords(|p| (p.y * 10 + p.x) as i32);
+        let expected = Grid::new(1, 1).map_coords(|_| 11);
+        grid.strip_boundaries_mut();
+
+        assert_eq!(grid, expected);
+    }
+
+    #[test]
+    fn test_strip_boundaries_mut_too_small_to_strip() {
+        let mut narrow_grid = Grid::new(5, 2).map_coords(|p| p.x as i32);
+        let expected_narrow = narrow_grid.clone(); // Save the original state
+        narrow_grid.strip_boundaries_mut();
+        assert_eq!(
+            narrow_grid, expected_narrow,
+            "Grid with width < 3 should not be changed"
+        );
+
+        let mut short_grid = Grid::new(2, 5).map_coords(|p| p.x as i32);
+        let expected_short = short_grid.clone(); // Save the original state
+        short_grid.strip_boundaries_mut();
+        assert_eq!(
+            short_grid, expected_short,
+            "Grid with height < 3 should not be changed"
+        );
+
+        let mut valid_grid = Grid::new(3, 5).map_coords(|p| p.x as i32);
+        let expected_valid = Grid::new(1, 3).map_coords(|p| (p.x + 1) as i32);
+        valid_grid.strip_boundaries_mut();
+        assert_eq!(valid_grid, expected_valid, "A 3x5 grid should be stripped");
     }
 }
