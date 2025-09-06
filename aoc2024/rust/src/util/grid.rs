@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use anyhow::Result;
 
 use super::Point;
@@ -12,7 +14,6 @@ where
     inner: Vec<Vec<T>>,
     pub height: usize,
     pub width: usize,
-    pub size: usize,
 }
 
 impl<T> Grid<T>
@@ -27,10 +28,8 @@ where
     pub fn make(height: usize, width: usize, value: T) -> Self {
         let row: Vec<_> = std::iter::repeat_n(value, width).collect();
         let inner = std::iter::repeat_n(row, height).collect();
-        let size = width * height;
 
         Self {
-            size,
             height,
             width,
             inner,
@@ -40,7 +39,6 @@ where
     /// Creates a new `Grid` of `height` by `width`.
     pub fn new(height: usize, width: usize) -> Self {
         Self {
-            size: width * height,
             height,
             width,
             inner: vec![],
@@ -102,6 +100,35 @@ where
         }
     }
 
+    /// Searches for an element's position in the grid that satisfies a predicate.
+    pub fn find_position<P>(&self, mut pred: P) -> Option<(usize, usize)>
+    where
+        P: FnMut(Entry<&T>) -> bool,
+    {
+        self.entries().find(|e| pred(*e)).map(|(x, y, _)| (x, y))
+    }
+
+    pub fn find<P>(&self, mut pred: P) -> Option<Entry<&T>>
+    where
+        P: FnMut(Entry<&T>) -> bool,
+    {
+        self.entries().find(|e| pred(*e))
+    }
+
+    /// Searches for the first element in the grid that satisfies the predicate `p` in the grid,
+    /// replaces that element with `v`, and returns the entry original element.
+    pub fn find_replace<P>(&mut self, pred: P, v: T) -> Entry<T>
+    where
+        P: FnMut(Entry<&T>) -> bool,
+    {
+        let (x, y, old_value) = self.find(pred).unwrap();
+        let old_value = old_value.clone();
+
+        self.set_unchecked((x, y), v);
+
+        (x, y, old_value)
+    }
+
     /// Returns the values of the cardinal neighbors around point `p`.
     /// If a value does not exist or is outside the `grid` the value will be `None`.
     /// Otherwise the value will be `Some(T)`.
@@ -143,11 +170,11 @@ where
     }
 
     /// Filters the `grid` by predicate `p` for each entry in the `grid`
-    pub fn filter<P>(&self, p: P) -> Vec<Entry<&T>>
+    pub fn filter<P>(&self, mut p: P) -> Vec<Entry<&T>>
     where
-        P: FnMut(&Entry<&T>) -> bool,
+        P: FnMut(Entry<&T>) -> bool,
     {
-        self.entries().filter(p).collect()
+        self.entries().filter(|&entry| p(entry)).collect()
     }
 
     /// Returns all values `T` that match predicate `P` for each element in the grid.
@@ -196,24 +223,6 @@ where
     pub fn map_coords(mut self, f: impl Fn(Point<usize>) -> T) -> Self {
         self.inner = (0..self.height)
             .map(|y| (0..self.width).map(|x| f(Point::new(x, y))).collect())
-            .collect();
-
-        self
-    }
-
-    /// Applies the function `f` to each value `v` in the `grid`, replacing the original value
-    pub fn map_values(mut self, f: impl Fn(&T) -> T) -> Self {
-        self.inner = (0..self.height)
-            .map(|y| (0..self.width).map(|x| f(&self[(x, y)])).collect())
-            .collect();
-
-        self
-    }
-
-    /// Applies the function `f` to each entry `e` in the `grid`, replacing the original value
-    pub fn map(mut self, f: impl Fn(Entry<&T>) -> T) -> Self {
-        self.inner = (0..self.height)
-            .map(|y| (0..self.width).map(|x| f((x, y, &self[(x, y)]))).collect())
             .collect();
 
         self
@@ -286,7 +295,7 @@ where
     }
 
     /// Strips the first and last columns from the grid
-    pub fn strip_bounding_cols_mut(&mut self) -> &mut Self {
+    pub fn strip_bounding_cols(&mut self) -> &mut Self {
         if self.width < 3 {
             return self;
         }
@@ -297,13 +306,12 @@ where
         }
 
         self.width -= 2;
-        self.size = self.width * self.height;
 
         self
     }
 
     /// Strips the first and last rows from the grid
-    pub fn strip_bounding_rows_mut(&mut self) -> &mut Self {
+    pub fn strip_bounding_rows(&mut self) -> &mut Self {
         if self.height < 3 {
             return self;
         }
@@ -311,18 +319,21 @@ where
         self.inner.remove(0);
         self.inner.pop();
         self.height -= 2;
-        self.size = self.width * self.height;
 
         self
     }
 
     /// Strips the entire boundary around the grid
-    pub fn strip_boundaries_mut(&mut self) -> &mut Self {
+    pub fn strip_boundaries(&mut self) -> &mut Self {
         if self.width < 3 || self.height < 3 {
             return self;
         }
 
-        self.strip_bounding_rows_mut().strip_bounding_cols_mut()
+        self.strip_bounding_rows().strip_bounding_cols()
+    }
+
+    pub fn row_mut(&mut self, y: usize) -> Option<&mut Vec<T>> {
+        self.inner.get_mut(y)
     }
 
     // ==========================================================
@@ -343,6 +354,50 @@ where
         F: FnMut(Acc, Entry<T>) -> Acc,
     {
         self.into_entries().fold(accum, f)
+    }
+
+    /// Applies the function `f` to each entry in the `grid`, producing a new grid
+    pub fn map<F, U>(self, f: F) -> Grid<U>
+    where
+        F: Fn(Entry<T>) -> U,
+        U: std::fmt::Debug + Clone,
+    {
+        let inner = self
+            .inner
+            .into_iter()
+            .enumerate()
+            .map(|(y, row)| {
+                row.into_iter()
+                    .enumerate()
+                    .map(|(x, v)| f((x, y, v)))
+                    .collect()
+            })
+            .collect();
+
+        Grid {
+            inner,
+            width: self.width,
+            height: self.height,
+        }
+    }
+
+    /// Applies the function `f` to each value `v` in the `grid`, replacing the original value
+    pub fn map_values<F, U>(self, f: F) -> Grid<U>
+    where
+        F: Fn(T) -> U,
+        U: std::fmt::Debug + Clone,
+    {
+        let inner = self
+            .inner
+            .into_iter()
+            .map(|row| row.into_iter().map(&f).collect())
+            .collect();
+
+        Grid {
+            inner,
+            width: self.width,
+            height: self.height,
+        }
     }
 }
 
@@ -373,6 +428,53 @@ where
         }
 
         Ok(())
+    }
+}
+
+impl FromStr for Grid<char> {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+        let lines: Vec<&str> = s.lines().collect();
+        let height = lines.len();
+        let chars: Vec<Vec<_>> = lines.iter().map(|l| l.chars().collect()).collect();
+        let width = chars[0].len();
+
+        Ok(Grid {
+            inner: chars,
+            height,
+            width,
+        })
+    }
+}
+
+impl<T> From<Vec<Vec<T>>> for Grid<T>
+where
+    T: std::fmt::Debug + Clone,
+{
+    fn from(inner: Vec<Vec<T>>) -> Self {
+        let width = inner[0].len();
+        let height = inner.len();
+        Grid {
+            inner,
+            width,
+            height,
+        }
+    }
+}
+
+impl<T> From<&[Vec<T>]> for Grid<T>
+where
+    T: std::fmt::Debug + Clone,
+{
+    fn from(inner: &[Vec<T>]) -> Self {
+        let width = inner[0].len();
+        let height = inner.len();
+        Grid {
+            inner: inner.to_vec(),
+            width,
+            height,
+        }
     }
 }
 
@@ -452,7 +554,6 @@ mod tests {
             inner: expected_inner,
             width: 5,
             height: 5,
-            size: 25,
         };
 
         grid.rotate_clockwise_mut();
@@ -473,7 +574,6 @@ mod tests {
             ],
             width: 5,
             height: 5,
-            size: 25,
         };
 
         grid.rotate_counter_clockwise_mut();
@@ -494,14 +594,13 @@ mod tests {
     #[test]
     fn test_strip_bounding_rows_mut() {
         let mut grid = Grid::new(5, 3).map_coords(|p| (p.y * 10 + p.x) as i32);
-        grid.strip_bounding_rows_mut();
+        grid.strip_bounding_rows();
 
         let expected_inner = vec![vec![10, 11, 12], vec![20, 21, 22], vec![30, 31, 32]];
 
         assert_eq!(grid.height, 3);
         assert_eq!(grid.width, 3); // Width should be unchanged
         assert_eq!(grid.inner, expected_inner);
-        assert_eq!(grid.size, 9);
     }
 
     #[test]
@@ -509,7 +608,7 @@ mod tests {
         let mut grid = Grid::new(5, 4).map_coords(|p| (p.y * 10 + p.x) as i32);
         let expected = Grid::new(3, 2).map_coords(|p| ((p.y + 1) * 10 + (p.x + 1)) as i32);
 
-        grid.strip_boundaries_mut();
+        grid.strip_boundaries();
 
         assert_eq!(grid.height, 3, "Grid height should be reduced by 2");
         assert_eq!(grid.width, 2, "Grid width should be reduced by 2");
@@ -520,7 +619,7 @@ mod tests {
     fn test_strip_boundaries_mut_minimum_size() {
         let mut grid = Grid::new(3, 3).map_coords(|p| (p.y * 10 + p.x) as i32);
         let expected = Grid::new(1, 1).map_coords(|_| 11);
-        grid.strip_boundaries_mut();
+        grid.strip_boundaries();
 
         assert_eq!(grid, expected);
     }
@@ -529,7 +628,7 @@ mod tests {
     fn test_strip_boundaries_mut_too_small_to_strip() {
         let mut narrow_grid = Grid::new(5, 2).map_coords(|p| p.x as i32);
         let expected_narrow = narrow_grid.clone(); // Save the original state
-        narrow_grid.strip_boundaries_mut();
+        narrow_grid.strip_boundaries();
         assert_eq!(
             narrow_grid, expected_narrow,
             "Grid with width < 3 should not be changed"
@@ -537,7 +636,7 @@ mod tests {
 
         let mut short_grid = Grid::new(2, 5).map_coords(|p| p.x as i32);
         let expected_short = short_grid.clone(); // Save the original state
-        short_grid.strip_boundaries_mut();
+        short_grid.strip_boundaries();
         assert_eq!(
             short_grid, expected_short,
             "Grid with height < 3 should not be changed"
@@ -545,7 +644,7 @@ mod tests {
 
         let mut valid_grid = Grid::new(3, 5).map_coords(|p| p.x as i32);
         let expected_valid = Grid::new(1, 3).map_coords(|p| (p.x + 1) as i32);
-        valid_grid.strip_boundaries_mut();
+        valid_grid.strip_boundaries();
         assert_eq!(valid_grid, expected_valid, "A 3x5 grid should be stripped");
     }
 }

@@ -6,14 +6,12 @@ use aoc2024::{
 };
 use comfy_table::{Table, modifiers::UTF8_ROUND_CORNERS, presets::UTF8_FULL};
 
-type Solver = fn() -> usize;
-
 struct S {
     time: Duration,
 }
 
 impl S {
-    pub fn new(function: Solver, expected: usize) -> Self {
+    pub fn new(function: fn() -> usize, expected: usize) -> Self {
         let now = Instant::now();
         assert_eq!(function(), expected);
         let time = now.elapsed();
@@ -77,6 +75,6 @@ fn get_solutions() -> Vec<S> {
         S::new(day14::part1::solve, 230900224),
         S::new(day14::part2::solve, 6532),
         S::new(day15::part1::solve, 1526673),
-        S::new(day15::part1::solve, 1526673),
+        S::new(day15::part2::solve, 1535509),
     ]
 }

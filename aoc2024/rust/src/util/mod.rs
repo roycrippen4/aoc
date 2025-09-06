@@ -10,7 +10,7 @@ mod timing;
 
 pub use aoc::{Day, Part};
 pub use direction::Direction;
-pub use grid::Grid;
+pub use grid::{Entry, Grid};
 pub use point::Point;
 pub use quicksort::quicksort;
 pub use string_methods::StringMethods;
