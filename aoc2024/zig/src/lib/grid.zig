@@ -1,57 +1,15 @@
 const std = @import("std");
 const Allocator = std.mem.Allocator;
-
-/// (x, y) coordinate pairs for the grid
-pub const Position = struct { x: usize, y: usize };
+const Point = @import("point.zig").Point;
 
 /// Errors associated with the `grid` module
 pub const Error = error{ OutOfMemory, InvalidArgument };
 
-/// Eight cardinal directions
-pub const Direction = enum {
-    north,
-    east,
-    west,
-    south,
-    northeast,
-    northwest,
-    southeast,
-    southwest,
-};
-
-fn move(direction: Direction, pos: Position) Position {
-    return switch (direction) {
-        .north => .{ .x = pos.x, .y = pos.y -% 1 },
-        .south => .{ .x = pos.x, .y = pos.y + 1 },
-        .west => .{ .x = pos.x -% 1, .y = pos.y },
-        .east => .{ .x = pos.x + 1, .y = pos.y },
-        .northwest => .{ .x = pos.x -% 1, .y = pos.y -% 1 },
-        .northeast => .{ .x = pos.x + 1, .y = pos.y -% 1 },
-        .southwest => .{ .x = pos.x -% 1, .y = pos.y + 1 },
-        .southeast => .{ .x = pos.x + 1, .y = pos.y + 1 },
-    };
-}
-
-test "grid move function" {
-    const start_pos: Position = .{ .x = 5, .y = 5 };
-    try t.expectEqual(Position{ .x = 5, .y = 4 }, move(.north, start_pos));
-    try t.expectEqual(Position{ .x = 5, .y = 6 }, move(.south, start_pos));
-    try t.expectEqual(Position{ .x = 4, .y = 5 }, move(.west, start_pos));
-    try t.expectEqual(Position{ .x = 6, .y = 5 }, move(.east, start_pos));
-    try t.expectEqual(Position{ .x = 4, .y = 4 }, move(.northwest, start_pos));
-    try t.expectEqual(Position{ .x = 6, .y = 4 }, move(.northeast, start_pos));
-    try t.expectEqual(Position{ .x = 4, .y = 6 }, move(.southwest, start_pos));
-    try t.expectEqual(Position{ .x = 6, .y = 6 }, move(.southeast, start_pos));
-
-    // Test edge case near 0
-    const zero_pos: Position = .{ .x = 0, .y = 0 };
-    try t.expectEqual(Position{ .x = 0, .y = std.math.maxInt(usize) }, move(.north, zero_pos)); // Wraps with -|
-    try t.expectEqual(Position{ .x = std.math.maxInt(usize), .y = 0 }, move(.west, zero_pos)); // Wraps with -|
-}
-
 pub fn Grid(comptime T: type) type {
     return struct {
         const Self = @This();
+
+        pub const Entry = std.meta.Tuple(.{ usize, usize, T });
 
         /// Contents of the grid. This field is intended to be accessed
         /// directly.
@@ -60,152 +18,216 @@ pub fn Grid(comptime T: type) type {
         /// functions of this Grid in accordance with the respective
         /// documentation. In all cases, "invalidated" means that the memory
         /// has been passed to this allocator's resize or free function.
-        items: []T,
+        inner: []T,
 
         /// How many T values this list can hold without allocating
         /// additional memory.
-        allocator: Allocator,
+        gpa: Allocator,
 
         /// Width of the grid
         width: usize,
         /// Height of the grid
         height: usize,
-        /// Size (width * height) of the grid
-        size: usize,
 
         /// Initialize the grid
-        fn init(allocator: Allocator, grid_width: usize, grid_height: usize) Error!Self {
-            const size: usize = @intCast(grid_width * grid_height);
-            if (grid_width == 0 or grid_height == 0) return Error.InvalidArgument;
+        pub fn init(gpa: Allocator, width: usize, height: usize) Error!Self {
+            const size: usize = @intCast(width * height);
+            if (width == 0 or height == 0) return Error.InvalidArgument;
 
-            const buf = try allocator.alloc(T, size);
-            errdefer allocator.free(buf);
+            const buf = try gpa.alloc(T, size);
+            errdefer gpa.free(buf);
 
             return Self{
-                .items = buf,
-                .allocator = allocator,
-                .size = size,
-                .width = grid_width,
-                .height = grid_height,
+                .inner = buf,
+                .gpa = gpa,
+                .width = width,
+                .height = height,
             };
         }
 
         /// Initialize the grid with a default value
-        fn init_with_default(allocator: Allocator, default: T, grid_width: usize, grid_height: usize) Error!Self {
-            const self = try init(allocator, grid_width, grid_height);
+        pub fn init_with_default(gpa: Allocator, default: T, width: usize, height: usize) Error!Self {
+            const self = try init(gpa, width, height);
 
-            for (self.items) |*item| {
+            for (self.inner) |*item| {
                 item.* = default;
             }
 
             return self;
         }
 
-        /// Determine if the grid contains the given position
-        fn inside(self: Self, pos: Position) bool {
-            return pos.x < self.width and pos.y < self.height;
+        /// Creates a grid from a string.
+        /// Lines must be separated by `\n` and have a consistent width;
+        pub fn from_string(gpa: Allocator, str: []const u8) !Self {
+            var lines = std.mem.splitScalar(u8, str, '\n');
+            const first = lines.next() orelse return Error.InvalidArgument;
+            const width = first.len;
+
+            if (width == 0) return Error.InvalidArgument;
+
+            var height: usize = 1;
+            while (lines.next() != null) {
+                height += 1;
+            }
+
+            var self = try Self.init(gpa, width, height);
+            errdefer self.deinit();
+
+            lines.reset();
+            for (0..height) |y| {
+                const line = lines.next().?;
+                if (line.len != width) {
+                    return Error.InvalidArgument;
+                }
+
+                for (line, 0..) |c, x| {
+                    self.set(.{ .x = x, .y = y }, @as(T, @intCast(c)));
+                }
+            }
         }
 
-        /// Optionally returns some value at `(x, y)` or `null` if it doesn't exist
-        fn get_opt_ptr(self: *Self, pos: Position) ?*T {
-            return if (self.inside(pos))
-                &self.items[self.idx(pos)]
-            else
-                null;
-        }
-
-        fn get_opt(self: *Self, pos: Position) ?T {
-            return if (self.get_opt_ptr(pos)) |ptr|
-                ptr.*
-            else
-                return null;
-        }
-
-        /// Returns the value at `(x, y)` without checking grid bounds
-        fn get(self: *Self, pos: Position) T {
-            return self.items[self.idx(pos)];
-        }
-
-        /// Returns a pointer to the value at `pos`. Assumes `pos` is within grid bounds.
-        /// Behavior is undefined if `pos` is out of bounds (likely panic).
-        fn get_ptr(self: *Self, pos: Position) *T {
-            return &self.items[self.idx(pos)];
-        }
-
-        /// Sets the value at `pos`. Assumes `pos` is within grid bounds.
-        /// Behavior is undefined if `pos` is out of bounds (likely panic).
-        pub fn set(self: *Self, pos: Position, value: T) void {
-            self.items[self.idx(pos)] = value;
-        }
-
-        /// Calculates the index into the one-dimensional
-        /// data slice when given a (x, y) coordinate pair.
-        ///
-        /// Does not determine if the returned index is valid.
-        fn idx(self: Self, pos: Position) usize {
-            return pos.y * self.width + pos.x;
+        /// Creates a new `Grid` by rotating the provided grid 90° clockwise
+        pub fn rotate_clockwise(_: Self, gpa: Allocator) Self {
+            const g = try Self.init(gpa);
+            return g;
         }
 
         /// Free memory. Important: pointers derived from `self.items` become invalid.
-        fn deinit(self: *Self) void {
+        pub fn deinit(self: *Self) void {
             if (@sizeOf(T) > 0) {
-                self.allocator.free(self.items);
+                self.gpa.free(self.inner);
             }
 
             self.* = undefined;
         }
 
-        /// Returns a new grid after applying `f` to all elements of the original.
-        /// Does not mutate original grid.
-        fn map(self: Self, f: fn (Position, T) T) Error!Self {
-            const copy = try Self.init(self.allocator, self.width, self.height);
-            errdefer copy.deinit();
+        // ==========================================================
+        // ===================== Immutable API ======================
+        // ==========================================================
 
-            for (0..copy.height) |y| {
-                for (0..copy.width) |x| {
-                    const pos: Position = .{ .x = x, .y = y };
-                    const i = self.idx(pos);
-                    copy.items[i] = f(pos, self.items[i]);
-                }
-            }
-
-            return copy;
+        /// Determine if the grid contains the given position
+        pub fn inside(self: Self, pos: Point) bool {
+            return pos.x < self.width and pos.y < self.height;
         }
 
-        /// Mutates elements of the grid via `f`
-        fn map_mut(self: *Self, f: fn (Position, T) T) void {
-            for (0..self.height) |y| {
-                for (0..self.width) |x| {
-                    const pos: Position = .{ .x = x, .y = y };
-                    const i = self.idx(pos);
-                    self.items[i] = f(pos, self.items[i]);
-                }
-            }
+        /// Returns some value at `(x, y)` or `null` if it doesn't exist
+        pub fn get_opt(self: *const Self, pos: Point) ?T {
+            return if (self.get_opt_mut(pos)) |ptr| ptr.* else return null;
         }
 
-        /// Creates a copy of the grid, using the same allocator.
-        fn clone(self: Self) Error!Self {
-            const buf = try self.allocator.alloc(T, self.size);
-            errdefer self.allocator.free(buf);
+        /// Returns the value at `(x, y)` without checking grid bounds
+        pub fn get(self: *const Self, pos: Point) T {
+            return self.inner[self.idx(pos)];
+        }
 
-            @memcpy(buf, self.items);
+        /// Calculates the index into the one-dimensional
+        /// data slice when given a (x, y) coordinate pair.
+        pub fn idx(self: Self, pos: Point) usize {
+            return pos.y * self.width + pos.x;
+        }
 
-            return Self{
-                .items = buf,
-                .allocator = self.allocator,
-                .width = self.width,
-                .height = self.height,
-                .size = self.size,
+        /// Returns the values of the 4 cardinal neighbors around a point.
+        /// Null if a neighbor is out of bounds.
+        pub fn nbor4(self: *const Self, p: Point) [4]?T {
+            return .{
+                self.get_opt(p.north()),
+                self.get_opt(p.east()),
+                self.get_opt(p.south()),
+                self.get_opt(p.west()),
             };
         }
 
-        /// Creates a grid from a string. Splits on '\n'.
-        fn fromString(allocator: Allocator, str: []const u8) Error!Self {
-            const lines = std.mem.tokenizeScalar(str, '\n');
-            if (lines.len == 0) return Error.InvalidArgument;
-
-            // const height = lines.len;
+        /// Returns the values of the 8 surrounding neighbors around a point.
+        /// Null if a neighbor is out of bounds.
+        pub fn nbor8(self: *const Self, p: Point) [4]?T {
+            return .{
+                self.get_opt(p.north()),
+                self.get_opt(p.northeast()),
+                self.get_opt(p.east()),
+                self.get_opt(p.southeast()),
+                self.get_opt(p.south()),
+                self.get_opt(p.southwest()),
+                self.get_opt(p.west()),
+                self.get_opt(p.northwest()),
+            };
         }
+
+        /// Creates a copy of the grid, using the same allocator.
+        pub fn clone(self: Self) Error!Self {
+            const buf = try self.gpa.alloc(T, self.width * self.height);
+            errdefer self.gpa.free(buf);
+            @memcpy(buf, self.inner);
+            return Self{
+                .inner = buf,
+                .gpa = self.gpa,
+                .width = self.width,
+                .height = self.height,
+            };
+        }
+
+        /// Searches for the first element's position that satisfies the predicate
+        pub fn find(self: *const Self, comptime predicate: fn (Point, T) bool) ?Point {
+            for (0..self.height) |y| {
+                for (0..self.wdith) |x| {
+                    const p = Point.init(x, y);
+                    if (predicate(p, self.get(p))) {
+                        return p;
+                    }
+                }
+            }
+            return null;
+        }
+
+        // ==========================================================
+        // ===================== Mutable API ========================
+        // ==========================================================
+
+        /// Returns a pointer to the value at `pos`. Assumes `pos` is within grid bounds.
+        fn get_mut(self: *const Self, pos: Point) *T {
+            return &self.inner[self.idx(pos)];
+        }
+
+        /// Returns a pointer to some value at `(x, y)` or `null` if it doesn't exist
+        pub fn get_opt_mut(self: *const Self, pos: Point) ?*T {
+            return if (self.inside(pos)) &self.inner[self.idx(pos)] else null;
+        }
+
+        /// Sets the value at `pos`. Assumes `pos` is within grid bounds.
+        pub fn set(self: *Self, pos: Point, value: T) void {
+            self.inner[self.idx(pos)] = value;
+        }
+
+        // /// Returns a new grid after applying `f` to all elements of the original.
+        // /// Does not mutate original grid.
+        // fn map(self: Self, f: fn (Point, T) T) Error!Self {
+        //     const copy = try Self.init(self.gpa, self.width, self.height);
+        //     errdefer copy.deinit();
+        //
+        //     for (0..copy.height) |y| {
+        //         for (0..copy.width) |x| {
+        //             const pos = Point.init(x, y);
+        //             const i = self.idx(pos);
+        //             copy.inner[i] = f(pos, self.inner[i]);
+        //         }
+        //     }
+        //
+        //     return copy;
+        // }
+
+        /// Applies the function `f` to each coordinate `p` in the `grid`, replacing the original value
+        pub fn map_coords_mut(self: *Self, f: fn (Point, T) T) void {
+            for (0..self.height) |y| {
+                for (0..self.width) |x| {
+                    const pos = Point.init(x, y);
+                    const i = self.idx(pos);
+                    self.inner[i] = f(pos, self.inner[i]);
+                }
+            }
+        }
+
+        // /// Applies the function `f` to each entry in the `Grid`, producing a new `Grid`
+        // pub fn map(self: Self, comptime U: type, f: fn (Entry) U) Grid(U) {
+        // }
 
         /// Best-effort pretty printing of the grid to stdout
         fn print(self: *Self) void {
@@ -213,7 +235,7 @@ pub fn Grid(comptime T: type) type {
             const w_minus_1 = self.width - 1;
 
             var buf: [256]u8 = undefined;
-            for (self.items, 0..) |item, i| {
+            for (self.inner, 0..) |item, i| {
                 const str = switch (print_as_chars) {
                     true => std.fmt.bufPrint(&buf, "{c} ", .{item}) catch unreachable,
                     false => std.fmt.bufPrint(&buf, "{d} ", .{item}) catch unreachable,
@@ -225,7 +247,8 @@ pub fn Grid(comptime T: type) type {
                 }
             }
 
-            if (self.size > 0 and self.size % self.width != 0) {
+            const size = self.width * self.height;
+            if (size > 0 and size % self.width != 0) {
                 std.debug.print("\n", .{});
             }
         }
@@ -234,7 +257,7 @@ pub fn Grid(comptime T: type) type {
 
 const t = std.testing;
 
-fn sum(p: Position, _: u16) u16 {
+fn sum(p: Point, _: u16) u16 {
     return @intCast(p.x + p.y);
 }
 
@@ -242,12 +265,12 @@ test "grid Grid init" {
     var grid = try Grid(u16).init(t.allocator, 5, 5);
     defer grid.deinit();
 
-    grid.map_mut(sum);
+    grid.map_coords_mut(sum);
 
-    try t.expectEqual(@as(usize, 25), grid.items.len);
+    try t.expectEqual(@as(usize, 25), grid.inner.len);
     try t.expectEqual(@as(usize, 5), grid.width);
     try t.expectEqual(@as(usize, 5), grid.height);
-    try t.expectEqual(@as(usize, 25), grid.size);
+    try t.expectEqual(@as(usize, 25), grid.width * grid.height);
 
     const val = grid.get_opt(.{ .x = 4, .y = 4 });
     try t.expect(val != null);
@@ -265,10 +288,10 @@ test "grid init argument errors" {
 test "grid init_with_default" {
     var grid = try Grid(usize).init_with_default(t.allocator, 420, 5, 5);
     defer grid.deinit();
-    try t.expectEqual(@as(usize, 25), grid.items.len);
-    try t.expectEqual(@as(usize, 420), grid.items[0]); // Check first
-    try t.expectEqual(@as(usize, 420), grid.items[12]); // Check middle
-    try t.expectEqual(@as(usize, 420), grid.items[24]); // Check last
+    try t.expectEqual(@as(usize, 25), grid.inner.len);
+    try t.expectEqual(@as(usize, 420), grid.inner[0]); // Check first
+    try t.expectEqual(@as(usize, 420), grid.inner[12]); // Check middle
+    try t.expectEqual(@as(usize, 420), grid.inner[24]); // Check last
     try t.expectEqual(@as(usize, 420), grid.get(.{ .x = 2, .y = 2 })); // Use get
 }
 
@@ -277,11 +300,10 @@ test "grid idx function" {
     const H = 3;
 
     const dummy_grid = Grid(u8){
-        .items = &[_]u8{}, // Doesn't matter for idx
-        .allocator = undefined, // Not needed
+        .inner = &[_]u8{}, // Doesn't matter for idx
+        .gpa = undefined, // Not needed
         .width = W,
         .height = H,
-        .size = W * H,
     };
 
     try t.expectEqual(@as(usize, 0), dummy_grid.idx(.{ .x = 0, .y = 0 })); // Top-left
@@ -296,11 +318,10 @@ test "grid inside function" {
     const W = 5;
     const H = 4;
     const dummy_grid = Grid(u8){
-        .items = &[_]u8{},
-        .allocator = undefined,
+        .inner = &[_]u8{},
+        .gpa = undefined,
         .width = W,
         .height = H,
-        .size = W * H,
     };
 
     // Inside
@@ -324,7 +345,7 @@ test "grid get, get_opt, get_ptr, get_opt_ptr, set" {
     const H = 2;
     var grid = try Grid(u16).init(t.allocator, W, H);
     defer grid.deinit();
-    grid.map_mut(sum);
+    grid.map_coords_mut(sum);
 
     try t.expectEqual(@as(u16, 0), grid.get(.{ .x = 0, .y = 0 }));
     try t.expectEqual(@as(u16, 2), grid.get(.{ .x = 2, .y = 0 }));
@@ -339,18 +360,18 @@ test "grid get, get_opt, get_ptr, get_opt_ptr, set" {
     try t.expectEqual(null, grid.get_opt(.{ .x = 3, .y = 2 })); // Out of bounds X and Y
     try t.expectEqual(null, grid.get_opt(.{ .x = 99, .y = 99 })); // Far out of bounds
 
-    const ptr1 = grid.get_ptr(.{ .x = 1, .y = 1 });
+    const ptr1 = grid.get_mut(.{ .x = 1, .y = 1 });
     try t.expectEqual(@as(u16, 2), ptr1.*);
     ptr1.* = 99;
     try t.expectEqual(@as(u16, 99), grid.get(.{ .x = 1, .y = 1 }));
 
-    const ptr2 = grid.get_opt_ptr(.{ .x = 0, .y = 0 });
+    const ptr2 = grid.get_opt_mut(.{ .x = 0, .y = 0 });
     try t.expect(ptr2 != null);
     try t.expectEqual(@as(u16, 0), ptr2.?.*);
     ptr2.?.* = 111;
     try t.expectEqual(@as(u16, 111), grid.get(.{ .x = 0, .y = 0 }));
 
-    const ptr_null = grid.get_opt_ptr(.{ .x = W, .y = 0 }); // Out of bounds
+    const ptr_null = grid.get_opt_mut(.{ .x = W, .y = 0 }); // Out of bounds
     try t.expect(ptr_null == null);
 
     grid.set(.{ .x = 2, .y = 1 }, 222);
@@ -362,7 +383,7 @@ test "grid map (non-mutating)" {
     defer grid.deinit();
 
     const add_pos = struct {
-        fn func(pos: Position, val: u16) u16 {
+        fn func(pos: Point, val: u16) u16 {
             const x: u16 = @intCast(pos.x);
             const y: u16 = @intCast(pos.y);
             return val + x + y;
@@ -383,35 +404,17 @@ test "grid map (non-mutating)" {
 
     try t.expectEqual(grid.width, mapped_grid.width);
     try t.expectEqual(grid.height, mapped_grid.height);
-    try t.expect(grid.items.ptr != mapped_grid.items.ptr); // Ensure distinct memory
+    try t.expect(grid.inner.ptr != mapped_grid.inner.ptr); // Ensure distinct memory
 }
 
 test "grid map_mut" {
     var grid = try Grid(u16).init(t.allocator, 5, 5);
     defer grid.deinit();
-    grid.map_mut(sum); // Test map_mut which uses idx internally
-    try t.expectEqual(@as(usize, 25), grid.items.len);
+    grid.map_coords_mut(sum); // Test map_mut which uses idx internally
+    try t.expectEqual(@as(usize, 25), grid.inner.len);
     try t.expectEqual(@as(u16, 0), grid.get(.{ .x = 0, .y = 0 }));
     try t.expectEqual(@as(u16, 8), grid.get(.{ .x = 4, .y = 4 }));
     try t.expectEqual(@as(u16, 4), grid.get(.{ .x = 1, .y = 3 }));
-}
-
-test "grid print" {
-    std.debug.print("\n--- grid print u8 ---\n", .{});
-    // Use smaller grid for concise output
-    var grid_u8 = try Grid(u8).init_with_default(t.allocator, 'x', 3, 2);
-    defer grid_u8.deinit();
-    grid_u8.set(.{ .x = 1, .y = 0 }, 'A');
-    grid_u8.set(.{ .x = 0, .y = 1 }, 'B');
-    grid_u8.print();
-
-    std.debug.print("\n--- grid print u64 ---\n", .{});
-    var grid_u64 = try Grid(u64).init_with_default(t.allocator, 55, 2, 3);
-    defer grid_u64.deinit();
-    grid_u64.set(.{ .x = 0, .y = 1 }, 111);
-    grid_u64.set(.{ .x = 1, .y = 2 }, 999);
-    grid_u64.print();
-    std.debug.print("\n---------------------\n", .{});
 }
 
 test "grid clone" {
@@ -419,26 +422,26 @@ test "grid clone" {
     const height = 3;
     var original = try Grid(u16).init(t.allocator, width, height);
     defer original.deinit();
-    original.map_mut(sum); // Fill with initial values
+    original.map_coords_mut(sum); // Fill with initial values
 
     var cloned = try original.clone();
     defer cloned.deinit();
 
     try t.expectEqual(original.width, cloned.width);
     try t.expectEqual(original.height, cloned.height);
-    try t.expectEqual(original.size, cloned.size);
-    try t.expectEqual(original.items.len, cloned.items.len);
-    try t.expect(original.items.ptr != cloned.items.ptr);
-    try t.expect(std.mem.eql(u16, original.items, cloned.items));
+    try t.expectEqual(original.height * original.width, cloned.height * cloned.width);
+    try t.expectEqual(original.inner.len, cloned.inner.len);
+    try t.expect(original.inner.ptr != cloned.inner.ptr);
+    try t.expect(std.mem.eql(u16, original.inner, cloned.inner));
 
-    const change_pos_1 = Position{ .x = 1, .y = 1 };
+    const change_pos_1 = Point{ .x = 1, .y = 1 };
     const original_value_1 = original.get(change_pos_1);
     cloned.set(change_pos_1, 99);
     try t.expectEqual(original_value_1, original.get(change_pos_1));
     try t.expectEqual(@as(u16, 99), cloned.get(change_pos_1));
 
     // Modify original, check clone unchanged
-    const change_pos_2 = Position{ .x = 0, .y = 0 };
+    const change_pos_2 = Point{ .x = 0, .y = 0 };
     const cloned_value_2 = cloned.get(change_pos_2);
     original.set(change_pos_2, 111);
     try t.expectEqual(cloned_value_2, cloned.get(change_pos_2));
@@ -451,7 +454,7 @@ test "grid edge cases 1xN and Nx1" {
     defer grid1x5.deinit();
     try t.expectEqual(@as(usize, 1), grid1x5.width);
     try t.expectEqual(@as(usize, 5), grid1x5.height);
-    try t.expectEqual(@as(usize, 5), grid1x5.size);
+    try t.expectEqual(@as(usize, 5), grid1x5.width * grid1x5.height);
     grid1x5.set(.{ .x = 0, .y = 2 }, 99);
     try t.expectEqual(@as(u8, 1), grid1x5.get(.{ .x = 0, .y = 0 }));
     try t.expectEqual(@as(u8, 99), grid1x5.get(.{ .x = 0, .y = 2 }));
@@ -464,7 +467,7 @@ test "grid edge cases 1xN and Nx1" {
     defer grid5x1.deinit();
     try t.expectEqual(@as(usize, 5), grid5x1.width);
     try t.expectEqual(@as(usize, 1), grid5x1.height);
-    try t.expectEqual(@as(usize, 5), grid5x1.size);
+    try t.expectEqual(@as(usize, 5), grid5x1.width * grid5x1.height);
     grid5x1.set(.{ .x = 3, .y = 0 }, 88);
     try t.expectEqual(@as(u8, 2), grid5x1.get(.{ .x = 0, .y = 0 }));
     try t.expectEqual(@as(u8, 88), grid5x1.get(.{ .x = 3, .y = 0 }));
