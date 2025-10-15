@@ -1,4 +1,4 @@
-const lib = @import("aoc");
+const aoc = @import("aoc");
 const std = @import("std");
 
 const input: []const u8 = @embedFile("data/day03/data.txt");
@@ -78,11 +78,11 @@ pub fn part2(_: std.mem.Allocator) anyerror!usize {
 const t = std.testing;
 
 test "day03 part1" {
-    _ = try lib.validate(part1, 173731097, lib.Day.three, lib.Part.one, t.allocator);
+    _ = try aoc.validate(part1, 173731097, aoc.Day.three, aoc.Part.one, t.allocator);
 }
 
 test "day03 part2" {
-    _ = try lib.validate(part2, 93729253, lib.Day.three, lib.Part.two, t.allocator);
+    _ = try aoc.validate(part2, 93729253, aoc.Day.three, aoc.Part.two, t.allocator);
 }
 
 test "day03 parse" {

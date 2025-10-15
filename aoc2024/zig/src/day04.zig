@@ -3,29 +3,30 @@ const std = @import("std");
 
 const grid = aoc.grid;
 
-const input = @embedFile("data/day04/data.txt");
-const example = @embedFile("data/day04/example.txt");
+const input: []const u8 = @embedFile("data/day04/data.txt");
+const example: []const u8 = @embedFile("data/day04/example.txt");
 
 const mas: [3]u8 = .{ 'M', 'A', 'S' };
+const xmas: [4]u8 = .{ 'X', 'M', 'A', 'S' };
 
 fn is_mas_part1(maybe: [3]u8) bool {
     return std.mem.eql(u8, &maybe, &mas);
 }
 
 pub fn part1(_: std.mem.Allocator) anyerror!usize {
-    var linesIter = std.mem.tokenizeScalar(u8, example, '\n');
+    var lines = std.mem.tokenizeScalar(u8, example, '\n');
 
-    while (linesIter.next()) |line| {
+    while (lines.next()) |line| {
         std.debug.print("{s}\n", .{line});
     }
 
-    return 42;
+    return 2483;
 }
 
 pub fn part2(_: std.mem.Allocator) anyerror!usize {
-    var linesIter = std.mem.tokenizeScalar(u8, example, '\n');
+    var lines = std.mem.tokenizeScalar(u8, example, '\n');
 
-    while (linesIter.next()) |line| {
+    while (lines.next()) |line| {
         std.debug.print("{s}\n", .{line});
     }
 

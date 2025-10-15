@@ -1,5 +1,6 @@
-const lib = @import("aoc");
+const aoc = @import("aoc");
 const std = @import("std");
+
 const ArrayList = std.ArrayList;
 const HashMap = std.AutoHashMap;
 const t = std.testing;
@@ -14,17 +15,17 @@ fn parseTuple(line: []const u8) anyerror!struct { usize, usize } {
     return .{ l, r };
 }
 
-pub fn part1(allocator: std.mem.Allocator) anyerror!usize {
-    var left = ArrayList(usize).init(allocator);
-    var right = ArrayList(usize).init(allocator);
-    defer _ = left.deinit();
-    defer _ = right.deinit();
+pub fn part1(gpa: std.mem.Allocator) anyerror!usize {
+    var left = try ArrayList(usize).initCapacity(gpa, 1024);
+    var right = try ArrayList(usize).initCapacity(gpa, 1024);
+    defer _ = left.deinit(gpa);
+    defer _ = right.deinit(gpa);
 
     var flines = std.mem.tokenizeAny(u8, input, "\n");
     while (flines.next()) |line| {
         const l, const r = try parseTuple(line);
-        try left.append(l);
-        try right.append(r);
+        try left.append(gpa, l);
+        try right.append(gpa, r);
     }
 
     std.mem.sort(usize, left.items, {}, comptime std.sort.asc(usize));
@@ -33,7 +34,7 @@ pub fn part1(allocator: std.mem.Allocator) anyerror!usize {
     var total: usize = 0;
 
     for (0..left.items.len) |idx| {
-        total += lib.absDiff(left.items[idx], right.items[idx]);
+        total += aoc.absDiff(left.items[idx], right.items[idx]);
     }
 
     return total;
@@ -75,12 +76,12 @@ pub fn part2(allocator: std.mem.Allocator) anyerror!usize {
     return total;
 }
 
-test "part2" {
-    _ = try lib.validate(part1, 1506483, lib.Day.one, lib.Part.one, t.allocator);
+test "day01 part1" {
+    _ = try aoc.validate(part1, 1506483, aoc.Day.one, aoc.Part.one, t.allocator);
 }
 
 test "day01 part2" {
-    _ = try lib.validate(part2, 23126924, lib.Day.one, lib.Part.two, t.allocator);
+    _ = try aoc.validate(part2, 23126924, aoc.Day.one, aoc.Part.two, t.allocator);
 }
 
 test "day01 parseTuple" {

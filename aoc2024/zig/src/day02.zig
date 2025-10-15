@@ -1,4 +1,4 @@
-const lib = @import("aoc");
+const aoc = @import("aoc");
 const std = @import("std");
 const Allocator = std.mem.Allocator;
 
@@ -96,11 +96,11 @@ pub fn part2(allocator: Allocator) anyerror!usize {
 const t = std.testing;
 
 test "day02 part1" {
-    _ = try lib.validate(part1, 202, lib.Day.two, lib.Part.one, t.allocator);
+    _ = try aoc.validate(part1, 202, aoc.Day.two, aoc.Part.one, t.allocator);
 }
 
 test "day02 part2" {
-    _ = try lib.validate(part2, 271, lib.Day.two, lib.Part.two, t.allocator);
+    _ = try aoc.validate(part2, 271, aoc.Day.two, aoc.Part.two, t.allocator);
 }
 
 test "day02 isSafe" {

@@ -4,23 +4,24 @@ pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
-    const lib_mod = b.createModule(.{
+    const lib_mod = b.addModule("aoc", .{
         .root_source_file = b.path("src/lib/root.zig"),
         .target = target,
-        .optimize = optimize,
     });
 
     const exe_mod = b.createModule(.{
         .root_source_file = b.path("src/main.zig"),
         .target = target,
         .optimize = optimize,
+        .imports = &.{
+            .{ .name = "aoc", .module = lib_mod },
+        },
     });
 
-    exe_mod.addImport("aoc", lib_mod);
-    const lib = b.addLibrary(.{ .linkage = .static, .name = "aoc", .root_module = lib_mod });
-    b.installArtifact(lib);
-
-    const exe = b.addExecutable(.{ .name = "aoc2024", .root_module = exe_mod });
+    const exe = b.addExecutable(.{
+        .name = "aoc2024",
+        .root_module = exe_mod,
+    });
     b.installArtifact(exe);
 
     const run_cmd = b.addRunArtifact(exe);
