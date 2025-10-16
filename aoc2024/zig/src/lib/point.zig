@@ -54,6 +54,30 @@ pub const Point = struct {
         };
     }
 
+    pub fn unit_step_opt(self: Point, d: Direction) ?Point {
+        const x = self.x;
+        const y = self.y;
+        const usize_max = std.math.maxInt(usize);
+
+        const bad_n = y == 0;
+        const bad_s = y == usize_max;
+        const bad_w = x == 0;
+        const bad_e = x == usize_max;
+
+        // zig fmt: off
+        return switch (d) {
+            .north     => return if (bad_n         ) null else Point.init(x, y - 1    ),
+            .south     => return if (bad_s         ) null else Point.init(x, y + 1    ),
+            .west      => return if (bad_w         ) null else Point.init(x - 1, y    ),
+            .east      => return if (bad_e         ) null else Point.init(x + 1, y    ),
+            .northeast => return if (bad_e or bad_n) null else Point.init(x + 1, y - 1),
+            .northwest => return if (bad_w or bad_n) null else Point.init(x - 1, y - 1),
+            .southeast => return if (bad_e or bad_s) null else Point.init(x + 1, y + 1),
+            .southwest => return if (bad_w or bad_s) null else Point.init(x - 1, y + 1),
+        };
+        // zig fmt: on
+    }
+
     /// Returns a new point shifted one unit north
     pub fn north(self: Point) Point {
         return self.unit_step(Direction.north);
@@ -92,6 +116,46 @@ pub const Point = struct {
     /// Returns a new point shifted one unit north-west
     pub fn northwest(self: Point) Point {
         return self.unit_step(Direction.northwest);
+    }
+
+    /// Optionally returns a new point shifted one unit north
+    pub fn north_opt(self: Point) ?Point {
+        return self.unit_step_opt(Direction.north);
+    }
+
+    /// Optionally returns a new point shifted one unit south
+    pub fn south_opt(self: Point) ?Point {
+        return self.unit_step_opt(Direction.south);
+    }
+
+    /// Optionally returns a new point shifted one unit east
+    pub fn east_opt(self: Point) ?Point {
+        return self.unit_step_opt(Direction.east);
+    }
+
+    /// Optionally returns a new point shifted one unit west
+    pub fn west_opt(self: Point) ?Point {
+        return self.unit_step_opt(Direction.west);
+    }
+
+    /// Optionally returns a new point shifted one unit south-east
+    pub fn southeast_opt(self: Point) ?Point {
+        return self.unit_step_opt(Direction.southeast);
+    }
+
+    /// Optionally returns a new point shifted one unit south-west
+    pub fn southwest_opt(self: Point) ?Point {
+        return self.unit_step_opt(Direction.southwest);
+    }
+
+    /// Optionally returns a new point shifted one unit north-east
+    pub fn northeast_opt(self: Point) ?Point {
+        return self.unit_step_opt(Direction.northeast);
+    }
+
+    /// Optionally returns a new point shifted one unit north-west
+    pub fn northwest_opt(self: Point) ?Point {
+        return self.unit_step_opt(Direction.northwest);
     }
 
     fn unit_step_mut(self: *Point, d: Direction) void {
@@ -164,13 +228,31 @@ pub const Point = struct {
     /// Order of the Array starts at `Direction.north`, rotates clockwise, and ends with
     /// `Direction.west`.
     pub fn nbor4(self: Point) [4]Point {
-        return .{ self.north(), self.east(), self.south(), self.west() };
+        return .{
+            self.north(),
+            self.east(),
+            self.south(),
+            self.west(),
+        };
+    }
+
+    /// Get the coordinates of all orthoganal neighbors from a given point `p`.
+    ///
+    /// Order of the Array starts at `Direction.north`, rotates clockwise, and ends with
+    /// `Direction.west`.
+    pub fn nbor4_opt(self: Point) [4]?Point {
+        return .{
+            self.north_opt(),
+            self.east_opt(),
+            self.south_opt(),
+            self.west_opt(),
+        };
     }
 
     /// Get the coordinates of the eight surrounding neighbors (cardinal and intercardinal directions)
     /// from a given point `p`, often referred to as the [8-wind compass rose](https://en.wikipedia.org/wiki/Points_of_the_compass#8-wind_compass_rose).
     ///
-    /// The order of the array starts at `Direction::North` and rotates clockwise.
+    /// The order of the array starts at `Direction.north` and rotates clockwise.
     pub fn nbor8(self: Point) [8]Point {
         return .{
             self.north(),
@@ -181,6 +263,24 @@ pub const Point = struct {
             self.southwest(),
             self.west(),
             self.northwest(),
+        };
+    }
+
+    /// Get the coordinates of the eight surrounding neighbors (cardinal and intercardinal directions)
+    /// from a given point `p`, often referred to as the [8-wind compass rose](https://en.wikipedia.org/wiki/Points_of_the_compass#8-wind_compass_rose).
+    ///
+    /// The order of the array starts at `Direction.north` and rotates clockwise.
+    /// If the point overflows or underflows it will be `null`
+    pub fn nbor8_opt(self: Point) [8]?Point {
+        return .{
+            self.north_opt(),
+            self.northeast_opt(),
+            self.east_opt(),
+            self.southeast_opt(),
+            self.south_opt(),
+            self.southwest_opt(),
+            self.west_opt(),
+            self.northwest_opt(),
         };
     }
 
@@ -276,6 +376,26 @@ test "point neighbor generation" {
         Point.init(2, 3), // West
         Point.init(2, 2), // Northwest
     }, &n8);
+}
+
+test "point nbor opt generation" {
+    const p = Point.init(0, 0);
+    const n4 = p.nbor4_opt();
+    const expected_n4 = .{ null, Point.init(1, 0), Point.init(0, 1), null };
+    try std.testing.expectEqualSlices(?Point, &expected_n4, &n4);
+
+    const n8 = p.nbor8_opt();
+    const expected_n8 = .{
+        null,
+        null,
+        Point.init(1, 0),
+        Point.init(1, 1),
+        Point.init(0, 1),
+        null,
+        null,
+        null,
+    };
+    try std.testing.expectEqualSlices(?Point, &expected_n8, &n8);
 }
 
 test "point to_string" {
