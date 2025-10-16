@@ -57,7 +57,9 @@ pub fn Grid(comptime T: type) type {
                 }
             }
 
-            var lines = std.mem.splitScalar(u8, str, '\n');
+            const s = std.mem.trimEnd(u8, str, "\n");
+            var lines = std.mem.splitScalar(u8, s, '\n');
+
             const first = lines.next() orelse return Error.InvalidArgument;
             const width = first.len;
 
