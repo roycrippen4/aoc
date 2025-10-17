@@ -7,7 +7,7 @@ fn create_grid(input: &str) -> Vec<Vec<char>> {
     let pad_rows = vec![pad.clone(); 4];
     data.splice(0..0, pad_rows.clone());
     data.extend(pad_rows);
-    data.into_iter().map(|r| r.to_char_vec()).collect()
+    data.iter().map(String::to_char_vec).collect()
 }
 
 const XMAS: [char; 4] = ['X', 'M', 'A', 'S'];
