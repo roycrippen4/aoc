@@ -142,6 +142,11 @@ pub fn Grid(comptime T: type) type {
         }
 
         /// Returns the value at `(x, y)` without checking grid bounds
+        pub fn get_by_coord(self: *const Self, x: usize, y: usize) T {
+            return self.inner[y * self.width + x];
+        }
+
+        /// Returns the value at `(x, y)` without checking grid bounds
         pub fn get(self: *const Self, pos: Point) T {
             return self.inner[self.idx(pos)];
         }
@@ -196,21 +201,36 @@ pub fn Grid(comptime T: type) type {
 
         /// Best-effort pretty printing of the grid to stdout
         pub fn print(self: *const Self) void {
-            const print_as_chars = T == u8;
             const w_minus_1 = self.width - 1;
 
-            var buf: [256]u8 = undefined;
-            for (self.inner, 0..) |item, i| {
-                const str = switch (print_as_chars) {
-                    true => std.fmt.bufPrint(&buf, "{c} ", .{item}) catch unreachable,
-                    false => std.fmt.bufPrint(&buf, "{d} ", .{item}) catch unreachable,
-                };
+            const fmt = switch (T) {
+                u8 => "{c} ",
+                comptime_int => "{d} ",
+                else => "{any} ",
+            };
 
-                std.debug.print("{s}", .{str});
+            for (self.inner, 0..) |item, i| {
+                std.debug.print(fmt, .{item});
+
                 if (i % self.width == w_minus_1) {
                     std.debug.print("\n", .{});
                 }
             }
+
+            std.debug.print("\n", .{});
+        }
+
+        pub fn print_with_context(self: *const Self, ctx: []const u8) void {
+            std.debug.print("{s}\n", .{ctx});
+            self.print();
+        }
+
+        pub fn print_with_details(self: *const Self) void {
+            std.debug.print("width: {d}\n", .{self.width});
+            std.debug.print("height: {d}\n", .{self.height});
+            std.debug.print("inner: {any}\n", .{self.inner});
+
+            self.print();
         }
 
         /// Creates a new `Grid(U)` from a `Grid(T)` by applying
@@ -288,6 +308,335 @@ pub fn Grid(comptime T: type) type {
                 }
             }
         }
+
+        /// Adds padding to the start of each row in the grid.
+        pub fn pad_left(self: *Self, n: comptime_int, pad: T) !void {
+            if (n == 0) return;
+
+            const new_width = self.width + n;
+            const new_inner = try self.gpa.alloc(T, new_width * self.height);
+
+            for (0..self.height) |y| {
+                const new_start = y * new_width;
+                const old_start = y * self.width;
+
+                for (new_inner[new_start .. new_start + n]) |*item| {
+                    item.* = pad;
+                }
+
+                @memcpy(
+                    new_inner[new_start + n .. new_start + new_width],
+                    self.inner[old_start .. old_start + self.width],
+                );
+            }
+
+            self.gpa.free(self.inner);
+            self.inner = new_inner;
+            self.width = new_width;
+        }
+
+        /// Adds padding to the end of each row in the grid.
+        pub fn pad_right(self: *Self, n: comptime_int, pad: T) !void {
+            if (n == 0) return;
+
+            const old_width = self.width;
+            const new_width = old_width + n;
+            const new_inner = try self.gpa.alloc(T, new_width * self.height);
+
+            for (0..self.height) |y| {
+                const new_start = y * new_width;
+                const old_start = y * old_width;
+
+                const dest = new_inner[new_start .. new_start + old_width];
+                const source = self.inner[old_start .. old_start + old_width];
+                @memcpy(dest, source);
+
+                for (new_inner[new_start + old_width .. new_start + new_width]) |*item| {
+                    item.* = pad;
+                }
+            }
+
+            self.gpa.free(self.inner);
+            self.inner = new_inner;
+            self.width = new_width;
+        }
+
+        /// Adds padding rows to the top of the grid.
+        pub fn pad_up(self: *Self, n: usize, pad: T) !void {
+            if (n == 0) return;
+            const size = self.width * (self.height + n);
+            const new_inner = try self.gpa.alloc(T, size);
+
+            for (new_inner[0 .. n * self.width]) |*item| {
+                item.* = pad;
+            }
+
+            const dest = new_inner[n * self.width ..];
+            const src = self.inner[0..];
+            @memcpy(dest, src);
+
+            self.gpa.free(self.inner);
+            self.inner = new_inner;
+            self.height = self.height + n;
+        }
+
+        /// Adds padding rows to the bottom of the grid.
+        pub fn pad_down(self: *Self, n: usize, pad: T) !void {
+            if (n == 0) return;
+
+            const old_size = self.width * self.height;
+            const size = self.width * (self.height + n);
+            const new_inner = try self.gpa.alloc(T, size);
+
+            for (new_inner[old_size..]) |*item| {
+                item.* = pad;
+            }
+
+            const dest = new_inner[0..old_size];
+            const src = self.inner[0..];
+            @memcpy(dest, src);
+
+            self.gpa.free(self.inner);
+            self.inner = new_inner;
+            self.height = self.height + n;
+        }
+
+        /// Adds padding to the left *and* right sides of the grid.
+        pub fn pad_horizontal(self: *Self, n: usize, pad: T) !void {
+            if (n == 0) return;
+
+            const old_width = self.width;
+            const new_width = old_width + n * 2;
+            const new_inner = try self.gpa.alloc(T, new_width * self.height);
+
+            for (0..self.height) |y| {
+                const new_start = y * new_width + n;
+                const old_start = y * old_width;
+
+                const dest = new_inner[new_start .. new_start + old_width];
+                const source = self.inner[old_start .. old_start + old_width];
+                @memcpy(dest, source);
+
+                for (new_inner[new_start - n .. new_start]) |*item| {
+                    item.* = pad;
+                }
+
+                for (new_inner[new_start + old_width .. new_start + new_width - n]) |*item| {
+                    item.* = pad;
+                }
+            }
+
+            self.gpa.free(self.inner);
+            self.inner = new_inner;
+            self.width = new_width;
+        }
+
+        /// Adds padding to the top *and* bottom of the grid.
+        pub fn pad_vertical(self: *Self, n: usize, pad: T) !void {
+            if (n == 0) return;
+
+            const new_start = n * self.width;
+            const old_size = self.width * self.height;
+            const size = self.width * (self.height + n + n);
+            const new_inner = try self.gpa.alloc(T, size);
+
+            // Copy the original into the middle
+            const dest = new_inner[new_start .. new_start + old_size];
+            const src = self.inner[0..];
+            @memcpy(dest, src);
+
+            // Set the top to the pad value
+            for (new_inner[old_size + (n * self.width) ..]) |*item| {
+                item.* = pad;
+            }
+
+            // Set the bottom to the pad value
+            for (new_inner[0 .. n * self.width]) |*item| {
+                item.* = pad;
+            }
+
+            self.gpa.free(self.inner);
+            self.inner = new_inner;
+            self.height = self.height + n + n;
+        }
+
+        /// Adds padding to all sides of the grid.
+        pub fn pad_sides(self: *Self, n: usize, pad: T) !void {
+            if (n == 0) return;
+
+            const old_width = self.width;
+            const old_height = self.height;
+            const new_width = old_width + n * 2;
+            const new_height = old_height + n * 2;
+            const new_inner = try self.gpa.alloc(T, new_width * new_height);
+
+            // top pad
+            const top_pad_size = n * new_width;
+            for (new_inner[0..top_pad_size]) |*item| {
+                item.* = pad;
+            }
+
+            for (0..old_height) |y| {
+                const new_row_start = (y + n) * new_width;
+                const old_row_start = y * old_width;
+
+                // left pad
+                for (new_inner[new_row_start .. new_row_start + n]) |*item| {
+                    item.* = pad;
+                }
+
+                // middle
+                const dest = new_inner[new_row_start + n .. new_row_start + n + old_width];
+                const source = self.inner[old_row_start .. old_row_start + old_width];
+                @memcpy(dest, source);
+
+                // right pad
+                for (new_inner[new_row_start + n + old_width .. new_row_start + new_width]) |*item| {
+                    item.* = pad;
+                }
+            }
+
+            // bottom pad
+            const bottom_pad_start = (old_height + n) * new_width;
+            for (new_inner[bottom_pad_start..]) |*item| {
+                item.* = pad;
+            }
+
+            self.gpa.free(self.inner);
+            self.inner = new_inner;
+            self.width = new_width;
+            self.height = new_height;
+        }
+
+        /// Removes padding from the top and bottom of the grid.
+        /// Panics in debug mode if `n * 2` is greater than or equal to the grid height.
+        pub fn strip_vertical(self: *Self, n: usize) !void {
+            if (n == 0) return;
+            std.debug.assert(n * 2 < self.height);
+
+            const new_height = self.height - n * 2;
+            const new_size = self.width * new_height;
+            const new_inner = try self.gpa.alloc(T, new_size);
+
+            const copy_start = n * self.width;
+            const source = self.inner[copy_start .. copy_start + new_size];
+            @memcpy(new_inner, source);
+
+            self.gpa.free(self.inner);
+            self.inner = new_inner;
+            self.height = new_height;
+        }
+
+        /// Removes padding from the left and right sides of the grid.
+        /// Panics in debug mode if `n * 2` is greater than or equal to the grid width.
+        pub fn strip_horizontal(self: *Self, n: usize) !void {
+            if (n == 0) return;
+            std.debug.assert(n * 2 < self.width);
+
+            const old_width = self.width;
+            const new_width = self.width - n * 2;
+            const new_inner = try self.gpa.alloc(T, new_width * self.height);
+
+            for (0..self.height) |y| {
+                const new_row_start = y * new_width;
+                const old_row_start = y * old_width;
+
+                const source = self.inner[old_row_start + n .. old_row_start + n + new_width];
+                const dest = new_inner[new_row_start .. new_row_start + new_width];
+                @memcpy(dest, source);
+            }
+
+            self.gpa.free(self.inner);
+            self.inner = new_inner;
+            self.width = new_width;
+        }
+
+        /// Removes padding from all four sides of the grid.
+        pub fn strip_sides(self: *Self, n: usize) !void {
+            try self.strip_horizontal(n);
+            try self.strip_vertical(n);
+        }
+
+        /// Removes n rows from the top of the grid.
+        pub fn strip_up(self: *Self, n: usize) !void {
+            if (n == 0) return;
+            std.debug.assert(n < self.height);
+
+            const new_height = self.height - n;
+            const new_size = self.width * new_height;
+            const new_inner = try self.gpa.alloc(T, new_size);
+
+            const copy_start = n * self.width;
+            const source = self.inner[copy_start..];
+            @memcpy(new_inner, source);
+
+            self.gpa.free(self.inner);
+            self.inner = new_inner;
+            self.height = new_height;
+        }
+
+        /// Removes n rows from the bottom of the grid.
+        pub fn strip_down(self: *Self, n: usize) !void {
+            if (n == 0) return;
+            std.debug.assert(n < self.height);
+
+            const new_height = self.height - n;
+            const new_size = self.width * new_height;
+            const new_inner = try self.gpa.alloc(T, new_size);
+
+            const source = self.inner[0..new_size];
+            @memcpy(new_inner, source);
+
+            self.gpa.free(self.inner);
+            self.inner = new_inner;
+            self.height = new_height;
+        }
+
+        /// Removes n columns from the left of the grid.
+        pub fn strip_left(self: *Self, n: usize) !void {
+            if (n == 0) return;
+            std.debug.assert(n < self.width);
+
+            const old_width = self.width;
+            const new_width = self.width - n;
+            const new_inner = try self.gpa.alloc(T, new_width * self.height);
+
+            for (0..self.height) |y| {
+                const new_row_start = y * new_width;
+                const old_row_start = y * old_width;
+
+                const source = self.inner[old_row_start + n .. old_row_start + old_width];
+                const dest = new_inner[new_row_start .. new_row_start + new_width];
+                @memcpy(dest, source);
+            }
+
+            self.gpa.free(self.inner);
+            self.inner = new_inner;
+            self.width = new_width;
+        }
+
+        /// Removes n columns from the right of the grid.
+        pub fn strip_right(self: *Self, n: usize) !void {
+            if (n == 0) return;
+            std.debug.assert(n < self.width);
+
+            const old_width = self.width;
+            const new_width = self.width - n;
+            const new_inner = try self.gpa.alloc(T, new_width * self.height);
+
+            for (0..self.height) |y| {
+                const new_row_start = y * new_width;
+                const old_row_start = y * old_width;
+
+                const source = self.inner[old_row_start .. old_row_start + new_width];
+                const dest = new_inner[new_row_start .. new_row_start + new_width];
+                @memcpy(dest, source);
+            }
+
+            self.gpa.free(self.inner);
+            self.inner = new_inner;
+            self.width = new_width;
+        }
     };
 }
 
@@ -297,18 +646,230 @@ fn sum(p: Point, _: u16) u16 {
     return @intCast(p.x + p.y);
 }
 
+test "grid pad_sides strip_sides" {
+    const s =
+        \\AB
+        \\CD
+    ;
+
+    var g = try Grid(u8).from_string(t.allocator, s);
+    var copy = try g.clone();
+    defer g.deinit();
+    defer copy.deinit();
+
+    try g.pad_sides(1, '.');
+
+    const expected = .{
+        '.', '.', '.', '.',
+        '.', 'A', 'B', '.',
+        '.', 'C', 'D', '.',
+        '.', '.', '.', '.',
+    };
+    try t.expectEqualSlices(u8, &expected, g.inner);
+    try t.expectEqual(4, g.width);
+    try t.expectEqual(4, g.height);
+
+    try g.pad_sides(0, 0);
+    try t.expectEqualSlices(u8, &expected, g.inner);
+    try t.expectEqual(4, g.width);
+    try t.expectEqual(4, g.height);
+
+    try g.strip_sides(1);
+    try t.expectEqual(2, g.width);
+    try t.expectEqual(2, g.height);
+    try t.expectEqualSlices(u8, copy.inner, g.inner);
+}
+
+test "grid pad_vertical strip_vertical" {
+    const s =
+        \\ABC
+        \\DEF
+        \\GHI
+    ;
+
+    var g = try Grid(u8).from_string(t.allocator, s);
+    var copy = try g.clone();
+    defer g.deinit();
+    defer copy.deinit();
+
+    try g.pad_vertical(1, '!');
+
+    const expected = .{
+        '!', '!', '!',
+        'A', 'B', 'C',
+        'D', 'E', 'F',
+        'G', 'H', 'I',
+        '!', '!', '!',
+    };
+    try t.expectEqualSlices(u8, &expected, g.inner);
+    try t.expectEqual(3, g.width);
+    try t.expectEqual(5, g.height);
+
+    try g.pad_vertical(0, 0);
+    try t.expectEqualSlices(u8, &expected, g.inner);
+    try t.expectEqual(3, g.width);
+    try t.expectEqual(5, g.height);
+
+    try g.strip_vertical(1);
+    try t.expectEqual(3, g.width);
+    try t.expectEqual(3, g.height);
+    try t.expectEqualSlices(u8, copy.inner, g.inner);
+}
+
+test "grid pad_horizontal strip_horizontal" {
+    var g = try Grid(u16).make_with(t.allocator, 3, 3, sum);
+    var copy = try g.clone();
+    defer g.deinit();
+    defer copy.deinit();
+
+    try g.pad_horizontal(1, 0);
+
+    const expected = .{
+        0, 0, 1, 2, 0,
+        0, 1, 2, 3, 0,
+        0, 2, 3, 4, 0,
+    };
+    try t.expectEqualSlices(u16, &expected, g.inner);
+    try t.expectEqual(5, g.width);
+    try t.expectEqual(3, g.height);
+
+    try g.pad_horizontal(0, 0);
+    try t.expectEqualSlices(u16, &expected, g.inner);
+    try t.expectEqual(5, g.width);
+    try t.expectEqual(3, g.height);
+
+    try g.strip_horizontal(1);
+    try t.expectEqual(3, g.width);
+    try t.expectEqual(3, g.height);
+    try t.expectEqualSlices(u16, copy.inner, g.inner);
+}
+
+test "grid pad_down strip_down" {
+    var g = try Grid(u16).make_with(t.allocator, 3, 3, sum);
+    var copy = try g.clone();
+
+    defer g.deinit();
+    defer copy.deinit();
+
+    try g.pad_down(1, 5);
+
+    const expected = .{
+        0, 1, 2,
+        1, 2, 3,
+        2, 3, 4,
+        5, 5, 5,
+    };
+    try t.expectEqualSlices(u16, &expected, g.inner);
+    try t.expectEqual(3, g.width);
+    try t.expectEqual(4, g.height); // 3 original + 1 bottom
+
+    try g.pad_down(0, 0);
+    try t.expectEqualSlices(u16, &expected, g.inner);
+    try t.expectEqual(3, g.width);
+    try t.expectEqual(4, g.height);
+
+    try g.strip_down(1);
+    try t.expectEqual(3, g.width);
+    try t.expectEqual(3, g.height);
+    try t.expectEqualSlices(u16, copy.inner, g.inner);
+}
+
+test "grid pad_up strip_up" {
+    var g = try Grid(u16).make_with(t.allocator, 3, 3, sum);
+    var copy = try g.clone();
+    defer g.deinit();
+    defer copy.deinit();
+
+    try g.pad_up(2, 5);
+    const expected = .{
+        5, 5, 5,
+        5, 5, 5,
+        0, 1, 2,
+        1, 2, 3,
+        2, 3, 4,
+    };
+    try t.expectEqualSlices(u16, &expected, g.inner);
+    try t.expectEqual(3, g.width);
+    try t.expectEqual(5, g.height);
+
+    try g.pad_up(0, 0);
+    try t.expectEqualSlices(u16, &expected, g.inner);
+    try t.expectEqual(3, g.width);
+    try t.expectEqual(5, g.height);
+
+    try g.strip_up(2);
+    try t.expectEqualSlices(u16, copy.inner, g.inner);
+    try t.expectEqual(3, g.width);
+    try t.expectEqual(3, g.height);
+}
+
+test "grid pad_left strip_left" {
+    var g = try Grid(u16).make_with(t.allocator, 3, 3, sum);
+    var copy = try g.clone();
+    defer g.deinit();
+    defer copy.deinit();
+
+    try g.pad_left(1, 5);
+    const expected = .{
+        5, 0, 1, 2,
+        5, 1, 2, 3,
+        5, 2, 3, 4,
+    };
+    try t.expectEqualSlices(u16, &expected, g.inner);
+    try t.expectEqual(4, g.width);
+    try t.expectEqual(3, g.height);
+
+    try g.pad_left(0, 0);
+    try t.expectEqualSlices(u16, &expected, g.inner);
+    try t.expectEqual(4, g.width);
+    try t.expectEqual(3, g.height);
+
+    try g.strip_left(1);
+    try t.expectEqualSlices(u16, copy.inner, g.inner);
+    try t.expectEqual(3, g.width);
+    try t.expectEqual(3, g.height);
+}
+
+test "grid pad_right strip_right" {
+    var g = try Grid(u16).make_with(t.allocator, 3, 3, sum);
+    var copy = try g.clone();
+    defer g.deinit();
+    defer copy.deinit();
+
+    try g.pad_right(1, 5);
+
+    const expected = .{
+        0, 1, 2, 5,
+        1, 2, 3, 5,
+        2, 3, 4, 5,
+    };
+    try t.expectEqualSlices(u16, &expected, g.inner);
+    try t.expectEqual(4, g.width);
+    try t.expectEqual(3, g.height);
+
+    try g.pad_right(0, 0);
+    try t.expectEqualSlices(u16, &expected, g.inner);
+    try t.expectEqual(4, g.width);
+    try t.expectEqual(3, g.height);
+
+    try g.strip_right(1);
+    try t.expectEqualSlices(u16, copy.inner, g.inner);
+    try t.expectEqual(3, g.width);
+    try t.expectEqual(3, g.height);
+}
+
 test "grid new" {
     var grid = try Grid(u16).make_with(t.allocator, 5, 5, sum);
     defer grid.deinit();
 
-    try t.expectEqual(@as(usize, 25), grid.inner.len);
-    try t.expectEqual(@as(usize, 5), grid.width);
-    try t.expectEqual(@as(usize, 5), grid.height);
-    try t.expectEqual(@as(usize, 25), grid.width * grid.height);
+    try t.expectEqual(25, grid.inner.len);
+    try t.expectEqual(5, grid.width);
+    try t.expectEqual(5, grid.height);
+    try t.expectEqual(25, grid.width * grid.height);
 
     const val = grid.get_opt(.{ .x = 4, .y = 4 });
     try t.expect(val != null);
-    try t.expectEqual(@as(u16, 8), val.?); // 4 + 4 = 8
+    try t.expectEqual(8, val.?);
 }
 
 test "grid new argument errors" {
@@ -322,11 +883,11 @@ test "grid new argument errors" {
 test "grid make" {
     var grid = try Grid(usize).make(t.allocator, 420, 5, 5);
     defer grid.deinit();
-    try t.expectEqual(@as(usize, 25), grid.inner.len);
-    try t.expectEqual(@as(usize, 420), grid.inner[0]); // Check first
-    try t.expectEqual(@as(usize, 420), grid.inner[12]); // Check middle
-    try t.expectEqual(@as(usize, 420), grid.inner[24]); // Check last
-    try t.expectEqual(@as(usize, 420), grid.get(.{ .x = 2, .y = 2 })); // Use get
+    try t.expectEqual(25, grid.inner.len);
+    try t.expectEqual(420, grid.inner[0]); // Check first
+    try t.expectEqual(420, grid.inner[12]); // Check middle
+    try t.expectEqual(420, grid.inner[24]); // Check last
+    try t.expectEqual(420, grid.get(.{ .x = 2, .y = 2 })); // Use get
 }
 
 test "grid idx" {
@@ -337,12 +898,12 @@ test "grid idx" {
         .height = 3,
     };
 
-    try t.expectEqual(@as(usize, 0), dummy_grid.idx(Point.init(0, 0))); // Top-left
-    try t.expectEqual(@as(usize, 6), dummy_grid.idx(Point.init(6, 0))); // Top-right
-    try t.expectEqual(@as(usize, 7), dummy_grid.idx(Point.init(0, 1))); // Start of second row
-    try t.expectEqual(@as(usize, 10), dummy_grid.idx(Point.init(3, 1))); // Middle
-    try t.expectEqual(@as(usize, 14), dummy_grid.idx(Point.init(0, 2))); // Bottom-left
-    try t.expectEqual(@as(usize, 20), dummy_grid.idx(Point.init(6, 2))); // Bottom-right
+    try t.expectEqual(0, dummy_grid.idx(Point.init(0, 0))); // Top-left
+    try t.expectEqual(6, dummy_grid.idx(Point.init(6, 0))); // Top-right
+    try t.expectEqual(7, dummy_grid.idx(Point.init(0, 1))); // Start of second row
+    try t.expectEqual(10, dummy_grid.idx(Point.init(3, 1))); // Middle
+    try t.expectEqual(14, dummy_grid.idx(Point.init(0, 2))); // Bottom-left
+    try t.expectEqual(20, dummy_grid.idx(Point.init(6, 2))); // Bottom-right
 }
 
 test "grid inside function" {
