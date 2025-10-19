@@ -309,6 +309,52 @@ pub fn Grid(comptime T: type) type {
             }
         }
 
+        /// Creates a new, transposed version of the grid.
+        /// The width and height are swapped.
+        pub fn transpose(self: Self) !Self {
+            var transposed_grid = try Self.new(self.gpa, self.height, self.width);
+
+            for (0..self.height) |y| {
+                for (0..self.width) |x| {
+                    transposed_grid.set(.{ .x = y, .y = x }, self.get_by_coord(x, y));
+                }
+            }
+
+            return transposed_grid;
+        }
+
+        /// Applies a skew to the grid, where each row `y` is shifted `y`
+        /// positions to the right, padded with the given value.
+        /// This aligns the top-left to bottom-right diagonals into columns.
+        /// The new grid will have a width of `self.width + self.height - 1`.
+        pub fn skew(self: Self, pad: T) !Self {
+            const new_width = self.width + self.height - 1;
+            var skew_grid = try Self.make(self.gpa, pad, new_width, self.height);
+
+            for (0..self.height) |y| {
+                const src_start = y * self.width;
+                const src_end = src_start + self.width;
+                const src = self.inner[src_start..src_end];
+
+                const dest_start = (y * skew_grid.width) + y;
+                const dest_end = dest_start + self.width;
+                const dest = skew_grid.inner[dest_start..dest_end];
+
+                @memcpy(dest, src);
+            }
+
+            return skew_grid;
+        }
+
+        /// Reverses the rows of the grid
+        pub fn reverse_rows(self: *Self) void {
+            for (0..self.height) |y| {
+                const start = y * self.width;
+                const end = start + self.width;
+                std.mem.reverse(T, self.inner[start..end]);
+            }
+        }
+
         /// Adds padding to the start of each row in the grid.
         pub fn pad_left(self: *Self, n: comptime_int, pad: T) !void {
             if (n == 0) return;
@@ -644,6 +690,123 @@ const t = std.testing;
 
 fn sum(p: Point, _: u16) u16 {
     return @intCast(p.x + p.y);
+}
+
+test "grid reverse_rows" {
+    const s =
+        \\123
+        \\456
+        \\789
+    ;
+    var g = try Grid(u8).from_string(t.allocator, s);
+    var copy = try g.clone();
+
+    defer g.deinit();
+    defer copy.deinit();
+
+    g.reverse_rows();
+
+    const expected = .{
+        '3', '2', '1',
+        '6', '5', '4',
+        '9', '8', '7',
+    };
+
+    try t.expectEqualSlices(u8, &expected, g.inner);
+
+    g.reverse_rows();
+    try t.expectEqualSlices(u8, copy.inner, g.inner);
+}
+
+test "grid skew and transpose for diagonal extraction" {
+    const s =
+        \\123
+        \\456
+        \\789
+    ;
+    var g = try Grid(u8).from_string(t.allocator, s);
+    defer g.deinit();
+
+    var skewed = try g.skew('.');
+    defer skewed.deinit();
+
+    var diag_grid = try skewed.transpose();
+    defer diag_grid.deinit();
+
+    // Original Grid (3x3):
+    // 123
+    // 456
+    // 789
+    //
+    // Skewed Grid (5x3):
+    // 123..
+    // .456.
+    // ..789
+    //
+    // Transposed Skewed Grid (3x5):
+    // 1..
+    // 24.
+    // 357
+    // .68
+    // ..9
+    const row0 = diag_grid.inner[0 * diag_grid.width .. (0 * diag_grid.width) + diag_grid.width];
+    try t.expectEqualSlices(u8, "1..", row0);
+
+    const row1 = diag_grid.inner[1 * diag_grid.width .. (1 * diag_grid.width) + diag_grid.width];
+    try t.expectEqualSlices(u8, "24.", row1);
+
+    const row2 = diag_grid.inner[2 * diag_grid.width .. (2 * diag_grid.width) + diag_grid.width];
+    try t.expectEqualSlices(u8, "357", row2);
+}
+
+test "grid transpose" {
+    const s =
+        \\123
+        \\456
+    ;
+    var g = try Grid(u8).from_string(t.allocator, s);
+    defer g.deinit();
+
+    var transposed = try g.transpose();
+    defer transposed.deinit();
+
+    const expected_inner = .{ '1', '4', '2', '5', '3', '6' };
+    try t.expectEqualSlices(u8, &expected_inner, transposed.inner);
+    try t.expectEqual(2, transposed.width);
+    try t.expectEqual(3, transposed.height);
+
+    // Test round trip
+    var round_trip = try transposed.transpose();
+    defer round_trip.deinit();
+    try t.expectEqualSlices(u8, g.inner, round_trip.inner);
+    try t.expectEqual(g.width, round_trip.width);
+    try t.expectEqual(g.height, round_trip.height);
+}
+
+test "grid skew" {
+    const s =
+        \\ABC
+        \\DEF
+        \\GHI
+    ;
+    var g = try Grid(u8).from_string(t.allocator, s);
+    defer g.deinit();
+
+    var skewed = try g.skew('.');
+    defer skewed.deinit();
+
+    const new_width = g.width + g.height - 1;
+    try t.expectEqual(5, new_width);
+    try t.expectEqual(new_width, skewed.width);
+    try t.expectEqual(g.height, skewed.height);
+
+    const expected_inner = .{
+        'A', 'B', 'C', '.', '.',
+        '.', 'D', 'E', 'F', '.',
+        '.', '.', 'G', 'H', 'I',
+    };
+
+    try t.expectEqualSlices(u8, &expected_inner, skewed.inner);
 }
 
 test "grid pad_sides strip_sides" {
