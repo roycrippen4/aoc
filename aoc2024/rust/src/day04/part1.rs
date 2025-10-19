@@ -10,44 +10,46 @@ fn create_grid(input: &str) -> Vec<Vec<char>> {
     data.iter().map(String::to_char_vec).collect()
 }
 
-const XMAS: [char; 4] = ['X', 'M', 'A', 'S'];
+const MAS: [char; 3] = ['M', 'A', 'S'];
 
 pub fn solve() -> usize {
     let g = create_grid(data!());
-    (3..g.len() - 3)
-        .map(|y| {
-            (3..g[0].len() - 3)
-                .map(|x| {
-                    let mut count = 0;
-                    if [g[y][x], g[y][x - 1], g[y][x - 2], g[y][x - 3]] == XMAS {
-                        count += 1
-                    }
-                    if [g[y][x], g[y - 1][x - 1], g[y - 2][x - 2], g[y - 3][x - 3]] == XMAS {
-                        count += 1
-                    }
-                    if [g[y][x], g[y - 1][x], g[y - 2][x], g[y - 3][x]] == XMAS {
-                        count += 1
-                    }
-                    if [g[y][x], g[y + 1][x], g[y + 2][x], g[y + 3][x]] == XMAS {
-                        count += 1
-                    }
-                    if [g[y][x], g[y - 1][x + 1], g[y - 2][x + 2], g[y - 3][x + 3]] == XMAS {
-                        count += 1
-                    }
-                    if [g[y][x], g[y][x + 1], g[y][x + 2], g[y][x + 3]] == XMAS {
-                        count += 1
-                    }
-                    if [g[y][x], g[y + 1][x + 1], g[y + 2][x + 2], g[y + 3][x + 3]] == XMAS {
-                        count += 1
-                    }
-                    if [g[y][x], g[y + 1][x - 1], g[y + 2][x - 2], g[y + 3][x - 3]] == XMAS {
-                        count += 1
-                    }
-                    count
-                })
-                .sum::<usize>()
-        })
-        .sum()
+    let mut count = 0;
+
+    for y in 3..g.len() - 3 {
+        for x in 3..g.len() - 3 {
+            if g[y][x] != 'X' {
+                continue;
+            }
+
+            if [g[y][x - 1], g[y][x - 2], g[y][x - 3]] == MAS {
+                count += 1
+            }
+            if [g[y - 1][x - 1], g[y - 2][x - 2], g[y - 3][x - 3]] == MAS {
+                count += 1
+            }
+            if [g[y - 1][x], g[y - 2][x], g[y - 3][x]] == MAS {
+                count += 1
+            }
+            if [g[y + 1][x], g[y + 2][x], g[y + 3][x]] == MAS {
+                count += 1
+            }
+            if [g[y - 1][x + 1], g[y - 2][x + 2], g[y - 3][x + 3]] == MAS {
+                count += 1
+            }
+            if [g[y][x + 1], g[y][x + 2], g[y][x + 3]] == MAS {
+                count += 1
+            }
+            if [g[y + 1][x + 1], g[y + 2][x + 2], g[y + 3][x + 3]] == MAS {
+                count += 1
+            }
+            if [g[y + 1][x - 1], g[y + 2][x - 2], g[y + 3][x - 3]] == MAS {
+                count += 1
+            }
+        }
+    }
+
+    count
 }
 
 #[cfg(test)]
