@@ -7,6 +7,7 @@ pub trait StringMethods {
     fn pad_end(&self, n: usize, c: char) -> String;
     fn pad(&self, n: usize, c: char) -> String;
     fn into_padded(s: &str) -> String;
+    fn is_not_empty(&self) -> bool;
     fn to_row<F: FromStr>(&self) -> Vec<F>
     where
         <F as FromStr>::Err: std::fmt::Debug;
@@ -33,6 +34,10 @@ impl StringMethods for String {
 
     fn into_padded(s: &str) -> String {
         s.pad(4, '.')
+    }
+
+    fn is_not_empty(&self) -> bool {
+        !self.is_empty()
     }
 
     fn pad_end(&self, n: usize, ch: char) -> String {
@@ -70,6 +75,10 @@ impl StringMethods for &str {
 
     fn create_pad(len: usize, ch: char) -> String {
         std::iter::repeat_n(ch, len).collect::<String>()
+    }
+
+    fn is_not_empty(&self) -> bool {
+        !self.is_empty()
     }
 
     fn to_char_vec(&self) -> Vec<char> {

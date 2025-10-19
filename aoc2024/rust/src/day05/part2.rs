@@ -1,19 +1,21 @@
-use std::collections::{HashMap, hash_map::Entry};
+use std::collections::HashMap;
+use std::collections::hash_map::Entry;
 
 use crate::data;
+use crate::util::StringMethods;
 
 type OrderMap = HashMap<usize, Vec<usize>>;
 
 /// will panic if values does not have an odd length
 fn get_middle<T: Copy>(values: &[T]) -> T {
-    assert!(values.len() % 2 != 0);
+    assert!(!values.len().is_multiple_of(2));
     let mid_idx = (values.len() - 1) / 2;
     values[mid_idx]
 }
 
 fn parse_updates(s: &str) -> Vec<Vec<usize>> {
-    s.split('\n')
-        .filter(|s| !s.is_empty())
+    s.lines()
+        .filter(StringMethods::is_not_empty)
         .map(|s| {
             s.split(',')
                 .map(|s| s.parse().expect("Cannot parse to usize"))

@@ -1,4 +1,5 @@
 use crate::data;
+use crate::util::StringMethods;
 
 type Mapping = (usize, Vec<usize>);
 
@@ -7,7 +8,7 @@ fn parse_line(l: &str) -> Mapping {
     let value = value.trim().parse().unwrap();
     let parts = parts
         .split_whitespace()
-        .filter(|s| !s.is_empty())
+        .filter(StringMethods::is_not_empty)
         .map(|s| s.parse().unwrap())
         .collect();
     (value, parts)
