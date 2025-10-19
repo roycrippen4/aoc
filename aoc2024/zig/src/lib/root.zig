@@ -5,13 +5,15 @@ const part = @import("part.zig");
 const point = @import("point.zig");
 const time = @import("time.zig");
 
+pub const Math = @import("math.zig");
+pub const Slice = @import("slice.zig");
+
 pub const Day = day.Day;
 pub const Direction = direction.Direction;
 pub const Grid = grid.Grid;
 pub const Part = part.Part;
 pub const Point = point.Point;
 pub const Time = time.Time;
-pub const Util = @import("util.zig");
 
 const std = @import("std");
 
