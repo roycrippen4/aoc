@@ -8,7 +8,6 @@ const ArrayArrayUsize = std.ArrayList(ArrayUsize);
 const RulesMap = std.AutoHashMap(usize, ArrayUsize);
 
 const input = @embedFile("data/day05/data.txt");
-const example = @embedFile("data/day05/example.txt");
 
 fn parse_rules(gpa: Allocator, s: []const u8) !RulesMap {
     const trimmed = std.mem.trim(u8, s, "\n");
@@ -85,7 +84,7 @@ fn cleanup(gpa: Allocator, rules: *RulesMap, updates: *ArrayArrayUsize) !void {
     updates.deinit(gpa);
 }
 
-pub fn evaluate(sequence: []usize, rules: *const RulesMap) usize {
+fn evaluate_part1(sequence: []usize, rules: *const RulesMap) usize {
     std.debug.assert(sequence.len % 2 != 0);
 
     for (0..sequence.len - 1) |i| {
@@ -103,37 +102,74 @@ pub fn evaluate(sequence: []usize, rules: *const RulesMap) usize {
 }
 
 pub fn part1(gpa: std.mem.Allocator) anyerror!usize {
-    var rules, var updates = try parse(gpa, example);
+    var rules, var updates = try parse(gpa, input);
     defer cleanup(gpa, &rules, &updates) catch std.debug.print("ERROR CLEANING UP MEMORY", .{});
 
     var total: usize = 0;
-    std.debug.print("{d}\n", .{total});
-
     for (updates.items) |sequence| {
-        total += evaluate(sequence.items, &rules);
+        total += evaluate_part1(sequence.items, &rules);
     }
 
     return total;
 }
 
-pub fn part2(_: std.mem.Allocator) anyerror!usize {
-    var linesIter = std.mem.tokenizeScalar(u8, example, '\n');
+fn is_in_order(update: []usize, map: RulesMap) bool {
+    for (0..update.len - 1) |i| {
+        const current = update[i];
+        const next = update[i + 1];
 
-    while (linesIter.next()) |line| {
-        std.debug.print("{s}\n", .{line});
+        const mapping = map.get(current) orelse return false;
+        if (!aoc.Slice.includes(usize, mapping.items, next)) {
+            return false;
+        }
     }
 
-    return 42;
+    return true;
+}
+
+fn fix_order(update: *ArrayUsize, map: RulesMap) void {
+    if (is_in_order(update.items, map)) return;
+
+    for (0..update.items.len - 1) |i| {
+        const mapping = map.get(update.items[i]) orelse {
+            std.mem.swap(usize, &update.items[i], &update.items[i + 1]);
+            continue;
+        };
+
+        if (!aoc.Slice.includes(usize, mapping.items, update.items[i + 1])) {
+            std.mem.swap(usize, &update.items[i], &update.items[i + 1]);
+            continue;
+        }
+    }
+
+    fix_order(update, map);
+}
+
+pub fn part2(gpa: std.mem.Allocator) anyerror!usize {
+    var rules, var updates = try parse(gpa, input);
+    defer cleanup(gpa, &rules, &updates) catch std.debug.print("ERROR CLEANING UP MEMORY", .{});
+
+    var total: usize = 0;
+
+    for (updates.items) |*update| {
+        if (is_in_order(update.items, rules)) continue;
+        fix_order(update, rules);
+
+        const idx = (update.items.len - 1) / 2;
+        total += update.items[idx];
+    }
+
+    return total;
 }
 
 const t = std.testing;
 
 test "day05 part1" {
-    _ = try aoc.validate(part1, 42, aoc.Day.five, aoc.Part.one, t.allocator);
+    _ = try aoc.validate(part1, 7198, aoc.Day.five, aoc.Part.one, t.allocator);
 }
 
 test "day05 part2" {
-    _ = try aoc.validate(part2, 42, aoc.Day.five, aoc.Part.two, t.allocator);
+    _ = try aoc.validate(part2, 4230, aoc.Day.five, aoc.Part.two, t.allocator);
 }
 
 test "day05 parse_rules" {
@@ -181,13 +217,3 @@ test "day05 parse_rules" {
     try t.expectEqualSlices(usize, map.get(e_k).?.items, e_v[0..]);
     try t.expectEqualSlices(usize, map.get(f_k).?.items, f_v[0..]);
 }
-
-// updates =
-// [
-//     [ 75, 47, 61, 53, 29 ],
-//     [ 97, 61, 53, 29, 13 ],
-//     [ 75, 29, 13 ],
-//     [ 75, 97, 47, 61, 53 ],
-//     [ 61, 13, 29 ],
-//     [ 97, 13, 75, 29, 47 ],
-// ]
