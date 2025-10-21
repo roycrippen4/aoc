@@ -16,7 +16,7 @@ fn parse_rules(gpa: Allocator, s: []const u8) !RulesMap {
 
     while (lines.next()) |line| {
         // "43|58" -> l = 43, r = 58
-        const l_str, const r_str = aoc.Slice.split_once(u8, line, '|');
+        const l_str, const r_str = aoc.slice.split_once(u8, line, '|');
 
         const key = try std.fmt.parseInt(usize, l_str, 10);
         const value = try std.fmt.parseInt(usize, r_str, 10);
@@ -92,7 +92,7 @@ fn evaluate_part1(sequence: []usize, rules: *const RulesMap) usize {
         const next_update = sequence[i + 1];
         const rule = rules.get(update) orelse return 0;
 
-        if (!aoc.Slice.includes(usize, rule.items, next_update)) {
+        if (!aoc.slice.contains(usize, rule.items, next_update)) {
             return 0;
         }
     }
@@ -119,7 +119,7 @@ fn is_in_order(update: []usize, map: RulesMap) bool {
         const next = update[i + 1];
 
         const mapping = map.get(current) orelse return false;
-        if (!aoc.Slice.includes(usize, mapping.items, next)) {
+        if (!aoc.slice.contains(usize, mapping.items, next)) {
             return false;
         }
     }
@@ -136,7 +136,7 @@ fn fix_order(update: *ArrayUsize, map: RulesMap) void {
             continue;
         };
 
-        if (!aoc.Slice.includes(usize, mapping.items, update.items[i + 1])) {
+        if (!aoc.slice.contains(usize, mapping.items, update.items[i + 1])) {
             std.mem.swap(usize, &update.items[i], &update.items[i + 1]);
             continue;
         }

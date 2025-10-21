@@ -34,7 +34,7 @@ pub fn part1(gpa: std.mem.Allocator) anyerror!usize {
     var total: usize = 0;
 
     for (0..left.items.len) |idx| {
-        total += aoc.Math.abs_diff(left.items[idx], right.items[idx]);
+        total += aoc.math.abs_diff(left.items[idx], right.items[idx]);
     }
 
     return total;

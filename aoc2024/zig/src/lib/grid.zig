@@ -1,6 +1,6 @@
 const std = @import("std");
 const Allocator = std.mem.Allocator;
-const Point = @import("point.zig").Point;
+const Point = @import("point.zig");
 
 /// Errors associated with the `grid` module
 pub const Error = error{ OutOfMemory, InvalidArgument };
