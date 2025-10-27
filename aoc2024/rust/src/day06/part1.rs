@@ -2,20 +2,18 @@ use std::fmt;
 
 use crate::{data, util::StringMethods};
 
-#[allow(clippy::needless_range_loop)]
 /// returns (x, y) coordinates and direction of the guard's starting position
 fn find_guard(grid: &[Vec<char>]) -> (usize, usize, Direction) {
-    let row_len = grid[0].len();
-    let col_len = grid.len();
-
-    for y in 0..col_len {
-        for x in 0..row_len {
+    for y in 0..grid[0].len() {
+        for x in 0..grid.len() {
             let ch = grid[y][x];
-            if ['^', '>', '<', 'v', '9'].contains(&ch) {
-                let direction = Direction::from(ch);
-                assert_ne!(direction, Direction::OffMap);
-                return (x, y, direction);
+            if !['^', '>', '<', 'v'].contains(&ch) {
+                continue;
             }
+
+            let direction = Direction::from(ch);
+            assert_ne!(direction, Direction::OffMap);
+            return (x, y, direction);
         }
     }
     unreachable!() // we should always find a guard
@@ -43,7 +41,6 @@ impl From<char> for Direction {
             '>' => Self::Right,
             '<' => Self::Left,
             'v' => Self::Down,
-            '9' => Self::OffMap,
             _ => unreachable!(),
         }
     }
@@ -60,7 +57,7 @@ impl Grid {
     pub fn new(data: Vec<&str>) -> Self {
         let mut data: Vec<_> = data.into_iter().map(String::into_padded).collect();
         data.insert(0, "O".repeat(data[0].len()));
-        data.insert(data.len(), "O".repeat(data[0].len()));
+        data.push("O".repeat(data[0].len()));
         let grid: Vec<_> = data.iter().map(|r| r.to_char_vec()).collect();
         let (x, y, direction) = find_guard(&grid);
         Self {

@@ -11,7 +11,7 @@ type Pos = (usize, usize, Dir);
 fn find_guard(grid: &[u8], width: usize, height: usize) -> Pos {
     for y in 0..height {
         for x in 0..width {
-            if grid[y * width + x] == 94 {
+            if grid[y * width + x] == b'^' {
                 return (x, y, Dir::Up);
             }
         }
@@ -35,8 +35,8 @@ const MOVES: [(isize, isize, Dir); 4] = [
     (-1, 0, Dir::Up),
 ];
 
-fn make_grid(data: Vec<&str>) -> (Vec<u8>, usize, Pos) {
-    let mut data: Vec<_> = data.iter().map(|s| s.to_string().pad(1, 'O')).collect();
+fn make_grid(data: &str) -> (Vec<u8>, usize, Pos) {
+    let mut data: Vec<_> = data.lines().map(|s| s.to_string().pad(1, 'O')).collect();
     data.insert(0, "O".repeat(data[0].len()));
     data.insert(data.len(), "O".repeat(data[0].len()));
 
@@ -122,7 +122,7 @@ fn is_loop(start_state: Pos, grid: &[u8], obs: Obs, width: usize) -> bool {
 }
 
 pub fn solve() -> usize {
-    evaluate(make_grid(data!().lines().collect()))
+    evaluate(make_grid(data!()))
 }
 
 #[cfg(test)]
