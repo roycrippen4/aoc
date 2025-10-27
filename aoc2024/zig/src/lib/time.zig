@@ -38,22 +38,41 @@ fn as_micros(ns: u64) f64 {
 
 /// Convenience wrapper around `std.time.Instant`
 pub const Stopwatch = struct {
-    _start: std.time.Instant,
+    _start: ?std.time.Instant,
+    label: ?[]const u8,
+
     const Self = @This();
 
-    pub fn start() !Self {
+    pub fn init() Self {
+        return .{ ._start = null, .label = null };
+    }
+
+    pub fn start(self: Self) Self {
         return .{
-            ._start = try std.time.Instant.now(),
+            ._start = std.time.Instant.now() catch unreachable,
+            .label = self.label,
         };
     }
 
-    pub fn stop(self: *const Self) !void {
+    pub fn with_label(self: Self, label: []const u8) Self {
+        return .{
+            ._start = self._start,
+            .label = label,
+        };
+    }
+
+    pub fn stop(self: *const Self) void {
         var buf: [64]u8 = undefined;
 
-        const now = try std.time.Instant.now();
-        const elapsed = now.since(self._start);
-        const timestr = try color(elapsed, &buf);
-        std.debug.print("Time taken: {s}\n", .{timestr});
+        const now = std.time.Instant.now() catch unreachable;
+        const elapsed = now.since(self._start.?);
+        const timestr = color(elapsed, &buf) catch unreachable;
+
+        if (self.label) |label| {
+            std.debug.print("[{s}]: Time taken: {s}\n", .{ label, timestr });
+        } else {
+            std.debug.print("Time taken: {s}\n", .{timestr});
+        }
     }
 };
 
@@ -103,10 +122,4 @@ fn rgb(r: u8, g: u8, b: u8, s: []const u8, buf: []u8) ![]u8 {
         "\x1b[38;2;{d};{d};{d}m{s}\x1b[0m",
         .{ r, g, b, s },
     );
-}
-
-test "time measure" {
-    const measure = try Stopwatch.start();
-    std.Thread.sleep(std.time.ns_per_s);
-    try measure.stop();
 }

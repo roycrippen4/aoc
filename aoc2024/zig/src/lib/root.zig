@@ -2,12 +2,13 @@ const day = @import("day.zig");
 const grid = @import("grid.zig");
 const part = @import("part.zig");
 
-pub const direction = @import("direction.zig");
 pub const Point = @import("point.zig");
 
+pub const direction = @import("direction.zig");
 pub const math = @import("math.zig");
 pub const slice = @import("slice.zig");
 pub const time = @import("time.zig");
+pub const set = @import("set/root.zig");
 
 pub const Day = day.Day;
 pub const Grid = grid.Grid;

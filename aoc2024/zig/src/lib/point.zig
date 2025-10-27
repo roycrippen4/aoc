@@ -11,6 +11,11 @@ pub fn init(x: usize, y: usize) Self {
     return Self{ .x = x, .y = y };
 }
 
+/// Returns a point `{ .x = 0, .y = 0 }`
+pub fn origin() Self {
+    return .{ .x = 0, .y = 0 };
+}
+
 /// Divide two points
 pub fn div(self: Self, other: Self) Self {
     const x = self.x / other.x;
@@ -20,22 +25,22 @@ pub fn div(self: Self, other: Self) Self {
 
 /// Multiply two points
 pub fn mul(self: Self, other: Self) Self {
-    const x = self.x * other.x;
-    const y = self.y * other.y;
+    const x = self.x *% other.x;
+    const y = self.y *% other.y;
     return Self.init(x, y);
 }
 
 /// Sum two points
 pub fn add(self: Self, other: Self) Self {
-    const x = self.x + other.x;
-    const y = self.y + other.y;
+    const x = self.x +% other.x;
+    const y = self.y +% other.y;
     return Self.init(x, y);
 }
 
 /// Subtract two points
 pub fn sub(self: Self, other: Self) Self {
-    const x = self.x - other.x;
-    const y = self.y - other.y;
+    const x = self.x -% other.x;
+    const y = self.y -% other.y;
     return Self.init(x, y);
 }
 
@@ -48,14 +53,14 @@ pub fn unit_step(self: Self, d: Direction) Self {
     const y = self.y;
 
     return switch (d) {
-        .north => Self.init(x, y - 1),
-        .south => Self.init(x, y + 1),
-        .west => Self.init(x - 1, y),
-        .east => Self.init(x + 1, y),
-        .northeast => Self.init(x + 1, y - 1),
-        .northwest => Self.init(x - 1, y - 1),
-        .southeast => Self.init(x + 1, y + 1),
-        .southwest => Self.init(x - 1, y + 1),
+        .north => Self.init(x, y -% 1),
+        .south => Self.init(x, y +% 1),
+        .west => Self.init(x -% 1, y),
+        .east => Self.init(x +% 1, y),
+        .northeast => Self.init(x +% 1, y -% 1),
+        .northwest => Self.init(x -% 1, y -% 1),
+        .southeast => Self.init(x +% 1, y +% 1),
+        .southwest => Self.init(x -% 1, y +% 1),
     };
 }
 
@@ -290,10 +295,8 @@ pub fn nbor8_opt(self: Self) [8]?Self {
 }
 
 /// Convert this point into a string
-pub fn to_string(self: Self) ![]const u8 {
-    var buf: [1024]u8 = undefined;
-    const buf_slice = try std.fmt.bufPrint(&buf, "({d}, {d})", .{ self.x, self.y });
-    return buf_slice;
+pub fn to_string(self: Self, buf: []u8) ![]const u8 {
+    return try std.fmt.bufPrint(buf, "({d}, {d})", .{ self.x, self.y });
 }
 
 test "point arithmetic" {
@@ -405,7 +408,8 @@ test "point nbor opt generation" {
 
 test "point to_string" {
     const p = Self.init(123, 456);
-    const s = try p.to_string();
+    var buf: [64]u8 = undefined;
+    const s = try p.to_string(&buf);
     try std.testing.expectEqualStrings("(123, 456)", s);
 }
 
