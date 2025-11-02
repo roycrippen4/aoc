@@ -46,7 +46,7 @@ inline fn state_to_key(state: State, width: usize) usize {
     return point_to_key(state.pos, width) * 4 + @intFromEnum(state.direction);
 }
 
-fn parse(gpa: Allocator, s: []const u8) !struct { Grid, usize, Point } {
+fn parse(gpa: Allocator, comptime s: []const u8) !struct { Grid, usize, Point } {
     var lines = aoc.slice.lines(u8, s);
 
     const size = lines.peek().?.len;
@@ -256,11 +256,11 @@ pub fn part2(gpa: std.mem.Allocator) anyerror!usize {
 const t = std.testing;
 
 test "day06 part1" {
-    _ = try aoc.validate(part1, 4559, aoc.Day.six, aoc.Part.one, t.allocator);
+    _ = try aoc.validate(part1, 4559, aoc.Day.@"06", aoc.Part.one, t.allocator);
 }
 
 test "day06 part2" {
-    _ = try aoc.validate(part2, 1604, aoc.Day.six, aoc.Part.two, t.allocator);
+    _ = try aoc.validate(part2, 1604, aoc.Day.@"06", aoc.Part.two, t.allocator);
 }
 
 test "day06 key_to_pos and pos_to_key" {

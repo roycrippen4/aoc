@@ -165,11 +165,11 @@ pub fn part2(gpa: std.mem.Allocator) anyerror!usize {
 const t = std.testing;
 
 test "day05 part1" {
-    _ = try aoc.validate(part1, 7198, aoc.Day.five, aoc.Part.one, t.allocator);
+    _ = try aoc.validate(part1, 7198, aoc.Day.@"05", aoc.Part.one, t.allocator);
 }
 
 test "day05 part2" {
-    _ = try aoc.validate(part2, 4230, aoc.Day.five, aoc.Part.two, t.allocator);
+    _ = try aoc.validate(part2, 4230, aoc.Day.@"05", aoc.Part.two, t.allocator);
 }
 
 test "day05 parse_rules" {

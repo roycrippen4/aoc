@@ -77,11 +77,11 @@ pub fn part2(allocator: std.mem.Allocator) anyerror!usize {
 }
 
 test "day01 part1" {
-    _ = try aoc.validate(part1, 1506483, aoc.Day.one, aoc.Part.one, t.allocator);
+    _ = try aoc.validate(part1, 1506483, aoc.Day.@"01", aoc.Part.one, t.allocator);
 }
 
 test "day01 part2" {
-    _ = try aoc.validate(part2, 23126924, aoc.Day.one, aoc.Part.two, t.allocator);
+    _ = try aoc.validate(part2, 23126924, aoc.Day.@"01", aoc.Part.two, t.allocator);
 }
 
 test "day01 parseTuple" {

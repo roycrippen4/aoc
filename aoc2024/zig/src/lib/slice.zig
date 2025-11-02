@@ -50,21 +50,8 @@ pub fn chunks(
     return out[0..wrote];
 }
 
-test "slice chunks" {
-    const s = "abcdefghijklmnop";
-    const n_elements = 5;
-
-    var buf: [chunks_needed(n_elements, s.len)][]const u8 = undefined;
-
-    const result = try chunks(u8, n_elements, s, buf[0..]);
-
-    for (result, 0..) |chunk, i| {
-        std.debug.print("s[{d}]: {s}\n", .{ i, chunk });
-    }
-}
-
 /// Returns an iterator over the lines in a slice
-pub fn lines(comptime T: type, s: []const T) mem.SplitIterator(T, .scalar) {
+pub fn lines(comptime T: type, comptime s: []const T) mem.SplitIterator(T, .scalar) {
     const trimmed = mem.trim(T, s, &.{'\n'});
     return mem.splitScalar(T, trimmed, '\n');
 }
