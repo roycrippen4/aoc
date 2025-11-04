@@ -5,7 +5,6 @@ const Grid = aoc.Grid;
 const Point = aoc.Point;
 
 const input: []const u8 = @embedFile("data/day04/data.txt");
-const example: []const u8 = @embedFile("data/day04/example.txt");
 
 fn northwest(g: Grid(u8), a: u32, x: usize, y: usize) u32 {
     const b = @as(u32, g.inner[(y - 1) * g.width + (x - 1)]);

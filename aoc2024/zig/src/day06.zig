@@ -51,7 +51,7 @@ fn parse(gpa: Allocator, comptime s: []const u8) !struct { Grid, usize, Point } 
 
     const size = lines.peek().?.len;
 
-    var grid = Grid.init(gpa);
+    var grid: Grid = .init(gpa);
     try grid.ensureTotalCapacity(20000);
 
     var start: ?Point = null;
@@ -59,7 +59,7 @@ fn parse(gpa: Allocator, comptime s: []const u8) !struct { Grid, usize, Point } 
 
     while (lines.next()) |line| : (y += 1) {
         for (line, 0..) |ch, x| {
-            const p = Point.init(x, y);
+            const p: Point = .init(x, y);
             const key = point_to_key(p, size + 2);
             grid.putAssumeCapacityNoClobber(key, ch);
 
@@ -108,7 +108,6 @@ fn find_path(gpa: Allocator, grid: Grid, start: Point, size: usize) !UsizeSet {
 }
 
 const input = @embedFile("data/day06/data.txt");
-const example = @embedFile("data/day06/example.txt");
 
 pub fn part1(gpa: std.mem.Allocator) anyerror!usize {
     var grid, const size, const start = try parse(gpa, input);
@@ -126,48 +125,73 @@ fn find_jumps(gpa: Allocator, grid: Grid, size: usize) !JumpMap {
     var jump_map: JumpMap = .init(gpa);
     try jump_map.ensureTotalCapacity(100_000);
 
-    const OFF_MAP: State = .{ .pos = .origin(), .direction = .off };
     const v_width = size + 2;
+    const OFF_MAP: State = .{
+        .pos = .origin(),
+        .direction = .off,
+    };
 
     for (0..size) |i| {
         var h_fwd = OFF_MAP;
         var h_bwd = OFF_MAP;
 
         for (0..size) |j| {
-            const h_fwd_state = State{ .pos = .init(j, i), .direction = .west };
+            const h_fwd_state: State = .{
+                .pos = .init(j, i),
+                .direction = .west,
+            };
             const h_fwd_key = state_to_key(h_fwd_state, v_width);
             jump_map.putAssumeCapacityNoClobber(h_fwd_key, h_fwd);
 
             const h_fwd_grid_key = point_to_key(.init(j, i), v_width);
             if (grid.get(h_fwd_grid_key) == '#') {
-                h_fwd = .{ .pos = .init(j + 1, i), .direction = .north };
+                h_fwd = .{
+                    .pos = .init(j + 1, i),
+                    .direction = .north,
+                };
             }
 
             const x_rev = size - 1 - j;
-            const h_bwd_state = State{ .pos = .{ .x = x_rev, .y = i }, .direction = .east };
+            const h_bwd_state: State = .{
+                .pos = .{ .x = x_rev, .y = i },
+                .direction = .east,
+            };
             const h_bwd_key = state_to_key(h_bwd_state, v_width);
             jump_map.putAssumeCapacityNoClobber(h_bwd_key, h_bwd);
 
             const h_bwd_grid_key = point_to_key(.{ .x = x_rev, .y = i }, v_width);
             if (grid.get(h_bwd_grid_key) == '#') {
-                h_bwd = .{ .pos = .{ .x = x_rev -% 1, .y = i }, .direction = .south };
+                h_bwd = .{
+                    .pos = .{ .x = x_rev -% 1, .y = i },
+                    .direction = .south,
+                };
             }
         }
 
         var v_fwd = OFF_MAP;
         var v_bwd = OFF_MAP;
         for (0..size) |j| {
-            const v_fwd_state = State{ .pos = .{ .x = i, .y = j }, .direction = .north };
+            const v_fwd_state: State = .{
+                .pos = .{ .x = i, .y = j },
+                .direction = .north,
+            };
+
             const v_fwd_key = state_to_key(v_fwd_state, v_width);
             jump_map.putAssumeCapacityNoClobber(v_fwd_key, v_fwd);
 
             const v_fwd_grid_key = point_to_key(.{ .x = i, .y = j }, v_width);
             if (grid.get(v_fwd_grid_key) == '#') {
-                v_fwd = .{ .pos = .{ .x = i, .y = j + 1 }, .direction = .east };
+                v_fwd = .{
+                    .pos = .{ .x = i, .y = j + 1 },
+                    .direction = .east,
+                };
             }
 
             const y_rev = size - 1 - j;
-            const v_bwd_state = State{ .pos = .{ .x = i, .y = y_rev }, .direction = .south };
+            const v_bwd_state: State = .{
+                .pos = .{ .x = i, .y = y_rev },
+                .direction = .south,
+            };
             const v_bwd_key = state_to_key(v_bwd_state, v_width);
             jump_map.putAssumeCapacityNoClobber(v_bwd_key, v_bwd);
 
@@ -184,7 +208,7 @@ fn find_jumps(gpa: Allocator, grid: Grid, size: usize) !JumpMap {
 fn find_cycles(gpa: Allocator, path: UsizeSet, grid: Grid, start: Point, jump_map: JumpMap, size: usize) !usize {
     const v_width = size + 2;
 
-    var visited = try UsizeSet.initCapacity(gpa, 512);
+    var visited: UsizeSet = try .initCapacity(gpa, 512);
     defer visited.deinit();
 
     var count: usize = 0;
@@ -198,7 +222,7 @@ fn find_cycles(gpa: Allocator, path: UsizeSet, grid: Grid, start: Point, jump_ma
         visited.clearRetainingCapacity();
 
         var pos = start;
-        var dir = Direction.north;
+        var dir: Direction = .north;
         while (true) {
             const key = state_to_key(.{ .pos = pos, .direction = dir }, v_width);
 
