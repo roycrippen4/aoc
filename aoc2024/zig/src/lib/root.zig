@@ -1,20 +1,15 @@
-const day = @import("day.zig");
-const grid = @import("grid.zig");
-const part = @import("part.zig");
+const std = @import("std");
 
-pub const Point = @import("point.zig");
-
+pub const char = @import("char.zig");
+pub const Day = @import("day.zig").Day;
 pub const direction = @import("direction.zig");
+pub const Grid = @import("grid.zig").Grid;
 pub const math = @import("math.zig");
+pub const Part = @import("part.zig").Part;
+pub const Point = @import("point.zig");
+pub const set = @import("set/root.zig");
 pub const slice = @import("slice.zig");
 pub const time = @import("time.zig");
-pub const set = @import("set/root.zig");
-
-pub const Day = day.Day;
-pub const Grid = grid.Grid;
-pub const Part = part.Part;
-
-const std = @import("std");
 
 pub fn validate(f: fn (std.mem.Allocator) anyerror!u64, expected: u64, d: Day, p: Part, allocator: std.mem.Allocator) anyerror!u64 {
     const start = try std.time.Instant.now();
