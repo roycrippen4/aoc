@@ -1,4 +1,5 @@
 const std = @import("std");
+const Allocator = std.mem.Allocator;
 
 pub const char = @import("char.zig");
 pub const Day = @import("day.zig").Day;
@@ -12,7 +13,13 @@ pub const slice = @import("slice.zig");
 pub const Stack = @import("stack.zig").Stack;
 pub const time = @import("time.zig");
 
-pub fn validate(f: fn (std.mem.Allocator) anyerror!u64, expected: u64, d: Day, p: Part, allocator: std.mem.Allocator) anyerror!u64 {
+pub fn validate(
+    f: fn (Allocator) anyerror!u64,
+    expected: u64,
+    d: Day,
+    p: Part,
+    allocator: Allocator,
+) !u64 {
     const start = try std.time.Instant.now();
     const result = try f(allocator);
     const finish = try std.time.Instant.now();
