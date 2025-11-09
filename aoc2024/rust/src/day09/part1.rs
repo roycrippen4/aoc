@@ -1,34 +1,17 @@
 use crate::data;
+use std::iter::repeat_n;
 
-fn expand(data: &str) -> Vec<Option<usize>> {
-    let digits: Vec<usize> = data
-        .trim()
-        .bytes()
-        .filter(|b| b.is_ascii_digit())
-        .map(|b| (b - b'0') as usize)
-        .collect();
-
-    let capacity = digits.iter().sum();
-    let mut result = Vec::with_capacity(capacity);
-
-    for (i, &n) in digits.iter().enumerate() {
-        if i % 2 == 0 {
-            let value = Some(i / 2);
-            for _ in 0..n {
-                result.push(value);
-            }
-        } else {
-            for _ in 0..n {
-                result.push(None);
-            }
-        }
-    }
-
-    result
+fn parse(data: &str) -> Vec<Option<usize>> {
+    data.trim()
+        .chars()
+        .filter_map(|c| c.to_digit(10))
+        .enumerate()
+        .flat_map(|(i, n)| repeat_n(i.is_multiple_of(2).then_some(i / 2), n as usize))
+        .collect()
 }
 
 fn evaluate(data: &str) -> usize {
-    let data = expand(data);
+    let data = parse(data);
     let mut id = 0;
     let mut result = 0;
     let (mut i, mut j) = (0, data.len() - 1);
@@ -65,7 +48,7 @@ mod test {
         util::{Day::Day09, Part::Part1, validate},
     };
 
-    use super::{evaluate, expand, solve};
+    use super::{evaluate, parse, solve};
 
     #[test]
     fn test_solve() {
@@ -85,7 +68,7 @@ mod test {
 
     #[test]
     fn test_expand() {
-        let result = expand("12345");
+        let result = parse("12345");
         let expected = [
             Some(0),
             None,
@@ -105,7 +88,7 @@ mod test {
         ];
         assert_eq!(result, expected);
 
-        let result = expand("2333133121414131402");
+        let result = parse("2333133121414131402");
         let expected = [
             Some(0),
             Some(0),
