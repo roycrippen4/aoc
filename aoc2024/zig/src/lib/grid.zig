@@ -173,6 +173,11 @@ pub fn Grid(comptime T: type) type {
             return pos.y * self.width + pos.x;
         }
 
+        /// Convert an index into a coordinate
+        pub fn coord(self: Self, i: usize) Point {
+            return .init(i % self.width, i / self.width);
+        }
+
         /// Creates a copy of the grid, using the same allocator.
         pub fn clone(self: Self) Error!Self {
             const buf = try self.gpa.alloc(T, self.width * self.height);
