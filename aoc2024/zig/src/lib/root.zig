@@ -22,25 +22,23 @@ pub fn validate(
 ) !u64 {
     const start = try std.time.Instant.now();
     const result = try f(allocator);
-    const finish = try std.time.Instant.now();
+    const elapsed = (try std.time.Instant.now()).since(start);
 
     if (result != expected) {
-        const fmt_str =
-            \\
-            \\
+        std.debug.print(
             \\===========================
             \\  Failed to solve!
             \\      Expected: {d}
             \\      Found   : {d}
             \\===========================
             \\
-            \\
-        ;
-        const msg = try std.fmt.allocPrint(allocator, fmt_str, .{ expected, result });
-        @panic(msg);
+        , .{
+            expected,
+            result,
+        });
+        @panic("shit");
     }
 
-    const elapsed = finish.since(start);
     const day_str = d.toString();
     const part_str = p.toString();
 

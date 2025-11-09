@@ -56,6 +56,11 @@ pub fn lines(comptime T: type, comptime s: []const T) mem.SplitIterator(T, .scal
     return mem.splitScalar(T, trimmed, '\n');
 }
 
+/// only use on strings!
+pub fn trim(comptime s: []const u8) []const u8 {
+    return std.mem.trim(u8, s, &.{'\n'});
+}
+
 test "slice lines" {
     const s =
         \\

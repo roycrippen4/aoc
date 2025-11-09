@@ -371,3 +371,13 @@ test "char is_whitespace" {
     try testing.expect(is_whitespace(lf));
     try testing.expect(!is_whitespace(esc));
 }
+
+pub fn to_digit(comptime T: type, c: u8) ?T {
+    if (!is_numeric(c)) return null;
+    return @as(T, c - '0');
+}
+test "char to_digit" {
+    try testing.expectEqual(9, to_digit(usize, '9'));
+    try testing.expectEqual(null, to_digit(usize, 'a'));
+    try testing.expectEqual(null, to_digit(usize, '\n'));
+}
