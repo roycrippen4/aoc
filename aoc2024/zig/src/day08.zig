@@ -36,16 +36,12 @@ fn parse() Stacks {
     return stacks;
 }
 
-inline fn rotate_point(count: *usize, seen: *Seen, p1: Point, p2: Point) void {
-    const p = p1.unchecked_times(2).sub(p2) orelse return;
-    if (p.inside(size, size)) {
-        const idx = p.y * size + p.x;
-
-        if (!seen[idx]) {
-            seen[idx] = true;
-            count.* += 1;
-        }
-    }
+inline fn rotate_point(p1: Point, p2: Point) ?Point {
+    const p = p2.unchecked_times(2).sub(p1) orelse return null;
+    return if (!p.inside(size, size))
+        null
+    else
+        p;
 }
 
 pub fn part1(_: std.mem.Allocator) !usize {
@@ -55,8 +51,21 @@ pub fn part1(_: std.mem.Allocator) !usize {
     for (parse()) |stack| {
         if (stack.is_empty()) continue;
         for (0..stack.len - 1) |i| for (i + 1..stack.len) |j| {
-            rotate_point(&count, &seen, stack.items[i], stack.items[j]);
-            rotate_point(&count, &seen, stack.items[j], stack.items[i]);
+            if (rotate_point(stack.items[i], stack.items[j])) |p| {
+                const idx = p.y * size + p.x;
+                if (!seen[idx]) {
+                    seen[idx] = true;
+                    count += 1;
+                }
+            }
+
+            if (rotate_point(stack.items[j], stack.items[i])) |p| {
+                const idx = p.y * size + p.x;
+                if (!seen[idx]) {
+                    seen[idx] = true;
+                    count += 1;
+                }
+            }
         };
     }
 
@@ -64,7 +73,52 @@ pub fn part1(_: std.mem.Allocator) !usize {
 }
 
 pub fn part2(_: std.mem.Allocator) !usize {
-    return 42;
+    var seen: Seen = [_]bool{false} ** (size * size);
+    var count: usize = 0;
+
+    for (parse()) |stack| {
+        if (stack.is_empty()) continue;
+        for (0..stack.len - 1) |i| for (i + 1..stack.len) |j| {
+            var a = stack.items[i];
+            var b = stack.items[j];
+
+            const a_idx = a.y * size + a.x;
+            if (!seen[a_idx]) {
+                seen[a_idx] = true;
+                count += 1;
+            }
+            const b_idx = b.y * size + b.x;
+            if (!seen[b_idx]) {
+                seen[b_idx] = true;
+                count += 1;
+            }
+
+            while (rotate_point(a, b)) |next| {
+                const idx = next.y * size + next.x;
+                if (!seen[idx]) {
+                    seen[idx] = true;
+                    count += 1;
+                }
+                a = b;
+                b = next;
+            }
+
+            a = stack.items[j];
+            b = stack.items[i];
+
+            while (rotate_point(a, b)) |next| {
+                const idx = next.y * size + next.x;
+                if (!seen[idx]) {
+                    seen[idx] = true;
+                    count += 1;
+                }
+                a = b;
+                b = next;
+            }
+        };
+    }
+
+    return count;
 }
 
 test "day08 part1" {
@@ -72,5 +126,5 @@ test "day08 part1" {
 }
 
 test "day08 part2" {
-    _ = try aoc.validate(part2, 42, aoc.Day.@"08", aoc.Part.two, testing.allocator);
+    _ = try aoc.validate(part2, 912, aoc.Day.@"08", aoc.Part.two, testing.allocator);
 }
