@@ -3,11 +3,11 @@ const aoc = @import("aoc");
 
 const ArrayList = std.ArrayList;
 const HashMap = std.AutoHashMap;
-const t = std.testing;
+const testing = std.testing;
 
-const input = @embedFile("data/day01/data.txt");
+const input = std.mem.trim(u8, @embedFile("data/day01/data.txt"), "\n");
 
-fn parseTuple(line: []const u8) anyerror!struct { usize, usize } {
+fn parseTuple(line: []const u8) !struct { usize, usize } {
     var it = std.mem.splitSequence(u8, line, "   ");
     const l = try std.fmt.parseInt(usize, it.next().?, 10);
     const r = try std.fmt.parseInt(usize, it.next().?, 10);
@@ -15,14 +15,14 @@ fn parseTuple(line: []const u8) anyerror!struct { usize, usize } {
     return .{ l, r };
 }
 
-pub fn part1(gpa: std.mem.Allocator) anyerror!usize {
+pub fn part1(gpa: std.mem.Allocator) !usize {
     var left = try ArrayList(usize).initCapacity(gpa, 1024);
     var right = try ArrayList(usize).initCapacity(gpa, 1024);
-    defer _ = left.deinit(gpa);
-    defer _ = right.deinit(gpa);
+    defer left.deinit(gpa);
+    defer right.deinit(gpa);
 
-    var flines = std.mem.tokenizeAny(u8, input, "\n");
-    while (flines.next()) |line| {
+    var lines = std.mem.splitScalar(u8, input, '\n');
+    while (lines.next()) |line| {
         const l, const r = try parseTuple(line);
         try left.append(gpa, l);
         try right.append(gpa, r);
@@ -40,7 +40,7 @@ pub fn part1(gpa: std.mem.Allocator) anyerror!usize {
     return total;
 }
 
-inline fn updateOrInsert(map: *HashMap(usize, usize), key: usize) anyerror!void {
+inline fn updateOrInsert(map: *HashMap(usize, usize), key: usize) !void {
     if (map.get(key)) |value| {
         try map.put(key, value + 1);
     } else {
@@ -48,7 +48,7 @@ inline fn updateOrInsert(map: *HashMap(usize, usize), key: usize) anyerror!void 
     }
 }
 
-pub fn part2(allocator: std.mem.Allocator) anyerror!usize {
+pub fn part2(allocator: std.mem.Allocator) !usize {
     var left = HashMap(usize, usize).init(allocator);
     var right = HashMap(usize, usize).init(allocator);
     defer _ = left.deinit();
@@ -77,30 +77,28 @@ pub fn part2(allocator: std.mem.Allocator) anyerror!usize {
 }
 
 test "day01 part1" {
-    _ = try aoc.validate(part1, 1506483, aoc.Day.@"01", aoc.Part.one, t.allocator);
+    _ = try aoc.validate(part1, 1506483, aoc.Day.@"01", aoc.Part.one, testing.allocator);
 }
 
 test "day01 part2" {
-    _ = try aoc.validate(part2, 23126924, aoc.Day.@"01", aoc.Part.two, t.allocator);
+    _ = try aoc.validate(part2, 23126924, aoc.Day.@"01", aoc.Part.two, testing.allocator);
 }
 
 test "day01 parseTuple" {
     const line = "3   4";
     const l, const r = try parseTuple(line);
-    try t.expectEqual(l, 3);
-    try t.expectEqual(r, 4);
+    try testing.expectEqual(l, 3);
+    try testing.expectEqual(r, 4);
 }
 
 test "day01 updateOrInsert" {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    const allocator = gpa.allocator();
-    var map = HashMap(usize, usize).init(allocator);
+    var map = HashMap(usize, usize).init(testing.allocator);
 
     const no_entry = map.get(5);
-    try t.expectEqual(null, no_entry);
+    try testing.expectEqual(null, no_entry);
     try updateOrInsert(&map, 5);
-    try t.expectEqual(map.get(5), 1);
+    try testing.expectEqual(map.get(5), 1);
     try updateOrInsert(&map, 5);
     try updateOrInsert(&map, 5);
-    try t.expectEqual(map.get(5), 3);
+    try testing.expectEqual(map.get(5), 3);
 }
