@@ -27,29 +27,29 @@ pub fn main() !void {
 
     var total_time: u64 = 0;
 
-    total_time += try aoc.validate(day01.part1, 1506483, aoc.Day.@"01", aoc.Part.one, gpa);
-    total_time += try aoc.validate(day01.part2, 23126924, aoc.Day.@"01", aoc.Part.two, gpa);
+    total_time += try aoc.validate(day01.part1, 1506483, .@"01", .one, gpa);
+    total_time += try aoc.validate(day01.part2, 23126924, .@"01", .two, gpa);
 
-    total_time += try aoc.validate(day02.part1, 202, aoc.Day.@"02", aoc.Part.one, gpa);
-    total_time += try aoc.validate(day02.part2, 271, aoc.Day.@"02", aoc.Part.two, gpa);
+    total_time += try aoc.validate(day02.part1, 202, .@"02", .one, gpa);
+    total_time += try aoc.validate(day02.part2, 271, .@"02", .two, gpa);
 
-    total_time += try aoc.validate(day03.part1, 173731097, aoc.Day.@"03", aoc.Part.one, gpa);
-    total_time += try aoc.validate(day03.part2, 93729253, aoc.Day.@"03", aoc.Part.two, gpa);
+    total_time += try aoc.validate(day03.part1, 173731097, .@"03", .one, gpa);
+    total_time += try aoc.validate(day03.part2, 93729253, .@"03", .two, gpa);
 
-    total_time += try aoc.validate(day04.part1, 2483, aoc.Day.@"04", aoc.Part.one, gpa);
-    total_time += try aoc.validate(day04.part2, 1925, aoc.Day.@"04", aoc.Part.two, gpa);
+    total_time += try aoc.validate(day04.part1, 2483, .@"04", .one, gpa);
+    total_time += try aoc.validate(day04.part2, 1925, .@"04", .two, gpa);
 
-    total_time += try aoc.validate(day05.part1, 7198, aoc.Day.@"05", aoc.Part.one, gpa);
-    total_time += try aoc.validate(day05.part2, 4230, aoc.Day.@"05", aoc.Part.two, gpa);
+    total_time += try aoc.validate(day05.part1, 7198, .@"05", .one, gpa);
+    total_time += try aoc.validate(day05.part2, 4230, .@"05", .two, gpa);
 
-    total_time += try aoc.validate(day06.part1, 4559, aoc.Day.@"06", aoc.Part.one, gpa);
-    total_time += try aoc.validate(day06.part2, 1604, aoc.Day.@"06", aoc.Part.two, gpa);
+    total_time += try aoc.validate(day06.part1, 4559, .@"06", .one, gpa);
+    total_time += try aoc.validate(day06.part2, 1604, .@"06", .two, gpa);
 
-    total_time += try aoc.validate(day07.part1, 303766880536, aoc.Day.@"07", aoc.Part.one, gpa);
-    total_time += try aoc.validate(day07.part2, 337041851384440, aoc.Day.@"07", aoc.Part.two, gpa);
+    total_time += try aoc.validate(day07.part1, 303766880536, .@"07", .one, gpa);
+    total_time += try aoc.validate(day07.part2, 337041851384440, .@"07", .two, gpa);
 
-    total_time += try aoc.validate(day08.part1, 244, aoc.Day.@"08", aoc.Part.one, gpa);
-    total_time += try aoc.validate(day08.part2, 912, aoc.Day.@"08", aoc.Part.two, gpa);
+    total_time += try aoc.validate(day08.part1, 244, .@"08", .one, gpa);
+    total_time += try aoc.validate(day08.part2, 912, .@"08", .two, gpa);
 
     var buf: [64]u8 = undefined;
     const time = try aoc.time.color(total_time, &buf);
