@@ -9,6 +9,7 @@ pub const Part = @import("part.zig").Part;
 pub const Point = @import("point.zig");
 pub const set = @import("set/root.zig");
 pub const slice = @import("slice.zig");
+pub const Stack = @import("stack.zig").Stack;
 pub const time = @import("time.zig");
 
 pub fn validate(f: fn (std.mem.Allocator) anyerror!u64, expected: u64, d: Day, p: Part, allocator: std.mem.Allocator) anyerror!u64 {
