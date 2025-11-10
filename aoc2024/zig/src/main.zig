@@ -11,6 +11,7 @@ const day05 = @import("day05.zig");
 const day06 = @import("day06.zig");
 const day07 = @import("day07.zig");
 const day08 = @import("day08.zig");
+const day09 = @import("day09.zig");
 
 var debug_allocator: std.heap.DebugAllocator(.{}) = .init;
 
@@ -50,6 +51,9 @@ pub fn main() !void {
 
     total_time += try aoc.validate(day08.part1, 244, .@"08", .one, gpa);
     total_time += try aoc.validate(day08.part2, 912, .@"08", .two, gpa);
+
+    total_time += try aoc.validate(day09.part1, 6448989155953, .@"09", .one, gpa);
+    total_time += try aoc.validate(day09.part2, 6476642796832, .@"09", .two, gpa);
 
     var buf: [64]u8 = undefined;
     const time = try aoc.time.color(total_time, &buf);
