@@ -38,14 +38,10 @@ fn as_micros(ns: u64) f64 {
 
 /// Convenience wrapper around `std.time.Instant`
 pub const Stopwatch = struct {
-    _start: ?std.time.Instant,
-    label: ?[]const u8,
+    _start: ?std.time.Instant = null,
+    label: ?[]const u8 = null,
 
     const Self = @This();
-
-    pub fn init() Self {
-        return .{ ._start = null, .label = null };
-    }
 
     pub fn start(self: Self) Self {
         return .{
@@ -74,6 +70,9 @@ pub const Stopwatch = struct {
             std.debug.print("Time taken: {s}\n", .{timestr});
         }
     }
+}{
+    ._start = null,
+    .label = null,
 };
 
 pub fn color(ns: u64, buf: []u8) ![]u8 {

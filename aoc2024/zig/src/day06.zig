@@ -1,7 +1,10 @@
-const aoc = @import("aoc");
 const std = @import("std");
+const testing = std.testing;
+const Allocator = std.mem.Allocator;
 
+const aoc = @import("aoc");
 const Point = aoc.Point;
+
 const Direction = enum {
     north,
     east,
@@ -23,10 +26,9 @@ const Direction = enum {
 
 const State = struct { pos: Point, direction: Direction };
 
-const Allocator = std.mem.Allocator;
-const Grid = std.AutoHashMap(usize, u8);
-const JumpMap = std.AutoHashMap(usize, State);
-const UsizeSet = aoc.set.ArraySetManaged(usize);
+const Grid = std.AutoArrayHashMap(usize, u8);
+const JumpMap = std.AutoArrayHashMap(usize, State);
+const UsizeSet = std.AutoArrayHashMap(usize, void);
 
 /// Convert a point to a unique numeric key
 inline fn point_to_key(p: Point, width: usize) usize {
@@ -85,7 +87,7 @@ fn find_path(gpa: Allocator, grid: Grid, start: Point, size: usize) !UsizeSet {
     var direction: Direction = .north;
 
     while (grid.contains(point_to_key(position, v_width))) {
-        _ = path.addAssumeCapacity(point_to_key(position, v_width));
+        _ = path.putAssumeCapacity(point_to_key(position, v_width), undefined);
 
         const next = switch (direction) {
             .north => position.north_opt(),
@@ -118,7 +120,7 @@ pub fn part1(gpa: std.mem.Allocator) anyerror!usize {
         path.deinit();
     }
 
-    return path.cardinality();
+    return path.count();
 }
 
 fn find_jumps(gpa: Allocator, grid: Grid, size: usize) !JumpMap {
@@ -205,35 +207,62 @@ fn find_jumps(gpa: Allocator, grid: Grid, size: usize) !JumpMap {
     return jump_map;
 }
 
-fn find_cycles(gpa: Allocator, path: UsizeSet, grid: Grid, start: Point, jump_map: JumpMap, size: usize) !usize {
-    const v_width = size + 2;
+var slice_buf: [128][]usize = undefined;
+var threads_buf: [128]std.Thread = undefined;
 
-    var visited: UsizeSet = try .initCapacity(gpa, 512);
+fn make_path_slices(steps: []usize) [][]usize {
+    var thread_count = std.Thread.getCpuCount() catch unreachable;
+    if (thread_count > steps.len) thread_count = steps.len;
+    if (thread_count > slice_buf.len) thread_count = slice_buf.len;
+
+    const base = steps.len / thread_count;
+    const rem = steps.len % thread_count;
+
+    var start: usize = 0;
+    var i: usize = 0;
+    while (i < thread_count) : (i += 1) {
+        const extra = @as(usize, @intFromBool(i < rem));
+        const size = base + extra;
+        slice_buf[i] = steps[start .. start + size];
+        start += size;
+    }
+
+    return slice_buf[0..thread_count];
+}
+
+fn find_cycle(
+    gpa: Allocator,
+    count: *std.atomic.Value(usize),
+    start: Point,
+    path_steps: []usize,
+    jump_map: JumpMap,
+    grid: Grid,
+    v_width: usize,
+) !void {
+    var visited: UsizeSet = .init(gpa);
+    try visited.ensureTotalCapacity(512);
     defer visited.deinit();
 
-    var count: usize = 0;
-    var it = path.iterator();
-
-    while (it.next()) |entry| {
-        const path_key = entry.key_ptr.*;
-        if (grid.get(path_key) != '.') continue;
-
-        const obs = key_to_point(path_key, v_width);
+    for (path_steps) |step| {
         visited.clearRetainingCapacity();
+        if (grid.get(step) != '.') continue;
+
+        const obs = key_to_point(step, v_width);
 
         var pos = start;
         var dir: Direction = .north;
+
         while (true) {
             const key = state_to_key(.{ .pos = pos, .direction = dir }, v_width);
 
             if (!grid.contains(point_to_key(pos, v_width))) break;
 
             if (visited.contains(key)) {
-                count += 1;
+                _ = count.fetchAdd(1, .monotonic);
                 break;
             }
 
-            _ = try visited.add(key);
+            _ = try visited.put(key, undefined);
 
             if (pos.x != obs.x and pos.y != obs.y) {
                 const jump = jump_map.get(key) orelse break;
@@ -258,8 +287,35 @@ fn find_cycles(gpa: Allocator, path: UsizeSet, grid: Grid, start: Point, jump_ma
             }
         }
     }
+}
 
-    return count;
+fn find_cycles(
+    gpa: Allocator,
+    path: UsizeSet,
+    grid: Grid,
+    start: Point,
+    jump_map: JumpMap,
+    size: usize,
+) !usize {
+    const v_width = size + 2;
+    const steps = make_path_slices(path.unmanaged.entries.items(.key));
+
+    var count: std.atomic.Value(usize) = .init(0);
+
+    for (steps, 0..) |steps_slice, i| {
+        threads_buf[i] = try std.Thread.spawn(.{}, find_cycle, .{
+            gpa,
+            &count,
+            start,
+            steps_slice,
+            jump_map,
+            grid,
+            v_width,
+        });
+    }
+
+    for (threads_buf[0..steps.len]) |thread| thread.join();
+    return count.load(.monotonic);
 }
 
 pub fn part2(gpa: std.mem.Allocator) anyerror!usize {
@@ -277,14 +333,12 @@ pub fn part2(gpa: std.mem.Allocator) anyerror!usize {
     return cycles;
 }
 
-const t = std.testing;
-
 test "day06 part1" {
-    _ = try aoc.validate(part1, 4559, aoc.Day.@"06", aoc.Part.one, t.allocator);
+    _ = try aoc.validate(part1, 4559, .@"06", .one, testing.allocator);
 }
 
 test "day06 part2" {
-    _ = try aoc.validate(part2, 1604, aoc.Day.@"06", aoc.Part.two, t.allocator);
+    _ = try aoc.validate(part2, 1604, .@"06", .two, testing.allocator);
 }
 
 test "day06 key_to_pos and pos_to_key" {
@@ -295,14 +349,14 @@ test "day06 key_to_pos and pos_to_key" {
     const expected_key = 16046;
     const expected_point = Point.init(73, 120);
 
-    try t.expectEqual(expected_key, key);
-    try t.expect(expected_point.eql(point));
+    try testing.expectEqual(expected_key, key);
+    try testing.expect(expected_point.eql(point));
 
     const round_trip_point = key_to_point(point_to_key(expected_point, width), width);
-    try t.expect(expected_point.eql(round_trip_point));
+    try testing.expect(expected_point.eql(round_trip_point));
 }
 
 test "day06 state_to_key" {
     const result = state_to_key(.{ .pos = .init(54, 108), .direction = .south }, 132);
-    try t.expectEqual(57774, result);
+    try testing.expectEqual(57774, result);
 }
