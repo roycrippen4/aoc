@@ -2,7 +2,7 @@ use std::time::{Duration, Instant};
 
 use aoc2024::{
     day01, day02, day03, day04, day05, day06, day07, day08, day09, day10, day11, day12, day13,
-    day14, day15, util::colorize_time,
+    day14, day15, day16, util::colorize_time,
 };
 use comfy_table::{Table, modifiers::UTF8_ROUND_CORNERS, presets::UTF8_FULL};
 
@@ -76,5 +76,7 @@ fn get_solutions() -> Vec<S> {
         S::new(day14::part2::solve, 6532),
         S::new(day15::part1::solve, 1526673),
         S::new(day15::part2::solve, 1535509),
+        S::new(day16::part1::solve, 1526673),
+        S::new(day16::part2::solve, 420),
     ]
 }

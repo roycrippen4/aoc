@@ -1,6 +1,5 @@
-use std::str::FromStr;
-
 use anyhow::Result;
+use std::str::FromStr;
 
 use super::Point;
 
