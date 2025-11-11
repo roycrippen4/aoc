@@ -5,6 +5,27 @@ use super::Point;
 
 pub type Entry<T> = (usize, usize, T);
 
+impl<T> From<Point<usize>> for Entry<T>
+where
+    T: Default,
+{
+    fn from(p: Point<usize>) -> Self {
+        (p.x, p.y, T::default())
+    }
+}
+
+impl<T> From<Entry<T>> for Point<usize> {
+    fn from(e: Entry<T>) -> Self {
+        Point::new(e.0, e.1)
+    }
+}
+
+impl<T> From<&Entry<T>> for Point<usize> {
+    fn from(e: &Entry<T>) -> Self {
+        Point::new(e.0, e.1)
+    }
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct Grid<T>
 where
@@ -17,7 +38,9 @@ where
 
 impl<T> Grid<T>
 where
-    T: std::fmt::Debug + Clone,
+    T: std::fmt::Debug,
+    T: Clone,
+    T: Copy,
 {
     // ==========================================================
     // ===================== Static Methods =====================
@@ -51,8 +74,7 @@ where
     ///
     /// [WARN!]: This should only be used with square, e.g. 3x3, grids!
     pub fn rotate_clockwise(g: &Self) -> Self {
-        Self::new(g.height, g.width)
-            .map_coords(|p| g[Point::new(p.y, (g.height - 1) - p.x)].clone())
+        Self::new(g.height, g.width).map_coords(|p| g[Point::new(p.y, (g.height - 1) - p.x)])
     }
 
     /// Creates a new `Grid` by rotating the provided grid 90-degrees counter-clockwise.
@@ -64,7 +86,7 @@ where
     pub fn rotate_counter_clockwise(grid: &Self) -> Self {
         Self::new(grid.height, grid.width).map_coords(|p_new| {
             let p_old = Point::new((grid.width - 1) - p_new.y, p_new.x);
-            grid[p_old].clone()
+            grid[p_old]
         })
     }
 
@@ -121,7 +143,7 @@ where
         P: FnMut(Entry<&T>) -> bool,
     {
         let (x, y, old_value) = self.find(pred).unwrap();
-        let old_value = old_value.clone();
+        let old_value = *old_value;
 
         self.set_unchecked((x, y), v);
 
@@ -138,10 +160,10 @@ where
     /// Get the `entries` - `(x, y, T)` of all cardinal neighbors around point `p`.
     /// A neighbor is [None] if it is out of bounds.
     /// Order of the list starts at `N` and rotates clockwise.
-    pub fn nbor4<P: GridPoint>(&self, p: P) -> [Option<Entry<&T>>; 4] {
+    pub fn nbor4<P: GridPoint>(&self, p: P) -> [Option<Entry<T>>; 4] {
         p.to_point()
             .nbor4()
-            .map(|p| self.get(p).map(|v| (p.x, p.y, v)))
+            .map(|p| self.get(p).map(|v| (p.x, p.y, *v)))
     }
 
     /// Returns the values of the cardinal and intercardinal neighbors around point `p`.
@@ -400,6 +422,25 @@ where
     }
 }
 
+impl Grid<char> {
+    /// Will fail if the characters in the grid are not ascii!
+    pub fn as_usize(self) -> Grid<usize> {
+        Grid {
+            width: self.width,
+            height: self.height,
+            inner: self
+                .inner
+                .into_iter()
+                .map(|row| {
+                    row.into_iter()
+                        .map(|c| ((c as u8) - b'0') as usize)
+                        .collect()
+                })
+                .collect(),
+        }
+    }
+}
+
 impl<T> std::fmt::Display for Grid<T>
 where
     T: std::fmt::Debug + Clone,
@@ -430,17 +471,24 @@ where
     }
 }
 
-impl FromStr for Grid<char> {
+impl<T> FromStr for Grid<T>
+where
+    T: std::fmt::Debug + Clone,
+    T: From<char>,
+{
     type Err = anyhow::Error;
 
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         let lines: Vec<&str> = s.lines().collect();
         let height = lines.len();
-        let chars: Vec<Vec<_>> = lines.iter().map(|l| l.chars().collect()).collect();
-        let width = chars[0].len();
+        let ts: Vec<Vec<_>> = lines
+            .iter()
+            .map(|l| l.chars().map(T::from).collect())
+            .collect();
+        let width = ts[0].len();
 
         Ok(Grid {
-            inner: chars,
+            inner: ts,
             height,
             width,
         })
@@ -503,6 +551,19 @@ impl GridPoint for (usize, usize) {
 
     fn to_point(&self) -> Point<usize> {
         Point::new(self.0, self.1)
+    }
+}
+
+impl<T> GridPoint for Entry<T>
+where
+    T: std::fmt::Debug + Copy,
+{
+    fn to_coordinate_pair(&self) -> (usize, usize) {
+        (self.0, self.1)
+    }
+
+    fn to_point(&self) -> Point<usize> {
+        Point::from(self)
     }
 }
 

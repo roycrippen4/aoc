@@ -1,83 +1,71 @@
-use std::collections::HashSet;
+use std::str::FromStr;
 
-use rayon::prelude::*;
+use crate::data;
+use crate::util::{Entry, Grid};
 
-use crate::{data, util::StringMethods};
+// type Visited = HashSet<(usize, usize, usize)>;
 
-type Visited = HashSet<(usize, usize)>;
-type Point = (usize, usize, usize);
-
-fn neighbors(point: Point, grid: &[Vec<usize>]) -> Vec<Point> {
+fn neighbors(
+    point: Entry<usize>,
+    g: &Grid<usize>,
+    visited: &Grid<bool>,
+) -> [Option<Entry<usize>>; 4] {
     let (x, y, v) = point;
-    let max_height = grid.len();
-    let max_width = grid[0].len();
-    let target_value = v + 1;
-    let mut neighbors = vec![];
+    let t = v + 1;
 
-    if x < max_width - 1 && grid[y][x + 1] == target_value {
-        neighbors.push((x + 1, y, grid[y][x + 1]));
+    let mut ns = [None; 4];
+
+    if x < g.width - 1 && g[(x + 1, y)] == t && !visited[(x + 1, y)] {
+        ns[0] = Some((x + 1, y, g[(x + 1, y)]))
     }
-    if x != 0 && grid[y][x - 1] == target_value {
-        neighbors.push((x - 1, y, grid[y][x - 1]));
+
+    if x != 0 && g[(x - 1, y)] == t && !visited[(x - 1, y)] {
+        ns[1] = Some((x - 1, y, g[(x - 1, y)]))
     }
-    if y != 0 && grid[y - 1][x] == target_value {
-        neighbors.push((x, y - 1, grid[y - 1][x]));
+
+    if y != 0 && g[(x, y - 1)] == t && !visited[(x, y - 1)] {
+        ns[2] = Some((x, y - 1, g[(x, y - 1)]));
     }
-    if y < max_height - 1 && grid[y + 1][x] == target_value {
-        neighbors.push((x, y + 1, grid[y + 1][x]));
+
+    if y < g.height - 1 && g[(x, y + 1)] == t && !visited[(x, y + 1)] {
+        ns[3] = Some((x, y + 1, g[(x, y + 1)]));
     }
-    neighbors
+
+    ns
 }
 
-fn create_grid(data: &str) -> Vec<Vec<usize>> {
-    data.trim().split("\n").map(|s| s.to_row()).collect()
+fn find_starting_points(grid: &Grid<usize>) -> Vec<Entry<usize>> {
+    (0..grid.height)
+        .flat_map(|y| (0..grid.width).filter_map(move |x| (grid[(x, y)] == 0).then_some((x, y, 0))))
+        .collect()
 }
 
-fn find_starting_points(grid: &[Vec<usize>]) -> Vec<Point> {
-    let mut points = vec![];
-    for y in 0..grid.len() {
-        for x in 0..grid[0].len() {
-            let value = grid[y][x];
-            if value == 0 {
-                points.push((x, y, 0));
-            }
-        }
-    }
-
-    points
-}
-
-fn score_path(start: Point, grid: &[Vec<usize>], visited: Option<&mut Visited>) -> usize {
+fn score_path(start: Entry<usize>, grid: &Grid<usize>, visited: Option<&mut Grid<bool>>) -> usize {
     let visited = match visited {
         Some(v) => v,
-        None => &mut HashSet::with_capacity(grid.len() * grid[0].len()),
+        None => &mut Grid::make(grid.height, grid.width, false),
     };
 
     let (x, y, v) = start;
-    visited.insert((x, y));
+    visited[(x, y)] = true;
+
     if v == 9 {
         return 1;
     }
 
-    let neighbors: Vec<_> = neighbors(start, grid)
+    neighbors(start, grid, visited)
         .into_iter()
-        .filter(|(nx, ny, _): &Point| !visited.contains(&(*nx, *ny)))
-        .collect();
-
-    if neighbors.is_empty() {
-        return 0;
-    }
-
-    neighbors
-        .iter()
-        .map(|n| score_path(*n, grid, Some(visited)))
+        .flatten()
+        .map(|n| score_path(n, grid, Some(visited)))
         .sum()
 }
 
 fn evaluate(data: &str) -> usize {
-    let grid = create_grid(data);
-    let starts = find_starting_points(&grid);
-    starts.par_iter().map(|s| score_path(*s, &grid, None)).sum()
+    let grid = Grid::from_str(data).unwrap().as_usize();
+    find_starting_points(&grid)
+        .iter()
+        .map(|s| score_path(*s, &grid, None))
+        .sum()
 }
 
 pub fn solve() -> usize {
@@ -86,12 +74,14 @@ pub fn solve() -> usize {
 
 #[cfg(test)]
 mod test {
+    use std::str::FromStr;
+
     use crate::{
         example,
-        util::{Day::Day10, Part::Part1, validate},
+        util::{Day::Day10, Grid, Part::Part1, validate},
     };
 
-    use super::{create_grid, evaluate, neighbors, score_path, solve};
+    use super::{evaluate, score_path, solve};
 
     #[test]
     fn test_solve() {
@@ -107,20 +97,13 @@ mod test {
 
     #[test]
     fn test_score_path() {
-        let grid = create_grid(SIMPLE);
+        let grid = Grid::from_str(SIMPLE).unwrap().as_usize();
         let result = score_path((3, 0, 0), &grid, None);
         assert_eq!(2, result);
 
-        let grid = create_grid(example!());
+        let grid = Grid::from_str(example!()).unwrap().as_usize();
         let result = score_path((2, 0, 0), &grid, None);
         assert_eq!(5, result);
-    }
-
-    #[test]
-    fn test_valid_neighbors() {
-        let grid = create_grid(SIMPLE);
-        let neighbors = neighbors((3, 0, 0), &grid);
-        assert_eq!(1, neighbors.len());
     }
 
     const SIMPLE: &str = r"9990999
