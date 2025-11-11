@@ -9,7 +9,7 @@ x: usize,
 y: usize,
 
 /// Create a new point
-pub fn init(x: usize, y: usize) Self {
+pub inline fn init(x: usize, y: usize) Self {
     return Self{
         .x = x,
         .y = y,
@@ -473,6 +473,10 @@ pub inline fn nbor8_opt(self: Self) [8]?Self {
 /// Convert this point into a string
 pub inline fn to_string(self: Self, buf: []u8) ![]const u8 {
     return try std.fmt.bufPrint(buf, "({d}, {d})", .{ self.x, self.y });
+}
+
+pub inline fn print(self: Self) void {
+    std.debug.print("Point{{ .x = {d}, .y = {d} }}\n", .{ self.x, self.y });
 }
 
 /// Checks if the point is inside grid boundaries

@@ -132,49 +132,49 @@ pub fn Grid(comptime T: type) type {
         }
 
         /// Determine if the grid contains the given position
-        pub fn inside(self: Self, pos: Point) bool {
+        pub inline fn inside(self: Self, pos: Point) bool {
             return pos.x < self.width and pos.y < self.height;
         }
 
         /// Returns some value at `(x, y)` or `null` if it doesn't exist
-        pub fn get_opt(self: *const Self, pos: Point) ?T {
+        pub inline fn get_opt(self: *const Self, pos: Point) ?T {
             return if (self.inside(pos)) self.inner[self.idx(pos)] else null;
         }
 
         /// Returns the value at `(x, y)` without checking grid bounds
-        pub fn get_by_coord(self: *const Self, x: usize, y: usize) T {
+        pub inline fn get_by_coord(self: *const Self, x: usize, y: usize) T {
             return self.inner[y * self.width + x];
         }
 
         /// Returns the value at `(x, y)` without checking grid bounds
-        pub fn get(self: *const Self, pos: Point) T {
+        pub inline fn get(self: *const Self, pos: Point) T {
             return self.inner[self.idx(pos)];
         }
 
         /// Returns a pointer to some value at `(x, y)` or `null` if it doesn't exist
-        pub fn get_opt_mut(self: *Self, pos: Point) ?*T {
+        pub inline fn get_opt_mut(self: *Self, pos: Point) ?*T {
             return if (self.inside(pos)) &self.inner[self.idx(pos)] else null;
         }
 
         /// Returns a pointer to the value at `pos`.
         /// Assumes `pos` is within grid bounds.
-        fn get_mut(self: *Self, pos: Point) *T {
+        pub inline fn get_mut(self: *Self, pos: Point) *T {
             return &self.inner[self.idx(pos)];
         }
 
         /// Sets the value at `pos`. Assumes `pos` is within grid bounds.
-        pub fn set(self: *Self, pos: Point, value: T) void {
+        pub inline fn set(self: *Self, pos: Point, value: T) void {
             self.inner[self.idx(pos)] = value;
         }
 
         /// Calculates the index into the one-dimensional
         /// data slice when given a (x, y) coordinate pair.
-        pub fn idx(self: Self, pos: Point) usize {
+        pub inline fn idx(self: Self, pos: Point) usize {
             return pos.y * self.width + pos.x;
         }
 
         /// Convert an index into a coordinate
-        pub fn coord(self: Self, i: usize) Point {
+        pub inline fn coord(self: Self, i: usize) Point {
             return .init(i % self.width, i / self.width);
         }
 

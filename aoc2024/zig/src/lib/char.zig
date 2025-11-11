@@ -376,6 +376,13 @@ pub fn to_digit(comptime T: type, c: u8) ?T {
     if (!is_numeric(c)) return null;
     return @as(T, c - '0');
 }
+pub fn to_digit_unchecked(comptime T: type, c: u8) T {
+    return @as(T, c - '0');
+}
+pub fn as_usize(ascii_byte: u8) usize {
+    return to_digit_unchecked(usize, ascii_byte);
+}
+
 test "char to_digit" {
     try testing.expectEqual(9, to_digit(usize, '9'));
     try testing.expectEqual(null, to_digit(usize, 'a'));
