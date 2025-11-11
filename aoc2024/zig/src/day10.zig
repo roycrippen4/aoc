@@ -110,9 +110,7 @@ pub fn part1(gpa: Allocator) !usize {
         result += score_path(gpa, p, grid);
     }
 
-    std.debug.print("{d}\n", .{result});
-
-    return 42;
+    return result;
 }
 
 pub fn part2(_: Allocator) !usize {
@@ -120,7 +118,7 @@ pub fn part2(_: Allocator) !usize {
 }
 
 test "day10 part1" {
-    _ = try aoc.validate(part1, 42, .@"10", .one, testing.allocator);
+    _ = try aoc.validate(part1, 517, .@"10", .one, testing.allocator);
 }
 
 test "day10 part2" {
