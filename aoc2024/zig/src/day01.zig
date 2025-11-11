@@ -1,9 +1,10 @@
 const std = @import("std");
-const aoc = @import("aoc");
-
+const Allocator = std.mem.Allocator;
 const ArrayList = std.ArrayList;
 const HashMap = std.AutoHashMap;
 const testing = std.testing;
+
+const aoc = @import("aoc");
 
 const input = std.mem.trim(u8, @embedFile("data/day01/data.txt"), "\n");
 
@@ -15,7 +16,7 @@ fn parseTuple(line: []const u8) !struct { usize, usize } {
     return .{ l, r };
 }
 
-pub fn part1(gpa: std.mem.Allocator) !usize {
+pub fn part1(gpa: Allocator) !usize {
     var left = try ArrayList(usize).initCapacity(gpa, 1024);
     var right = try ArrayList(usize).initCapacity(gpa, 1024);
     defer left.deinit(gpa);
@@ -48,7 +49,7 @@ inline fn updateOrInsert(map: *HashMap(usize, usize), key: usize) !void {
     }
 }
 
-pub fn part2(allocator: std.mem.Allocator) !usize {
+pub fn part2(allocator: Allocator) !usize {
     var left = HashMap(usize, usize).init(allocator);
     var right = HashMap(usize, usize).init(allocator);
     defer _ = left.deinit();
