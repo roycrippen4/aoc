@@ -1,48 +1,36 @@
-use rayon::prelude::*;
+use super::{find_starting_points, make_grid};
+use crate::util::{Entry, Grid};
+use crate::{DIRECTIONS, data};
 
-use crate::{DIRECTIONS, data, util::StringMethods};
-
-type Point = (usize, usize, usize);
-
-fn neighbors(point: Point, grid: &[Vec<usize>]) -> Vec<Point> {
+fn neighbors(point: Entry<usize>, grid: &Grid<usize>) -> [Option<Entry<usize>>; 4] {
     let (x, y, v) = point;
-    let target_value = v + 1;
-    let max_height = grid.len() as isize;
-    let max_width = grid[0].len() as isize;
-    let mut neighbors = Vec::new();
+    let t = v + 1;
+    let h = grid.height as isize;
+    let w = grid.width as isize;
+
+    let mut ns = [None; 4];
+    let mut i = 0;
 
     for (dx, dy) in DIRECTIONS {
         let nx = x as isize + dx;
         let ny = y as isize + dy;
-        if nx >= 0 && nx < max_width && ny >= 0 && ny < max_height {
+        if nx >= 0 && nx < w && ny >= 0 && ny < h {
             let (nx, ny) = (nx as usize, ny as usize);
-            if grid[ny][nx] == target_value {
-                neighbors.push((nx, ny, grid[ny][nx]));
+            if grid[(nx, ny)] == t {
+                ns[i] = Some((nx, ny, grid[(nx, ny)]));
+                i += 1;
             }
         }
     }
 
-    neighbors
+    ns
 }
 
-fn create_grid(data: &str) -> Vec<Vec<usize>> {
-    data.trim().split("\n").map(|s| s.to_row()).collect()
-}
+fn score_path(start: Option<Entry<usize>>, grid: &Grid<usize>) -> usize {
+    let Some(start) = start else {
+        return 0;
+    };
 
-fn find_starting_points(grid: &[Vec<usize>]) -> Vec<Point> {
-    let mut points = vec![];
-    for y in 0..grid.len() {
-        for x in 0..grid[0].len() {
-            let value = grid[y][x];
-            if value == 0 {
-                points.push((x, y, 0));
-            }
-        }
-    }
-    points
-}
-
-fn score_path(start: Point, grid: &[Vec<usize>]) -> usize {
     if start.2 == 9 {
         return 1;
     }
@@ -53,9 +41,12 @@ fn score_path(start: Point, grid: &[Vec<usize>]) -> usize {
 }
 
 fn evaluate(data: &str) -> usize {
-    let grid = create_grid(data);
-    let starts = find_starting_points(&grid);
-    starts.par_iter().map(|s| score_path(*s, &grid)).sum()
+    let grid = make_grid(data);
+
+    find_starting_points(&grid)
+        .into_iter()
+        .map(|s| score_path(Some(s), &grid))
+        .sum()
 }
 
 pub fn solve() -> usize {
@@ -69,7 +60,7 @@ mod test {
         util::{Day::Day10, Part::Part2, validate},
     };
 
-    use super::{create_grid, evaluate, score_path, solve};
+    use super::{evaluate, solve};
 
     #[test]
     fn test_solve() {
@@ -82,22 +73,4 @@ mod test {
         let result = evaluate(data);
         assert_eq!(81, result);
     }
-
-    #[test]
-    fn test_score_path() {
-        let grid = create_grid(SIMPLE1);
-        let result = score_path((0, 0, 0), &grid);
-        assert_eq!(227, result);
-
-        let grid = create_grid(example!());
-        let result = score_path((2, 0, 0), &grid);
-        assert_eq!(20, result);
-    }
-
-    const SIMPLE1: &str = "012345
-123456
-234567
-345678
-496789
-567891";
 }

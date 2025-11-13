@@ -1,9 +1,6 @@
-use std::str::FromStr;
-
+use super::find_starting_points;
 use crate::data;
 use crate::util::{Entry, Grid};
-
-// type Visited = HashSet<(usize, usize, usize)>;
 
 fn neighbors(
     point: Entry<usize>,
@@ -34,12 +31,6 @@ fn neighbors(
     ns
 }
 
-fn find_starting_points(grid: &Grid<usize>) -> Vec<Entry<usize>> {
-    (0..grid.height)
-        .flat_map(|y| (0..grid.width).filter_map(move |x| (grid[(x, y)] == 0).then_some((x, y, 0))))
-        .collect()
-}
-
 fn score_path(start: Entry<usize>, grid: &Grid<usize>, visited: Option<&mut Grid<bool>>) -> usize {
     let visited = match visited {
         Some(v) => v,
@@ -61,7 +52,7 @@ fn score_path(start: Entry<usize>, grid: &Grid<usize>, visited: Option<&mut Grid
 }
 
 fn evaluate(data: &str) -> usize {
-    let grid = Grid::from_str(data).unwrap().as_usize();
+    let grid = super::make_grid(data);
     find_starting_points(&grid)
         .iter()
         .map(|s| score_path(*s, &grid, None))
