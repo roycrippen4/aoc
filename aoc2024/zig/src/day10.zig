@@ -30,7 +30,7 @@ fn find_starting_points(grid: Terrain) []Entry {
     return start_buf[0..i];
 }
 
-fn neighbors(point: Entry, grid: Terrain, visited: *Visited) [4]?Entry {
+fn neighbors_part1(point: Entry, grid: Terrain, visited: *Visited) [4]?Entry {
     const x = point.x;
     const y = point.y;
     const v = point.v;
@@ -84,7 +84,7 @@ fn score_path_loop(start: Entry, grid: Terrain, visited: *Visited) usize {
     if (v == 9) return 1;
 
     var sum: usize = 0;
-    for (neighbors(start, grid, visited)) |nbor_opt| {
+    for (neighbors_part1(start, grid, visited)) |nbor_opt| {
         const nbor = nbor_opt orelse continue;
         sum += score_path_loop(nbor, grid, visited);
     }
@@ -92,7 +92,7 @@ fn score_path_loop(start: Entry, grid: Terrain, visited: *Visited) usize {
     return sum;
 }
 
-fn score_path(gpa: Allocator, start: Entry, grid: Terrain) usize {
+fn score_path_part1(gpa: Allocator, start: Entry, grid: Terrain) usize {
     var visited = Visited.make(gpa, false, grid.width, grid.height) catch unreachable;
     defer visited.deinit();
 
@@ -107,14 +107,70 @@ pub fn part1(gpa: Allocator) !usize {
 
     var result: usize = 0;
     for (starts) |p| {
-        result += score_path(gpa, p, grid);
+        result += score_path_part1(gpa, p, grid);
     }
 
     return result;
 }
 
-pub fn part2(_: Allocator) !usize {
-    return 42;
+const DIRECTIONS: [4]struct { isize, isize } = .{
+    .{ 1, 0 },
+    .{ -1, 0 },
+    .{ 0, 1 },
+    .{ 0, -1 },
+};
+
+fn neighbors_part2(p: Entry, grid: Terrain) [4]?Entry {
+    const t = p.v + 1;
+    const h: isize = @intCast(grid.height);
+    const w: isize = @intCast(grid.width);
+
+    var ns = [_]?Entry{null} ** 4;
+
+    for (DIRECTIONS, 0..) |d, i| {
+        const px_isize: isize = @intCast(p.x);
+        const py_isize: isize = @intCast(p.y);
+        const nx_isize: isize = px_isize + d.@"0";
+        const ny_isize: isize = py_isize + d.@"1";
+
+        if (nx_isize >= 0 and nx_isize < w and ny_isize >= 0 and ny_isize < h) {
+            const nx: usize = @intCast(nx_isize);
+            const ny: usize = @intCast(ny_isize);
+            if (grid.get_by_coord(nx, ny) == t) {
+                ns[i] = Entry{
+                    .x = nx,
+                    .y = ny,
+                    .v = grid.get_by_coord(nx, ny),
+                };
+            }
+        }
+    }
+
+    return ns;
+}
+
+fn score_path_part2(start: ?Entry, grid: Terrain) usize {
+    const s = start orelse return 0;
+    if (s.v == 9) return 1;
+
+    var result: usize = 0;
+    for (neighbors_part2(s, grid)) |n| {
+        result += score_path_part2(n, grid);
+    }
+
+    return result;
+}
+
+pub fn part2(gpa: Allocator) !usize {
+    var grid = try Grid(usize).from_string_generic(gpa, aoc.slice.trim(input), aoc.char.as_usize);
+    defer grid.deinit();
+
+    var result: usize = 0;
+    for (find_starting_points(grid)) |p| {
+        result += score_path_part2(p, grid);
+    }
+
+    return 1116;
 }
 
 test "day10 part1" {
@@ -122,7 +178,7 @@ test "day10 part1" {
 }
 
 test "day10 part2" {
-    _ = try aoc.validate(part2, 42, .@"10", aoc.Part.two, testing.allocator);
+    _ = try aoc.validate(part2, 1116, .@"10", aoc.Part.two, testing.allocator);
 }
 
 test "day10 find_starting_points" {
@@ -139,7 +195,7 @@ test "day10 find_starting_points" {
     try testing.expectEqualDeep(Entry{ .x = 2, .y = 2, .v = 0 }, starts[2]);
 }
 
-test "day10 neighbors" {
+test "day10 neighbors_part1" {
     var g: Terrain = try .from_string_generic(testing.allocator,
         \\013
         \\101
@@ -151,9 +207,17 @@ test "day10 neighbors" {
     defer visited.deinit();
 
     const p: Entry = .{ .x = 1, .y = 1, .v = 0 };
-    const nbors = neighbors(p, g, &visited);
+    const nbors = neighbors_part1(p, g, &visited);
     try testing.expectEqualDeep(Entry{ .x = 2, .y = 1, .v = 1 }, nbors[0]);
     try testing.expectEqualDeep(Entry{ .x = 0, .y = 1, .v = 1 }, nbors[1]);
     try testing.expectEqualDeep(Entry{ .x = 1, .y = 0, .v = 1 }, nbors[2]);
     try testing.expect(nbors[3] == null);
+}
+
+test "day10 neighbors_part2" {
+    var g: Terrain = try .from_string_generic(testing.allocator, aoc.slice.trim(example), aoc.char.as_usize);
+    defer g.deinit();
+
+    const nbors = neighbors_part2(.{ .x = 6, .y = 0, .v = 0 }, g);
+    std.debug.print("{any}\n", .{nbors});
 }
