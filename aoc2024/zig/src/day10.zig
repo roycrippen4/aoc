@@ -11,7 +11,6 @@ const Terrain = Grid(usize);
 const Visited = Grid(bool);
 
 const input = @embedFile("data/day10/data.txt");
-const example = @embedFile("data/day10/example.txt");
 
 var start_buf: [256]Entry = undefined;
 fn find_starting_points(grid: Terrain) []Entry {
@@ -212,12 +211,4 @@ test "day10 neighbors_part1" {
     try testing.expectEqualDeep(Entry{ .x = 0, .y = 1, .v = 1 }, nbors[1]);
     try testing.expectEqualDeep(Entry{ .x = 1, .y = 0, .v = 1 }, nbors[2]);
     try testing.expect(nbors[3] == null);
-}
-
-test "day10 neighbors_part2" {
-    var g: Terrain = try .from_string_generic(testing.allocator, aoc.slice.trim(example), aoc.char.as_usize);
-    defer g.deinit();
-
-    const nbors = neighbors_part2(.{ .x = 6, .y = 0, .v = 0 }, g);
-    std.debug.print("{any}\n", .{nbors});
 }

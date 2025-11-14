@@ -5,7 +5,6 @@ const testing = std.testing;
 const aoc = @import("aoc");
 
 const input = @embedFile("data/day09/data.txt");
-const example = @embedFile("data/day09/example.txt");
 
 const Block = union(enum) {
     empty: usize,
@@ -27,8 +26,8 @@ const Block = union(enum) {
     }
 };
 
+var buf: [256 * 256]Block = undefined;
 fn parse(comptime s: []const u8) []Block {
-    var buf: [256 * 256]Block = undefined;
     var ptr: usize = 0;
 
     for (aoc.slice.trim(s), 0..) |c, i|
@@ -119,11 +118,11 @@ pub fn part2(_: Allocator) !usize {
     for (blocks) |block| {
         switch (block) {
             .file => |f| {
-                try files.push(File{ .id = f.id, .size = f.size, .offset = offset });
+                files.push(File{ .id = f.id, .size = f.size, .offset = offset });
                 offset += f.size;
             },
             .empty => |size| {
-                try spaces.push(Space{ .size = size, .offset = offset });
+                spaces.push(Space{ .size = size, .offset = offset });
                 offset += size;
             },
         }

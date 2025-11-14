@@ -4,7 +4,7 @@ const testing = std.testing;
 
 /// Checks `haystack` for `needle`.
 /// Returns `true` if found, otherwise `false`;
-pub fn contains(comptime T: type, haystack: []const T, needle: anytype) bool {
+pub inline fn contains(comptime T: type, haystack: []const T, needle: anytype) bool {
     if (@TypeOf(needle) == T or @TypeOf(needle) == comptime_int) {
         return mem.indexOfScalar(T, haystack, needle) != null;
     } else {
@@ -13,7 +13,7 @@ pub fn contains(comptime T: type, haystack: []const T, needle: anytype) bool {
     }
 }
 
-pub fn split_once(comptime T: type, s: []const T, delim: T) struct { []const T, []const T } {
+pub inline fn split_once(comptime T: type, s: []const T, delim: T) struct { []const T, []const T } {
     var it = mem.splitScalar(T, s, delim);
 
     return .{
@@ -51,13 +51,13 @@ pub fn chunks(
 }
 
 /// Returns an iterator over the lines in a slice
-pub fn lines(comptime T: type, comptime s: []const T) mem.SplitIterator(T, .scalar) {
+pub inline fn lines(comptime T: type, comptime s: []const T) mem.SplitIterator(T, .scalar) {
     const trimmed = mem.trim(T, s, &.{'\n'});
     return mem.splitScalar(T, trimmed, '\n');
 }
 
 /// only use on strings!
-pub fn trim(comptime s: []const u8) []const u8 {
+pub inline fn trim(comptime s: []const u8) []const u8 {
     return std.mem.trim(u8, s, &.{'\n'});
 }
 

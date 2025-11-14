@@ -2,16 +2,16 @@ const std = @import("std");
 const Allocator = std.mem.Allocator;
 
 pub const char = @import("char.zig");
-pub const Day = @import("day.zig").Day;
 pub const direction = @import("direction.zig");
-pub const Grid = @import("grid.zig").Grid;
 pub const math = @import("math.zig");
+pub const slice = @import("slice.zig");
+pub const time = @import("time.zig");
+
+pub const Day = @import("day.zig").Day;
+pub const Grid = @import("grid.zig").Grid;
 pub const Part = @import("part.zig").Part;
 pub const Point = @import("point.zig");
-pub const set = @import("set/root.zig");
-pub const slice = @import("slice.zig");
 pub const Stack = @import("stack.zig").Stack;
-pub const time = @import("time.zig");
 
 pub fn validate(
     f: fn (Allocator) anyerror!u64,

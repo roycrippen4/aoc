@@ -94,6 +94,7 @@ test "day01 parseTuple" {
 
 test "day01 updateOrInsert" {
     var map = HashMap(usize, usize).init(testing.allocator);
+    defer map.deinit();
 
     const no_entry = map.get(5);
     try testing.expectEqual(null, no_entry);
