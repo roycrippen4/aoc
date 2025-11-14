@@ -16,24 +16,21 @@ fn parseTuple(line: []const u8) !struct { usize, usize } {
     return .{ l, r };
 }
 
-pub fn part1(gpa: Allocator) !usize {
-    var left = try ArrayList(usize).initCapacity(gpa, 1024);
-    var right = try ArrayList(usize).initCapacity(gpa, 1024);
-    defer left.deinit(gpa);
-    defer right.deinit(gpa);
+pub fn part1(_: Allocator) !usize {
+    var left: aoc.Stack(usize, 1024) = .{};
+    var right: aoc.Stack(usize, 1024) = .{};
 
     var lines = std.mem.splitScalar(u8, input, '\n');
     while (lines.next()) |line| {
         const l, const r = try parseTuple(line);
-        try left.append(gpa, l);
-        try right.append(gpa, r);
+        left.push(l);
+        right.push(r);
     }
 
-    std.mem.sort(usize, left.items, {}, comptime std.sort.asc(usize));
-    std.mem.sort(usize, right.items, {}, comptime std.sort.asc(usize));
+    std.mem.sortUnstable(usize, &left.items, {}, std.sort.asc(usize));
+    std.mem.sortUnstable(usize, &right.items, {}, std.sort.asc(usize));
 
     var total: usize = 0;
-
     for (0..left.items.len) |idx| {
         total += aoc.math.abs_diff(left.items[idx], right.items[idx]);
     }
@@ -42,18 +39,22 @@ pub fn part1(gpa: Allocator) !usize {
 }
 
 inline fn updateOrInsert(map: *HashMap(usize, usize), key: usize) !void {
-    if (map.get(key)) |value| {
-        try map.put(key, value + 1);
+    const entry = map.getOrPutAssumeCapacity(key);
+    if (entry.found_existing) {
+        entry.value_ptr.* += 1;
     } else {
-        try map.put(key, 1);
+        entry.value_ptr.* = 1;
     }
 }
 
-pub fn part2(allocator: Allocator) !usize {
-    var left = HashMap(usize, usize).init(allocator);
-    var right = HashMap(usize, usize).init(allocator);
-    defer _ = left.deinit();
-    defer _ = right.deinit();
+pub fn part2(gpa: Allocator) !usize {
+    var left: HashMap(usize, usize) = .init(gpa);
+    try left.ensureTotalCapacity(1100);
+    defer left.deinit();
+
+    var right: HashMap(usize, usize) = .init(gpa);
+    try right.ensureTotalCapacity(1100);
+    defer right.deinit();
 
     var flines = std.mem.tokenizeAny(u8, input, "\n");
     while (flines.next()) |line| {
