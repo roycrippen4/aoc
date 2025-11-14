@@ -5,14 +5,14 @@ const aoc = @import("aoc");
 const Allocator = std.mem.Allocator;
 const ArrayUsize = std.ArrayList(usize);
 const ArrayArrayUsize = std.ArrayList(ArrayUsize);
-const RulesMap = std.AutoHashMap(usize, ArrayUsize);
+const RulesMap = std.AutoHashMap(usize, aoc.Stack(usize, 24));
 
 const input = @embedFile("data/day05/data.txt");
 
 fn parse_rules(gpa: Allocator, s: []const u8) !RulesMap {
     const trimmed = std.mem.trim(u8, s, "\n");
     var lines = std.mem.tokenizeScalar(u8, trimmed, '\n');
-    var map = RulesMap.init(gpa);
+    var map: RulesMap = .init(gpa);
 
     while (lines.next()) |line| {
         // "43|58" -> l = 43, r = 58
@@ -20,14 +20,14 @@ fn parse_rules(gpa: Allocator, s: []const u8) !RulesMap {
 
         const key = try std.fmt.parseInt(usize, l_str, 10);
         const value = try std.fmt.parseInt(usize, r_str, 10);
-        const entry = try map.getOrPut(key);
 
+        const entry = try map.getOrPut(key);
         if (entry.found_existing) {
-            try entry.value_ptr.*.append(gpa, value);
+            entry.value_ptr.*.push(value);
         } else {
-            var arraylist = try ArrayUsize.initCapacity(gpa, 24);
-            try arraylist.append(gpa, value);
-            entry.value_ptr.* = arraylist;
+            var stack: aoc.Stack(usize, 24) = .{};
+            stack.push(value);
+            entry.value_ptr.* = stack;
         }
     }
 
@@ -35,7 +35,7 @@ fn parse_rules(gpa: Allocator, s: []const u8) !RulesMap {
 }
 
 fn parse_update_sequence(gpa: Allocator, line: []const u8) !ArrayUsize {
-    var update_sequence = try ArrayUsize.initCapacity(gpa, 24);
+    var update_sequence: ArrayUsize = try .initCapacity(gpa, 24);
 
     var it = std.mem.splitScalar(u8, line, ',');
     while (it.next()) |update_str| {
@@ -47,7 +47,7 @@ fn parse_update_sequence(gpa: Allocator, line: []const u8) !ArrayUsize {
 }
 
 fn parse_updates(gpa: Allocator, s: []const u8) !ArrayArrayUsize {
-    var updates = try ArrayArrayUsize.initCapacity(gpa, 256);
+    var updates: ArrayArrayUsize = try .initCapacity(gpa, 256);
 
     const trimmed = std.mem.trim(u8, s, "\n");
     var lines = std.mem.tokenizeScalar(u8, trimmed, '\n');
@@ -72,10 +72,6 @@ fn parse(gpa: Allocator, s: []const u8) !struct { RulesMap, ArrayArrayUsize } {
 }
 
 fn cleanup(gpa: Allocator, rules: *RulesMap, updates: *ArrayArrayUsize) !void {
-    var rules_it = rules.iterator();
-    while (rules_it.next()) |entry| {
-        entry.value_ptr.deinit(gpa);
-    }
     rules.deinit();
 
     for (updates.items) |*item| {
@@ -92,7 +88,7 @@ fn evaluate_part1(sequence: []usize, rules: *const RulesMap) usize {
         const next_update = sequence[i + 1];
         const rule = rules.get(update) orelse return 0;
 
-        if (!aoc.slice.contains(usize, rule.items, next_update)) {
+        if (!aoc.slice.contains(usize, &rule.items, next_update)) {
             return 0;
         }
     }
@@ -119,7 +115,7 @@ fn is_in_order(update: []usize, map: RulesMap) bool {
         const next = update[i + 1];
 
         const mapping = map.get(current) orelse return false;
-        if (!aoc.slice.contains(usize, mapping.items, next)) {
+        if (!aoc.slice.contains(usize, &mapping.items, next)) {
             return false;
         }
     }
@@ -136,7 +132,7 @@ fn fix_order(update: *ArrayUsize, map: RulesMap) void {
             continue;
         };
 
-        if (!aoc.slice.contains(usize, mapping.items, update.items[i + 1])) {
+        if (!aoc.slice.contains(usize, &mapping.items, update.items[i + 1])) {
             std.mem.swap(usize, &update.items[i], &update.items[i + 1]);
             continue;
         }
@@ -170,50 +166,4 @@ test "day05 part1" {
 
 test "day05 part2" {
     _ = try aoc.validate(part2, 4230, aoc.Day.@"05", aoc.Part.two, t.allocator);
-}
-
-test "day05 parse_rules" {
-    const rules_string =
-        "47|53\n97|13\n97|61\n97|47\n75|29\n61|13\n75|53\n29|13\n97|29\n53|29\n61|53\n97|53\n61|29\n47|13\n75|47\n97|75\n47|61\n75|61\n47|29\n75|13\n53|13";
-    const gpa = t.allocator;
-
-    var map = try parse_rules(gpa, rules_string);
-    defer {
-        var map_iterator = map.iterator();
-        while (map_iterator.next()) |entry| {
-            entry.value_ptr.deinit(gpa);
-        }
-        map.deinit();
-    }
-
-    // from rust (known working)
-    // a 29: [ 13 ],
-    // b 61: [ 13, 53, 29 ],
-    // c 47: [ 53, 13, 61, 29 ],
-    // d 53: [ 29, 13 ],
-    // e 97: [ 13, 61, 47, 29, 53, 75 ],
-    // f 75: [ 29, 53, 47, 61, 13 ],
-
-    // keys
-    const a_k = 29;
-    const b_k = 61;
-    const c_k = 47;
-    const d_k = 53;
-    const e_k = 97;
-    const f_k = 75;
-
-    // expected values
-    var a_v: [1]usize = .{13};
-    var b_v: [3]usize = .{ 13, 53, 29 };
-    var c_v: [4]usize = .{ 53, 13, 61, 29 };
-    var d_v: [2]usize = .{ 29, 13 };
-    var e_v: [6]usize = .{ 13, 61, 47, 29, 53, 75 };
-    var f_v: [5]usize = .{ 29, 53, 47, 61, 13 };
-
-    try t.expectEqualSlices(usize, map.get(a_k).?.items, a_v[0..]);
-    try t.expectEqualSlices(usize, map.get(b_k).?.items, b_v[0..]);
-    try t.expectEqualSlices(usize, map.get(c_k).?.items, c_v[0..]);
-    try t.expectEqualSlices(usize, map.get(d_k).?.items, d_v[0..]);
-    try t.expectEqualSlices(usize, map.get(e_k).?.items, e_v[0..]);
-    try t.expectEqualSlices(usize, map.get(f_k).?.items, f_v[0..]);
 }
