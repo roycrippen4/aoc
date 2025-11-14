@@ -3,9 +3,7 @@ const testing = std.testing;
 
 /// Calculates the absolute difference between two usize values
 pub fn abs_diff(x: usize, y: usize) usize {
-    const safe_x: i64 = @intCast(x);
-    const safe_y: i64 = @intCast(y);
-    return @abs(safe_x - safe_y);
+    return if (x > y) x - y else y - x;
 }
 
 test "util absDiff" {
