@@ -40,12 +40,9 @@ pub fn validate(
         @panic("shit");
     }
 
-    const day_str = d.toString();
-    const part_str = p.toString();
-
     var buf: [64]u8 = undefined;
     const time_str = try time.color(elapsed, &buf);
-    std.debug.print("{s} {s} solved in {s}\n", .{ day_str, part_str, time_str });
+    std.debug.print("{f} {f} solved in {s}\n", .{ d, p, time_str });
     return elapsed;
 }
 
