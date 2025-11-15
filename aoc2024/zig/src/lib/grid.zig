@@ -8,9 +8,7 @@ pub const Error = error{ OutOfMemory, InvalidArgument };
 pub fn Grid(comptime T: type) type {
     return struct {
         const Self = @This();
-
-        inner: []T,
-
+        buf: []T,
         gpa: Allocator,
         width: usize,
         height: usize,
@@ -24,7 +22,7 @@ pub fn Grid(comptime T: type) type {
             errdefer gpa.free(buf);
 
             return Self{
-                .inner = buf,
+                .buf = buf,
                 .gpa = gpa,
                 .width = width,
                 .height = height,
@@ -35,7 +33,7 @@ pub fn Grid(comptime T: type) type {
         pub fn make(gpa: Allocator, default: T, width: usize, height: usize) Error!Self {
             const self = try Self.new(gpa, width, height);
 
-            for (self.inner) |*item| {
+            for (self.buf) |*item| {
                 item.* = default;
             }
 
@@ -125,7 +123,7 @@ pub fn Grid(comptime T: type) type {
         /// Free memory. Important: pointers derived from `self.items` become invalid.
         pub fn deinit(self: *Self) void {
             if (@sizeOf(T) > 0) {
-                self.gpa.free(self.inner);
+                self.gpa.free(self.buf);
             }
 
             self.* = undefined;
@@ -138,33 +136,33 @@ pub fn Grid(comptime T: type) type {
 
         /// Returns some value at `(x, y)` or `null` if it doesn't exist
         pub inline fn get_opt(self: *const Self, pos: Point) ?T {
-            return if (self.inside(pos)) self.inner[self.idx(pos)] else null;
+            return if (self.inside(pos)) self.buf[self.idx(pos)] else null;
         }
 
         /// Returns the value at `(x, y)` without checking grid bounds
         pub inline fn get_by_coord(self: *const Self, x: usize, y: usize) T {
-            return self.inner[y * self.width + x];
+            return self.buf[y * self.width + x];
         }
 
         /// Returns the value at `(x, y)` without checking grid bounds
         pub inline fn get(self: *const Self, pos: Point) T {
-            return self.inner[self.idx(pos)];
+            return self.buf[self.idx(pos)];
         }
 
         /// Returns a pointer to some value at `(x, y)` or `null` if it doesn't exist
         pub inline fn get_opt_mut(self: *Self, pos: Point) ?*T {
-            return if (self.inside(pos)) &self.inner[self.idx(pos)] else null;
+            return if (self.inside(pos)) &self.buf[self.idx(pos)] else null;
         }
 
         /// Returns a pointer to the value at `pos`.
         /// Assumes `pos` is within grid bounds.
         pub inline fn get_mut(self: *Self, pos: Point) *T {
-            return &self.inner[self.idx(pos)];
+            return &self.buf[self.idx(pos)];
         }
 
         /// Sets the value at `pos`. Assumes `pos` is within grid bounds.
         pub inline fn set(self: *Self, pos: Point, value: T) void {
-            self.inner[self.idx(pos)] = value;
+            self.buf[self.idx(pos)] = value;
         }
 
         /// Calculates the index into the one-dimensional
@@ -182,9 +180,9 @@ pub fn Grid(comptime T: type) type {
         pub fn clone(self: Self) Error!Self {
             const buf = try self.gpa.alloc(T, self.width * self.height);
             errdefer self.gpa.free(buf);
-            @memcpy(buf, self.inner);
+            @memcpy(buf, self.buf);
             return Self{
-                .inner = buf,
+                .buf = buf,
                 .gpa = self.gpa,
                 .width = self.width,
                 .height = self.height,
@@ -214,7 +212,7 @@ pub fn Grid(comptime T: type) type {
                 else => "{any} ",
             };
 
-            for (self.inner, 0..) |item, i| {
+            for (self.buf, 0..) |item, i| {
                 std.debug.print(fmt, .{item});
 
                 if (i % self.width == w_minus_1) {
@@ -233,7 +231,7 @@ pub fn Grid(comptime T: type) type {
         pub fn print_with_details(self: *const Self) void {
             std.debug.print("width: {d}\n", .{self.width});
             std.debug.print("height: {d}\n", .{self.height});
-            std.debug.print("inner: {any}\n", .{self.inner});
+            std.debug.print("inner: {any}\n", .{self.buf});
 
             self.print();
         }
@@ -261,7 +259,7 @@ pub fn Grid(comptime T: type) type {
                 for (0..self.width) |x| {
                     const p = Point.init(x, y);
                     const i = self.idx(p);
-                    self.inner[i] = f(p, self.inner[i]);
+                    self.buf[i] = f(p, self.buf[i]);
                 }
             }
         }
@@ -281,11 +279,11 @@ pub fn Grid(comptime T: type) type {
                     const idx3 = (n_minus_1 - y) * N + (n_minus_1 - x);
                     const idx4 = (n_minus_1 - x) * N + y;
 
-                    const temp = self.inner[idx1];
-                    self.inner[idx1] = self.inner[idx4];
-                    self.inner[idx4] = self.inner[idx3];
-                    self.inner[idx3] = self.inner[idx2];
-                    self.inner[idx2] = temp;
+                    const temp = self.buf[idx1];
+                    self.buf[idx1] = self.buf[idx4];
+                    self.buf[idx4] = self.buf[idx3];
+                    self.buf[idx3] = self.buf[idx2];
+                    self.buf[idx2] = temp;
                 }
             }
         }
@@ -305,11 +303,11 @@ pub fn Grid(comptime T: type) type {
                     const idx3 = (n_minus_1 - y) * N + (n_minus_1 - x);
                     const idx4 = (n_minus_1 - x) * N + y;
 
-                    const temp = self.inner[idx1];
-                    self.inner[idx1] = self.inner[idx2];
-                    self.inner[idx2] = self.inner[idx3];
-                    self.inner[idx3] = self.inner[idx4];
-                    self.inner[idx4] = temp;
+                    const temp = self.buf[idx1];
+                    self.buf[idx1] = self.buf[idx2];
+                    self.buf[idx2] = self.buf[idx3];
+                    self.buf[idx3] = self.buf[idx4];
+                    self.buf[idx4] = temp;
                 }
             }
         }
@@ -339,11 +337,11 @@ pub fn Grid(comptime T: type) type {
             for (0..self.height) |y| {
                 const src_start = y * self.width;
                 const src_end = src_start + self.width;
-                const src = self.inner[src_start..src_end];
+                const src = self.buf[src_start..src_end];
 
                 const dest_start = (y * skew_grid.width) + y;
                 const dest_end = dest_start + self.width;
-                const dest = skew_grid.inner[dest_start..dest_end];
+                const dest = skew_grid.buf[dest_start..dest_end];
 
                 @memcpy(dest, src);
             }
@@ -356,7 +354,7 @@ pub fn Grid(comptime T: type) type {
             for (0..self.height) |y| {
                 const start = y * self.width;
                 const end = start + self.width;
-                std.mem.reverse(T, self.inner[start..end]);
+                std.mem.reverse(T, self.buf[start..end]);
             }
         }
 
@@ -377,12 +375,12 @@ pub fn Grid(comptime T: type) type {
 
                 @memcpy(
                     new_inner[new_start + n .. new_start + new_width],
-                    self.inner[old_start .. old_start + self.width],
+                    self.buf[old_start .. old_start + self.width],
                 );
             }
 
-            self.gpa.free(self.inner);
-            self.inner = new_inner;
+            self.gpa.free(self.buf);
+            self.buf = new_inner;
             self.width = new_width;
         }
 
@@ -399,7 +397,7 @@ pub fn Grid(comptime T: type) type {
                 const old_start = y * old_width;
 
                 const dest = new_inner[new_start .. new_start + old_width];
-                const source = self.inner[old_start .. old_start + old_width];
+                const source = self.buf[old_start .. old_start + old_width];
                 @memcpy(dest, source);
 
                 for (new_inner[new_start + old_width .. new_start + new_width]) |*item| {
@@ -407,8 +405,8 @@ pub fn Grid(comptime T: type) type {
                 }
             }
 
-            self.gpa.free(self.inner);
-            self.inner = new_inner;
+            self.gpa.free(self.buf);
+            self.buf = new_inner;
             self.width = new_width;
         }
 
@@ -423,11 +421,11 @@ pub fn Grid(comptime T: type) type {
             }
 
             const dest = new_inner[n * self.width ..];
-            const src = self.inner[0..];
+            const src = self.buf[0..];
             @memcpy(dest, src);
 
-            self.gpa.free(self.inner);
-            self.inner = new_inner;
+            self.gpa.free(self.buf);
+            self.buf = new_inner;
             self.height = self.height + n;
         }
 
@@ -444,11 +442,11 @@ pub fn Grid(comptime T: type) type {
             }
 
             const dest = new_inner[0..old_size];
-            const src = self.inner[0..];
+            const src = self.buf[0..];
             @memcpy(dest, src);
 
-            self.gpa.free(self.inner);
-            self.inner = new_inner;
+            self.gpa.free(self.buf);
+            self.buf = new_inner;
             self.height = self.height + n;
         }
 
@@ -465,7 +463,7 @@ pub fn Grid(comptime T: type) type {
                 const old_start = y * old_width;
 
                 const dest = new_inner[new_start .. new_start + old_width];
-                const source = self.inner[old_start .. old_start + old_width];
+                const source = self.buf[old_start .. old_start + old_width];
                 @memcpy(dest, source);
 
                 for (new_inner[new_start - n .. new_start]) |*item| {
@@ -477,8 +475,8 @@ pub fn Grid(comptime T: type) type {
                 }
             }
 
-            self.gpa.free(self.inner);
-            self.inner = new_inner;
+            self.gpa.free(self.buf);
+            self.buf = new_inner;
             self.width = new_width;
         }
 
@@ -493,7 +491,7 @@ pub fn Grid(comptime T: type) type {
 
             // Copy the original into the middle
             const dest = new_inner[new_start .. new_start + old_size];
-            const src = self.inner[0..];
+            const src = self.buf[0..];
             @memcpy(dest, src);
 
             // Set the top to the pad value
@@ -506,8 +504,8 @@ pub fn Grid(comptime T: type) type {
                 item.* = pad;
             }
 
-            self.gpa.free(self.inner);
-            self.inner = new_inner;
+            self.gpa.free(self.buf);
+            self.buf = new_inner;
             self.height = self.height + n + n;
         }
 
@@ -538,7 +536,7 @@ pub fn Grid(comptime T: type) type {
 
                 // middle
                 const dest = new_inner[new_row_start + n .. new_row_start + n + old_width];
-                const source = self.inner[old_row_start .. old_row_start + old_width];
+                const source = self.buf[old_row_start .. old_row_start + old_width];
                 @memcpy(dest, source);
 
                 // right pad
@@ -553,8 +551,8 @@ pub fn Grid(comptime T: type) type {
                 item.* = pad;
             }
 
-            self.gpa.free(self.inner);
-            self.inner = new_inner;
+            self.gpa.free(self.buf);
+            self.buf = new_inner;
             self.width = new_width;
             self.height = new_height;
         }
@@ -570,11 +568,11 @@ pub fn Grid(comptime T: type) type {
             const new_inner = try self.gpa.alloc(T, new_size);
 
             const copy_start = n * self.width;
-            const source = self.inner[copy_start .. copy_start + new_size];
+            const source = self.buf[copy_start .. copy_start + new_size];
             @memcpy(new_inner, source);
 
-            self.gpa.free(self.inner);
-            self.inner = new_inner;
+            self.gpa.free(self.buf);
+            self.buf = new_inner;
             self.height = new_height;
         }
 
@@ -592,13 +590,13 @@ pub fn Grid(comptime T: type) type {
                 const new_row_start = y * new_width;
                 const old_row_start = y * old_width;
 
-                const source = self.inner[old_row_start + n .. old_row_start + n + new_width];
+                const source = self.buf[old_row_start + n .. old_row_start + n + new_width];
                 const dest = new_inner[new_row_start .. new_row_start + new_width];
                 @memcpy(dest, source);
             }
 
-            self.gpa.free(self.inner);
-            self.inner = new_inner;
+            self.gpa.free(self.buf);
+            self.buf = new_inner;
             self.width = new_width;
         }
 
@@ -618,11 +616,11 @@ pub fn Grid(comptime T: type) type {
             const new_inner = try self.gpa.alloc(T, new_size);
 
             const copy_start = n * self.width;
-            const source = self.inner[copy_start..];
+            const source = self.buf[copy_start..];
             @memcpy(new_inner, source);
 
-            self.gpa.free(self.inner);
-            self.inner = new_inner;
+            self.gpa.free(self.buf);
+            self.buf = new_inner;
             self.height = new_height;
         }
 
@@ -635,11 +633,11 @@ pub fn Grid(comptime T: type) type {
             const new_size = self.width * new_height;
             const new_inner = try self.gpa.alloc(T, new_size);
 
-            const source = self.inner[0..new_size];
+            const source = self.buf[0..new_size];
             @memcpy(new_inner, source);
 
-            self.gpa.free(self.inner);
-            self.inner = new_inner;
+            self.gpa.free(self.buf);
+            self.buf = new_inner;
             self.height = new_height;
         }
 
@@ -656,13 +654,13 @@ pub fn Grid(comptime T: type) type {
                 const new_row_start = y * new_width;
                 const old_row_start = y * old_width;
 
-                const source = self.inner[old_row_start + n .. old_row_start + old_width];
+                const source = self.buf[old_row_start + n .. old_row_start + old_width];
                 const dest = new_inner[new_row_start .. new_row_start + new_width];
                 @memcpy(dest, source);
             }
 
-            self.gpa.free(self.inner);
-            self.inner = new_inner;
+            self.gpa.free(self.buf);
+            self.buf = new_inner;
             self.width = new_width;
         }
 
@@ -679,13 +677,13 @@ pub fn Grid(comptime T: type) type {
                 const new_row_start = y * new_width;
                 const old_row_start = y * old_width;
 
-                const source = self.inner[old_row_start .. old_row_start + new_width];
+                const source = self.buf[old_row_start .. old_row_start + new_width];
                 const dest = new_inner[new_row_start .. new_row_start + new_width];
                 @memcpy(dest, source);
             }
 
-            self.gpa.free(self.inner);
-            self.inner = new_inner;
+            self.gpa.free(self.buf);
+            self.buf = new_inner;
             self.width = new_width;
         }
     };
@@ -717,10 +715,10 @@ test "grid reverse_rows" {
         '9', '8', '7',
     };
 
-    try t.expectEqualSlices(u8, &expected, g.inner);
+    try t.expectEqualSlices(u8, &expected, g.buf);
 
     g.reverse_rows();
-    try t.expectEqualSlices(u8, copy.inner, g.inner);
+    try t.expectEqualSlices(u8, copy.buf, g.buf);
 }
 
 test "grid skew and transpose for diagonal extraction" {
@@ -754,13 +752,13 @@ test "grid skew and transpose for diagonal extraction" {
     // 357
     // .68
     // ..9
-    const row0 = diag_grid.inner[0 * diag_grid.width .. (0 * diag_grid.width) + diag_grid.width];
+    const row0 = diag_grid.buf[0 * diag_grid.width .. (0 * diag_grid.width) + diag_grid.width];
     try t.expectEqualSlices(u8, "1..", row0);
 
-    const row1 = diag_grid.inner[1 * diag_grid.width .. (1 * diag_grid.width) + diag_grid.width];
+    const row1 = diag_grid.buf[1 * diag_grid.width .. (1 * diag_grid.width) + diag_grid.width];
     try t.expectEqualSlices(u8, "24.", row1);
 
-    const row2 = diag_grid.inner[2 * diag_grid.width .. (2 * diag_grid.width) + diag_grid.width];
+    const row2 = diag_grid.buf[2 * diag_grid.width .. (2 * diag_grid.width) + diag_grid.width];
     try t.expectEqualSlices(u8, "357", row2);
 }
 
@@ -776,14 +774,14 @@ test "grid transpose" {
     defer transposed.deinit();
 
     const expected_inner = .{ '1', '4', '2', '5', '3', '6' };
-    try t.expectEqualSlices(u8, &expected_inner, transposed.inner);
+    try t.expectEqualSlices(u8, &expected_inner, transposed.buf);
     try t.expectEqual(2, transposed.width);
     try t.expectEqual(3, transposed.height);
 
     // Test round trip
     var round_trip = try transposed.transpose();
     defer round_trip.deinit();
-    try t.expectEqualSlices(u8, g.inner, round_trip.inner);
+    try t.expectEqualSlices(u8, g.buf, round_trip.buf);
     try t.expectEqual(g.width, round_trip.width);
     try t.expectEqual(g.height, round_trip.height);
 }
@@ -811,7 +809,7 @@ test "grid skew" {
         '.', '.', 'G', 'H', 'I',
     };
 
-    try t.expectEqualSlices(u8, &expected_inner, skewed.inner);
+    try t.expectEqualSlices(u8, &expected_inner, skewed.buf);
 }
 
 test "grid pad_sides strip_sides" {
@@ -833,19 +831,19 @@ test "grid pad_sides strip_sides" {
         '.', 'C', 'D', '.',
         '.', '.', '.', '.',
     };
-    try t.expectEqualSlices(u8, &expected, g.inner);
+    try t.expectEqualSlices(u8, &expected, g.buf);
     try t.expectEqual(4, g.width);
     try t.expectEqual(4, g.height);
 
     try g.pad_sides(0, 0);
-    try t.expectEqualSlices(u8, &expected, g.inner);
+    try t.expectEqualSlices(u8, &expected, g.buf);
     try t.expectEqual(4, g.width);
     try t.expectEqual(4, g.height);
 
     try g.strip_sides(1);
     try t.expectEqual(2, g.width);
     try t.expectEqual(2, g.height);
-    try t.expectEqualSlices(u8, copy.inner, g.inner);
+    try t.expectEqualSlices(u8, copy.buf, g.buf);
 }
 
 test "grid pad_vertical strip_vertical" {
@@ -869,19 +867,19 @@ test "grid pad_vertical strip_vertical" {
         'G', 'H', 'I',
         '!', '!', '!',
     };
-    try t.expectEqualSlices(u8, &expected, g.inner);
+    try t.expectEqualSlices(u8, &expected, g.buf);
     try t.expectEqual(3, g.width);
     try t.expectEqual(5, g.height);
 
     try g.pad_vertical(0, 0);
-    try t.expectEqualSlices(u8, &expected, g.inner);
+    try t.expectEqualSlices(u8, &expected, g.buf);
     try t.expectEqual(3, g.width);
     try t.expectEqual(5, g.height);
 
     try g.strip_vertical(1);
     try t.expectEqual(3, g.width);
     try t.expectEqual(3, g.height);
-    try t.expectEqualSlices(u8, copy.inner, g.inner);
+    try t.expectEqualSlices(u8, copy.buf, g.buf);
 }
 
 test "grid pad_horizontal strip_horizontal" {
@@ -897,19 +895,19 @@ test "grid pad_horizontal strip_horizontal" {
         0, 1, 2, 3, 0,
         0, 2, 3, 4, 0,
     };
-    try t.expectEqualSlices(u16, &expected, g.inner);
+    try t.expectEqualSlices(u16, &expected, g.buf);
     try t.expectEqual(5, g.width);
     try t.expectEqual(3, g.height);
 
     try g.pad_horizontal(0, 0);
-    try t.expectEqualSlices(u16, &expected, g.inner);
+    try t.expectEqualSlices(u16, &expected, g.buf);
     try t.expectEqual(5, g.width);
     try t.expectEqual(3, g.height);
 
     try g.strip_horizontal(1);
     try t.expectEqual(3, g.width);
     try t.expectEqual(3, g.height);
-    try t.expectEqualSlices(u16, copy.inner, g.inner);
+    try t.expectEqualSlices(u16, copy.buf, g.buf);
 }
 
 test "grid pad_down strip_down" {
@@ -927,19 +925,19 @@ test "grid pad_down strip_down" {
         2, 3, 4,
         5, 5, 5,
     };
-    try t.expectEqualSlices(u16, &expected, g.inner);
+    try t.expectEqualSlices(u16, &expected, g.buf);
     try t.expectEqual(3, g.width);
     try t.expectEqual(4, g.height); // 3 original + 1 bottom
 
     try g.pad_down(0, 0);
-    try t.expectEqualSlices(u16, &expected, g.inner);
+    try t.expectEqualSlices(u16, &expected, g.buf);
     try t.expectEqual(3, g.width);
     try t.expectEqual(4, g.height);
 
     try g.strip_down(1);
     try t.expectEqual(3, g.width);
     try t.expectEqual(3, g.height);
-    try t.expectEqualSlices(u16, copy.inner, g.inner);
+    try t.expectEqualSlices(u16, copy.buf, g.buf);
 }
 
 test "grid pad_up strip_up" {
@@ -956,17 +954,17 @@ test "grid pad_up strip_up" {
         1, 2, 3,
         2, 3, 4,
     };
-    try t.expectEqualSlices(u16, &expected, g.inner);
+    try t.expectEqualSlices(u16, &expected, g.buf);
     try t.expectEqual(3, g.width);
     try t.expectEqual(5, g.height);
 
     try g.pad_up(0, 0);
-    try t.expectEqualSlices(u16, &expected, g.inner);
+    try t.expectEqualSlices(u16, &expected, g.buf);
     try t.expectEqual(3, g.width);
     try t.expectEqual(5, g.height);
 
     try g.strip_up(2);
-    try t.expectEqualSlices(u16, copy.inner, g.inner);
+    try t.expectEqualSlices(u16, copy.buf, g.buf);
     try t.expectEqual(3, g.width);
     try t.expectEqual(3, g.height);
 }
@@ -983,17 +981,17 @@ test "grid pad_left strip_left" {
         5, 1, 2, 3,
         5, 2, 3, 4,
     };
-    try t.expectEqualSlices(u16, &expected, g.inner);
+    try t.expectEqualSlices(u16, &expected, g.buf);
     try t.expectEqual(4, g.width);
     try t.expectEqual(3, g.height);
 
     try g.pad_left(0, 0);
-    try t.expectEqualSlices(u16, &expected, g.inner);
+    try t.expectEqualSlices(u16, &expected, g.buf);
     try t.expectEqual(4, g.width);
     try t.expectEqual(3, g.height);
 
     try g.strip_left(1);
-    try t.expectEqualSlices(u16, copy.inner, g.inner);
+    try t.expectEqualSlices(u16, copy.buf, g.buf);
     try t.expectEqual(3, g.width);
     try t.expectEqual(3, g.height);
 }
@@ -1011,17 +1009,17 @@ test "grid pad_right strip_right" {
         1, 2, 3, 5,
         2, 3, 4, 5,
     };
-    try t.expectEqualSlices(u16, &expected, g.inner);
+    try t.expectEqualSlices(u16, &expected, g.buf);
     try t.expectEqual(4, g.width);
     try t.expectEqual(3, g.height);
 
     try g.pad_right(0, 0);
-    try t.expectEqualSlices(u16, &expected, g.inner);
+    try t.expectEqualSlices(u16, &expected, g.buf);
     try t.expectEqual(4, g.width);
     try t.expectEqual(3, g.height);
 
     try g.strip_right(1);
-    try t.expectEqualSlices(u16, copy.inner, g.inner);
+    try t.expectEqualSlices(u16, copy.buf, g.buf);
     try t.expectEqual(3, g.width);
     try t.expectEqual(3, g.height);
 }
@@ -1030,7 +1028,7 @@ test "grid new" {
     var grid = try Grid(u16).make_with(t.allocator, 5, 5, sum);
     defer grid.deinit();
 
-    try t.expectEqual(25, grid.inner.len);
+    try t.expectEqual(25, grid.buf.len);
     try t.expectEqual(5, grid.width);
     try t.expectEqual(5, grid.height);
     try t.expectEqual(25, grid.width * grid.height);
@@ -1051,16 +1049,16 @@ test "grid new argument errors" {
 test "grid make" {
     var grid = try Grid(usize).make(t.allocator, 420, 5, 5);
     defer grid.deinit();
-    try t.expectEqual(25, grid.inner.len);
-    try t.expectEqual(420, grid.inner[0]); // Check first
-    try t.expectEqual(420, grid.inner[12]); // Check middle
-    try t.expectEqual(420, grid.inner[24]); // Check last
+    try t.expectEqual(25, grid.buf.len);
+    try t.expectEqual(420, grid.buf[0]); // Check first
+    try t.expectEqual(420, grid.buf[12]); // Check middle
+    try t.expectEqual(420, grid.buf[24]); // Check last
     try t.expectEqual(420, grid.get(.{ .x = 2, .y = 2 })); // Use get
 }
 
 test "grid idx" {
     const dummy_grid = Grid(u8){
-        .inner = &[_]u8{}, // Doesn't matter for idx
+        .buf = &[_]u8{}, // Doesn't matter for idx
         .gpa = undefined, // Not needed
         .width = 7,
         .height = 3,
@@ -1076,7 +1074,7 @@ test "grid idx" {
 
 test "grid inside function" {
     const dummy_grid = Grid(u8){
-        .inner = &[_]u8{},
+        .buf = &[_]u8{},
         .gpa = undefined,
         .width = 5,
         .height = 4,
@@ -1159,14 +1157,14 @@ test "grid map (non-mutating)" {
 
     try t.expectEqual(grid.width, mapped_grid.width);
     try t.expectEqual(grid.height, mapped_grid.height);
-    try t.expect(grid.inner.ptr != mapped_grid.inner.ptr); // Ensure distinct memory
+    try t.expect(grid.buf.ptr != mapped_grid.buf.ptr); // Ensure distinct memory
 }
 
 test "grid map_mut" {
     var grid = try Grid(u16).new(t.allocator, 5, 5);
     defer grid.deinit();
     grid.map_mut(sum); // Test map_mut which uses idx internally
-    try t.expectEqual(@as(usize, 25), grid.inner.len);
+    try t.expectEqual(@as(usize, 25), grid.buf.len);
     try t.expectEqual(@as(u16, 0), grid.get(Point.init(0, 0)));
     try t.expectEqual(@as(u16, 8), grid.get(Point.init(4, 4)));
     try t.expectEqual(@as(u16, 4), grid.get(Point.init(1, 3)));
@@ -1185,9 +1183,9 @@ test "grid clone" {
     try t.expectEqual(original.width, cloned.width);
     try t.expectEqual(original.height, cloned.height);
     try t.expectEqual(original.height * original.width, cloned.height * cloned.width);
-    try t.expectEqual(original.inner.len, cloned.inner.len);
-    try t.expect(original.inner.ptr != cloned.inner.ptr);
-    try t.expect(std.mem.eql(u16, original.inner, cloned.inner));
+    try t.expectEqual(original.buf.len, cloned.buf.len);
+    try t.expect(original.buf.ptr != cloned.buf.ptr);
+    try t.expect(std.mem.eql(u16, original.buf, cloned.buf));
 
     const change_pos_1 = Point.init(1, 1);
     const original_value_1 = original.get(change_pos_1);
@@ -1287,7 +1285,7 @@ test "grid transpose clockwise" {
 
     actual.transpose_clockwise();
 
-    try t.expectEqualSlices(u8, expected.inner, actual.inner);
+    try t.expectEqualSlices(u8, expected.buf, actual.buf);
 }
 
 test "grid transpose counter clockwise" {
@@ -1306,7 +1304,7 @@ test "grid transpose counter clockwise" {
     defer actual.deinit();
 
     actual.transpose_counter_clockwise();
-    try t.expectEqualSlices(u8, expected.inner, actual.inner);
+    try t.expectEqualSlices(u8, expected.buf, actual.buf);
 }
 
 test "grid transpose round trip" {
@@ -1326,12 +1324,12 @@ test "grid transpose round trip" {
     clone.transpose_clockwise();
     clone.transpose_clockwise();
 
-    try t.expectEqualSlices(u8, g.inner, clone.inner);
+    try t.expectEqualSlices(u8, g.buf, clone.buf);
 
     // Rotate 90 clockwise, then 90 counter-clockwise should be the same as the original
     clone.transpose_clockwise();
     clone.transpose_counter_clockwise();
-    try t.expectEqualSlices(u8, g.inner, clone.inner);
+    try t.expectEqualSlices(u8, g.buf, clone.buf);
 }
 
 test "grid is generic" {
@@ -1381,7 +1379,7 @@ test "grid is generic" {
     var g = try Grid(Item).from_string_generic(t.allocator, s, Item.from_char);
     defer g.deinit();
 
-    try t.expectEqual(Item.x, g.inner[0]);
-    try t.expectEqual(Item.o, g.inner[1]);
-    try t.expectEqual(Item.other, g.inner[8]);
+    try t.expectEqual(Item.x, g.buf[0]);
+    try t.expectEqual(Item.o, g.buf[1]);
+    try t.expectEqual(Item.other, g.buf[8]);
 }

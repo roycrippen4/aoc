@@ -7,33 +7,33 @@ const Point = aoc.Point;
 const input: []const u8 = @embedFile("data/day04/data.txt");
 
 fn northwest(g: Grid(u8), a: u32, x: usize, y: usize) u32 {
-    const b = @as(u32, g.inner[(y - 1) * g.width + (x - 1)]);
-    const c = @as(u32, g.inner[(y - 2) * g.width + (x - 2)]);
-    const d = @as(u32, g.inner[(y - 3) * g.width + (x - 3)]);
+    const b = @as(u32, g.buf[(y - 1) * g.width + (x - 1)]);
+    const c = @as(u32, g.buf[(y - 2) * g.width + (x - 2)]);
+    const d = @as(u32, g.buf[(y - 3) * g.width + (x - 3)]);
 
     return a | (b << 8) | (c << 16) | (d << 24);
 }
 
 fn northeast(g: Grid(u8), a: u32, x: usize, y: usize) u32 {
-    const b = @as(u32, g.inner[(y - 1) * g.width + (x + 1)]);
-    const c = @as(u32, g.inner[(y - 2) * g.width + (x + 2)]);
-    const d = @as(u32, g.inner[(y - 3) * g.width + (x + 3)]);
+    const b = @as(u32, g.buf[(y - 1) * g.width + (x + 1)]);
+    const c = @as(u32, g.buf[(y - 2) * g.width + (x + 2)]);
+    const d = @as(u32, g.buf[(y - 3) * g.width + (x + 3)]);
 
     return a | (b << 8) | (c << 16) | (d << 24);
 }
 
 fn southwest(g: Grid(u8), a: u32, x: usize, y: usize) u32 {
-    const b = @as(u32, g.inner[(y + 1) * g.width + (x - 1)]);
-    const c = @as(u32, g.inner[(y + 2) * g.width + (x - 2)]);
-    const d = @as(u32, g.inner[(y + 3) * g.width + (x - 3)]);
+    const b = @as(u32, g.buf[(y + 1) * g.width + (x - 1)]);
+    const c = @as(u32, g.buf[(y + 2) * g.width + (x - 2)]);
+    const d = @as(u32, g.buf[(y + 3) * g.width + (x - 3)]);
 
     return a | (b << 8) | (c << 16) | (d << 24);
 }
 
 fn southeast(g: Grid(u8), a: u32, x: usize, y: usize) u32 {
-    const b = @as(u32, g.inner[(y + 1) * g.width + (x + 1)]);
-    const c = @as(u32, g.inner[(y + 2) * g.width + (x + 2)]);
-    const d = @as(u32, g.inner[(y + 3) * g.width + (x + 3)]);
+    const b = @as(u32, g.buf[(y + 1) * g.width + (x + 1)]);
+    const c = @as(u32, g.buf[(y + 2) * g.width + (x + 2)]);
+    const d = @as(u32, g.buf[(y + 3) * g.width + (x + 3)]);
 
     return a | (b << 8) | (c << 16) | (d << 24);
 }
@@ -57,8 +57,8 @@ pub fn part1(gpa: std.mem.Allocator) anyerror!usize {
             const start = y * g.width + (x - 3) - 1;
             const end = y * g.width + x;
 
-            const row = g.inner[start..end];
-            const col = rot.inner[start..end];
+            const row = g.buf[start..end];
+            const col = rot.buf[start..end];
 
             const row_word = std.mem.readInt(u32, row[0..4], .little);
             const col_word = std.mem.readInt(u32, col[0..4], .little);
@@ -70,7 +70,7 @@ pub fn part1(gpa: std.mem.Allocator) anyerror!usize {
                 count += 1;
             }
 
-            const a = @as(u32, g.inner[y * g.width + x]);
+            const a = @as(u32, g.buf[y * g.width + x]);
 
             if (northwest(g, a, x, y) == XMAS) {
                 count += 1;
@@ -103,15 +103,15 @@ pub fn part2(gpa: std.mem.Allocator) anyerror!usize {
     for (4..g.height - 4) |y| {
         for (4..g.width - 4) |x| {
             const cross1 = .{
-                g.inner[(y - 1) * g.width + (x - 1)],
-                g.inner[y * g.width + x],
-                g.inner[(y + 1) * g.width + (x + 1)],
+                g.buf[(y - 1) * g.width + (x - 1)],
+                g.buf[y * g.width + x],
+                g.buf[(y + 1) * g.width + (x + 1)],
             };
 
             const cross2 = .{
-                g.inner[(y - 1) * g.width + (x + 1)],
-                g.inner[y * g.width + x],
-                g.inner[(y + 1) * g.width + (x - 1)],
+                g.buf[(y - 1) * g.width + (x + 1)],
+                g.buf[y * g.width + x],
+                g.buf[(y + 1) * g.width + (x - 1)],
             };
 
             const cross1_ok = std.mem.eql(u8, &cross1, "MAS") or std.mem.eql(u8, &cross1, "SAM");
