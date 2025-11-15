@@ -1,6 +1,5 @@
 const std = @import("std");
 const Allocator = std.mem.Allocator;
-const ArrayList = std.ArrayList;
 const HashMap = std.AutoHashMap;
 const testing = std.testing;
 
