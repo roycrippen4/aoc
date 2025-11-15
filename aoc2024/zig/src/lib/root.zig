@@ -12,6 +12,7 @@ pub const Grid = @import("grid.zig").Grid;
 pub const Part = @import("part.zig").Part;
 pub const Point = @import("point.zig");
 pub const Stack = @import("stack.zig").Stack;
+pub const Deque = @import("deque.zig").Deque;
 
 pub fn validate(
     f: fn (Allocator) anyerror!u64,
