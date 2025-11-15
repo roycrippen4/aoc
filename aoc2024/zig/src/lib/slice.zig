@@ -51,9 +51,18 @@ pub fn chunks(
 }
 
 /// Returns an iterator over the lines in a slice
-pub inline fn lines(comptime T: type, comptime s: []const T) mem.SplitIterator(T, .scalar) {
-    const trimmed = mem.trim(T, s, &.{'\n'});
-    return mem.splitScalar(T, trimmed, '\n');
+pub inline fn lines(comptime s: []const u8) mem.SplitIterator(u8, .scalar) {
+    const trimmed = mem.trim(u8, s, "\n");
+    return mem.splitScalar(u8, trimmed, '\n');
+}
+
+pub inline fn line_count(comptime s: []const u8) usize {
+    @setEvalBranchQuota(100_000);
+
+    var result: usize = 0;
+    var it = lines(s);
+    while (it.next()) |_| : (result += 1) {}
+    return result;
 }
 
 /// only use on strings!
@@ -69,7 +78,7 @@ test "slice lines" {
         \\baz
         \\
     ;
-    var lines_it = lines(u8, s);
+    var lines_it = lines(s);
     var i: usize = 0;
 
     while (lines_it.next()) |line| : (i += 1) {
