@@ -18,26 +18,26 @@ pub fn Stack(comptime T: type, comptime N: usize) type {
         /// Fills out the backing array with a default value.
         /// Does not change the length of the backing array or the pointer to the first element.
         /// Clobbers any existing data in the array.
-        pub fn fill(self: *Self, value: T) void {
+        pub inline fn fill(self: *Self, value: T) void {
             self.items = @splat(value);
             self.len = 0;
         }
 
         /// Access an item in the stack
         /// Returns null if the index is out of bounds
-        pub fn idx(self: *const Self, i: usize) ?T {
+        pub inline fn idx(self: *const Self, i: usize) ?T {
             if (i >= self.len) return null;
             return self.items[i];
         }
 
         /// Clears out the stack.
         /// Does not clobber existing data
-        pub fn clear(self: *Self) void {
+        pub inline fn clear(self: *Self) void {
             self.len = 0;
         }
 
         /// Clears out the stack and sets contents to undefined
-        pub fn clear_and_clean(self: *Self) void {
+        pub inline fn clear_and_clean(self: *Self) void {
             self.items = undefined;
             self.len = 0;
         }
@@ -45,12 +45,12 @@ pub fn Stack(comptime T: type, comptime N: usize) type {
         /// Push an item onto the slice.
         /// Does not grow the slice.
         /// Does not check for out of bounds insertion
-        pub fn push(self: *Self, item: T) void {
+        pub inline fn push(self: *Self, item: T) void {
             self.items[self.len] = item;
             self.len += 1;
         }
 
-        pub fn push_safe(self: *Self, item: T) !void {
+        pub inline fn push_safe(self: *Self, item: T) !void {
             if (self.len == self.capacity) return error.NoCapacity;
             self.items[self.len] = item;
             self.len += 1;
@@ -58,12 +58,21 @@ pub fn Stack(comptime T: type, comptime N: usize) type {
 
         /// Pop an item off the stack.
         /// Returns null if this function is called on an empty stack
-        pub fn pop(self: *Self) ?T {
+        pub inline fn pop(self: *Self) ?T {
             if (self.len == 0) return null;
             self.len -= 1;
             const value = self.items[self.len];
             self.items[self.len] = undefined;
             return value;
+        }
+
+        /// Pop an item off the stack.
+        /// Returns null if this function is called on an empty stack.
+        /// Same as `pop`, but does not set the popped element to `undefined` in the backing array;
+        pub inline fn pop_noclear(self: *Self) ?T {
+            if (self.len == 0) return null;
+            self.len -= 1;
+            return self.items[self.len];
         }
 
         /// Returns a copy the contents of the stack's backing array.
@@ -76,16 +85,16 @@ pub fn Stack(comptime T: type, comptime N: usize) type {
 
         /// Returns the value at the top of the stack without removing it.
         /// Returns null if the stack is empty.
-        pub fn peek(self: *const Self) ?T {
+        pub inline fn peek(self: *const Self) ?T {
             if (self.len == 0) return null;
             return self.items[self.len - 1];
         }
 
-        pub fn is_empty(self: *const Self) bool {
+        pub inline fn is_empty(self: *const Self) bool {
             return self.len == 0;
         }
 
-        pub fn iterator(self: *const Self) StackIterator(T) {
+        pub inline fn iterator(self: *const Self) StackIterator(T) {
             return .{ .items = self.items[0..self.len] };
         }
 
@@ -120,7 +129,7 @@ fn StackIterator(comptime T: type) type {
 
         const Self = @This();
 
-        pub fn next(self: *Self) ?T {
+        pub inline fn next(self: *Self) ?T {
             if (self.index >= self.items.len) return null;
 
             const item = self.items[self.index];
@@ -128,7 +137,7 @@ fn StackIterator(comptime T: type) type {
             return item;
         }
 
-        pub fn peek(self: *Self) ?T {
+        pub inline fn peek(self: *Self) ?T {
             if (self.index == self.items.len) return null;
             return self.items[self.index];
         }
