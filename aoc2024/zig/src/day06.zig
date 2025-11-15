@@ -49,7 +49,7 @@ inline fn state_to_key(state: State, width: usize) usize {
 }
 
 fn parse(gpa: Allocator, comptime s: []const u8) !struct { Grid, usize, Point } {
-    var lines = aoc.slice.lines(u8, s);
+    var lines = aoc.slice.lines(s);
 
     const size = lines.peek().?.len;
 

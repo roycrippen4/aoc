@@ -62,7 +62,7 @@ fn is_target(ops: []usize, idx: usize, target: usize, is_part2: enum { yes, no }
 const input = @embedFile("data/day07/data.txt");
 
 pub fn part1(_: Allocator) !usize {
-    var lines = aoc.slice.lines(u8, input);
+    var lines = aoc.slice.lines(input);
     var ops: [64]usize = undefined;
     var result: usize = 0;
 
@@ -88,7 +88,7 @@ pub fn part1(_: Allocator) !usize {
 }
 
 pub fn part2(_: Allocator) !usize {
-    var lines = aoc.slice.lines(u8, input);
+    var lines = aoc.slice.lines(input);
     var ops: [64]usize = undefined;
     var result: usize = 0;
 
