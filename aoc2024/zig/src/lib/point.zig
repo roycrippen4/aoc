@@ -1,5 +1,6 @@
 const std = @import("std");
 const math = std.math;
+const Writer = std.io.Writer;
 
 const Direction = @import("direction.zig").Intercardinal;
 
@@ -475,8 +476,8 @@ pub inline fn to_string(self: Self, buf: []u8) ![]const u8 {
     return try std.fmt.bufPrint(buf, "({d}, {d})", .{ self.x, self.y });
 }
 
-pub inline fn print(self: Self) void {
-    std.debug.print("Point{{ .x = {d}, .y = {d} }}\n", .{ self.x, self.y });
+pub inline fn format(self: Self, writer: *Writer) Writer.Error!void {
+    try writer.print("Point{{ .x = {d}, .y = {d} }}", .{ self.x, self.y });
 }
 
 /// Checks if the point is inside grid boundaries
