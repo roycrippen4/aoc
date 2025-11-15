@@ -69,7 +69,7 @@ pub fn main() !void {
     total_time += try aoc.validate(day12.part2, 830516, .@"12", .two, gpa);
 
     total_time += try aoc.validate(day13.part1, 29436, .@"13", .one, gpa);
-    total_time += try aoc.validate(day13.part2, 42, .@"13", .two, gpa);
+    total_time += try aoc.validate(day13.part2, 103_729_094_227_877, .@"13", .two, gpa);
 
     var buf: [64]u8 = undefined;
     const time = try aoc.time.color(total_time, &buf);

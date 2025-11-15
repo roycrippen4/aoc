@@ -55,7 +55,18 @@ const Machine = struct {
         };
     }
 
-    pub fn get_cheapest(self: @This()) usize {
+    pub fn with_offset(self: Machine) Machine {
+        return .{
+            .a = self.a,
+            .b = self.b,
+            .prize = .{
+                .x = self.prize.x + 10_000_000_000_000,
+                .y = self.prize.y + 10_000_000_000_000,
+            },
+        };
+    }
+
+    pub fn cheapest(self: Machine) usize {
         const a = self.a;
         const b = self.b;
         const p = self.prize;
@@ -101,13 +112,18 @@ pub fn part1(_: mem.Allocator) !usize {
     var result: usize = 0;
     var it = mem.splitSequence(u8, mem.trimEnd(u8, input, "\n"), "\n\n");
     while (it.next()) |s| {
-        result += Machine.parse(s).get_cheapest();
+        result += Machine.parse(s).cheapest();
     }
     return result;
 }
 
 pub fn part2(_: std.mem.Allocator) !usize {
-    return 42;
+    var result: usize = 0;
+    var it = mem.splitSequence(u8, mem.trimEnd(u8, input, "\n"), "\n\n");
+    while (it.next()) |s| {
+        result += Machine.parse(s).with_offset().cheapest();
+    }
+    return result;
 }
 
 test "day13 part1" {
@@ -115,7 +131,7 @@ test "day13 part1" {
 }
 
 test "day13 part2" {
-    _ = try aoc.validate(part2, 42, .@"13", .two, testing.allocator);
+    _ = try aoc.validate(part2, 103_729_094_227_877, .@"13", .two, testing.allocator);
 }
 
 test "day13 is_positive_int" {
@@ -163,7 +179,7 @@ test "day13 get_cheapest" {
             \\Button A: X+94, Y+34
             \\Button B: X+22, Y+67
             \\Prize: X=8400, Y=5400
-        ).get_cheapest(),
+        ).cheapest(),
     );
 
     try testing.expectEqual(
@@ -172,6 +188,6 @@ test "day13 get_cheapest" {
             \\Button A: X+17, Y+86
             \\Button B: X+84, Y+37
             \\Prize: X=7870, Y=6450
-        ).get_cheapest(),
+        ).cheapest(),
     );
 }
