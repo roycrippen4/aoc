@@ -1,13 +1,13 @@
 use super::{HALF_HEIGHT, HALF_WIDTH, Robot, parse_input, step};
 use crate::data;
 
-fn update_counts(robot: Robot, skip_x: usize, skip_y: usize) -> (usize, usize, usize, usize) {
+fn update_counts(robot: Robot) -> (usize, usize, usize, usize) {
     let (x, y) = (robot.pos_x as usize, robot.pos_y as usize);
-    if x == skip_x || y == skip_y {
+    if x == HALF_WIDTH || y == HALF_HEIGHT {
         return (0, 0, 0, 0);
     }
 
-    match (x < skip_x, y < skip_y) {
+    match (x < HALF_WIDTH, y < HALF_HEIGHT) {
         (true, true) => (1, 0, 0, 0),
         (false, true) => (0, 1, 0, 0),
         (true, false) => (0, 0, 1, 0),
@@ -16,12 +16,12 @@ fn update_counts(robot: Robot, skip_x: usize, skip_y: usize) -> (usize, usize, u
 }
 
 pub fn evaluate(data: &str, steps: usize) -> usize {
-    let (tl, tr, bl, br) = parse_input(data)
+    parse_input(data)
         .into_iter()
-        .map(|bot| update_counts(step(bot, steps), HALF_WIDTH, HALF_HEIGHT))
+        .map(|bot| update_counts(step(bot, steps)))
         .reduce(|(a, b, c, d), (tl, tr, bl, br)| (tl + a, tr + b, bl + c, br + d))
-        .unwrap();
-    tl * tr * bl * br
+        .map(|(tl, tr, bl, br)| tl * tr * bl * br)
+        .unwrap()
 }
 
 pub fn solve() -> usize {

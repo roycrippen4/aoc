@@ -37,10 +37,8 @@ impl From<&str> for Robot {
 }
 
 fn step(bot: Robot, steps: usize) -> Robot {
-    let pos_x =
-        (((bot.pos_x + bot.vel_x * steps as isize) % WIDTH_ISIZE) + WIDTH_ISIZE) % WIDTH_ISIZE;
-    let pos_y =
-        (((bot.pos_y + bot.vel_y * steps as isize) % HEIGHT_ISIZE) + HEIGHT_ISIZE) % HEIGHT_ISIZE;
+    let pos_x = (bot.pos_x + bot.vel_x * steps as isize).rem_euclid(WIDTH_ISIZE);
+    let pos_y = (bot.pos_y + bot.vel_y * steps as isize).rem_euclid(HEIGHT_ISIZE);
 
     Robot {
         pos_x,
