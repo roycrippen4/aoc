@@ -9,7 +9,6 @@ const aoc = @import("aoc");
 const Point = aoc.Point;
 
 const input = @embedFile("data/day13/data.txt");
-const example = @embedFile("data/day13/example.txt");
 
 fn parse_prize(s: []const u8) Point {
     const stripped = mem.trimStart(u8, s, "Prize: X=");
