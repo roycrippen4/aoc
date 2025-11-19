@@ -1,8 +1,9 @@
 const std = @import("std");
+const Allocator = std.mem.Allocator;
+const testing = std.testing;
 
 const aoc = @import("aoc");
 
-const Allocator = std.mem.Allocator;
 const ArrayUsize = std.ArrayList(usize);
 const ArrayArrayUsize = std.ArrayList(ArrayUsize);
 const RulesMap = std.AutoHashMap(usize, aoc.Stack(usize, 24));
@@ -49,8 +50,7 @@ fn parse_update_sequence(gpa: Allocator, line: []const u8) !ArrayUsize {
 fn parse_updates(gpa: Allocator, s: []const u8) !ArrayArrayUsize {
     var updates: ArrayArrayUsize = try .initCapacity(gpa, 256);
 
-    const trimmed = std.mem.trim(u8, s, "\n");
-    var lines = std.mem.tokenizeScalar(u8, trimmed, '\n');
+    var lines = aoc.slice.lines(s);
 
     while (lines.next()) |line| {
         const update_sequence = try parse_update_sequence(gpa, line);
@@ -71,15 +71,6 @@ fn parse(gpa: Allocator, s: []const u8) !struct { RulesMap, ArrayArrayUsize } {
     };
 }
 
-fn cleanup(gpa: Allocator, rules: *RulesMap, updates: *ArrayArrayUsize) !void {
-    rules.deinit();
-
-    for (updates.items) |*item| {
-        item.deinit(gpa);
-    }
-    updates.deinit(gpa);
-}
-
 fn evaluate_part1(sequence: []usize, rules: *const RulesMap) usize {
     std.debug.assert(sequence.len % 2 != 0);
 
@@ -97,9 +88,13 @@ fn evaluate_part1(sequence: []usize, rules: *const RulesMap) usize {
     return sequence[idx];
 }
 
-pub fn part1(gpa: std.mem.Allocator) anyerror!usize {
+pub fn part1(gpa: Allocator) !usize {
     var rules, var updates = try parse(gpa, input);
-    defer cleanup(gpa, &rules, &updates) catch std.debug.print("ERROR CLEANING UP MEMORY", .{});
+    defer {
+        rules.deinit();
+        for (updates.items) |*item| item.deinit(gpa);
+        updates.deinit(gpa);
+    }
 
     var total: usize = 0;
     for (updates.items) |sequence| {
@@ -141,9 +136,13 @@ fn fix_order(update: *ArrayUsize, map: RulesMap) void {
     fix_order(update, map);
 }
 
-pub fn part2(gpa: std.mem.Allocator) anyerror!usize {
+pub fn part2(gpa: Allocator) !usize {
     var rules, var updates = try parse(gpa, input);
-    defer cleanup(gpa, &rules, &updates) catch std.debug.print("ERROR CLEANING UP MEMORY", .{});
+    defer {
+        rules.deinit();
+        for (updates.items) |*item| item.deinit(gpa);
+        updates.deinit(gpa);
+    }
 
     var total: usize = 0;
 
@@ -158,12 +157,10 @@ pub fn part2(gpa: std.mem.Allocator) anyerror!usize {
     return total;
 }
 
-const t = std.testing;
-
 test "day05 part1" {
-    _ = try aoc.validate(part1, 7198, aoc.Day.@"05", aoc.Part.one, t.allocator);
+    _ = try aoc.validate(part1, 7198, .@"05", .one, testing.allocator);
 }
 
 test "day05 part2" {
-    _ = try aoc.validate(part2, 4230, aoc.Day.@"05", aoc.Part.two, t.allocator);
+    _ = try aoc.validate(part2, 4230, .@"05", .two, testing.allocator);
 }
