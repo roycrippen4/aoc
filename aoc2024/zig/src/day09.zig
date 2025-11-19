@@ -3,6 +3,7 @@ const Allocator = std.mem.Allocator;
 const testing = std.testing;
 
 const aoc = @import("aoc");
+const Solution = aoc.Solution;
 
 const input = @embedFile("data/day09/data.txt");
 
@@ -39,7 +40,7 @@ fn parse(comptime s: []const u8) []Block {
     return buf[0..ptr];
 }
 
-pub fn part1(_: Allocator) !usize {
+fn part1(_: Allocator) !usize {
     const blocks = parse(input);
     var result: usize = 0;
     var back_i = blocks.len - 1;
@@ -109,7 +110,7 @@ const Space = struct {
     offset: usize,
 };
 
-pub fn part2(_: Allocator) !usize {
+fn part2(_: Allocator) !usize {
     const blocks = parse(input);
     var offset: usize = 0;
     var files: aoc.Stack(File, 10_000) = .{};
@@ -158,10 +159,22 @@ pub fn part2(_: Allocator) !usize {
     return result;
 }
 
+pub fn solution() Solution {
+    return .{
+        .day = .@"09",
+        .p1 = .{ .f = part1, .expected = 6448989155953 },
+        .p2 = .{ .f = part2, .expected = 6476642796832 },
+    };
+}
+
 test "day09 part1" {
     _ = try aoc.validate(part1, 6448989155953, .@"09", .one, testing.allocator);
 }
 
 test "day09 part2" {
     _ = try aoc.validate(part2, 6476642796832, .@"09", .two, testing.allocator);
+}
+
+test "day09 solution" {
+    _ = try solution().solve(testing.allocator);
 }

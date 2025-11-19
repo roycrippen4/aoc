@@ -146,7 +146,7 @@ pub inline fn line_count(comptime s: []const u8) usize {
 }
 
 /// only use on strings!
-pub inline fn trim(comptime s: []const u8) []const u8 {
+pub inline fn trim(s: []const u8) []const u8 {
     return std.mem.trim(u8, s, &.{'\n'});
 }
 

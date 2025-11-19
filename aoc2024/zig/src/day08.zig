@@ -4,6 +4,7 @@ const testing = std.testing;
 
 const aoc = @import("aoc");
 const Point = aoc.Point;
+const Solution = aoc.Solution;
 
 const Stack = aoc.Stack(Point, 10);
 const Stacks = [62]Stack;
@@ -44,7 +45,7 @@ inline fn rotate_point(p1: Point, p2: Point) ?Point {
         p;
 }
 
-pub fn part1(_: std.mem.Allocator) !usize {
+fn part1(_: std.mem.Allocator) !usize {
     var seen: Seen = [_]bool{false} ** (size * size);
     var count: usize = 0;
 
@@ -72,7 +73,7 @@ pub fn part1(_: std.mem.Allocator) !usize {
     return count;
 }
 
-pub fn part2(_: std.mem.Allocator) !usize {
+fn part2(_: std.mem.Allocator) !usize {
     var seen: Seen = [_]bool{false} ** (size * size);
     var count: usize = 0;
 
@@ -121,10 +122,22 @@ pub fn part2(_: std.mem.Allocator) !usize {
     return count;
 }
 
+pub fn solution() Solution {
+    return .{
+        .day = .@"08",
+        .p1 = .{ .f = part1, .expected = 244 },
+        .p2 = .{ .f = part2, .expected = 912 },
+    };
+}
+
 test "day08 part1" {
     _ = try aoc.validate(part1, 244, aoc.Day.@"08", aoc.Part.one, testing.allocator);
 }
 
 test "day08 part2" {
     _ = try aoc.validate(part2, 912, aoc.Day.@"08", aoc.Part.two, testing.allocator);
+}
+
+test "day08 solution" {
+    _ = try solution().solve(testing.allocator);
 }

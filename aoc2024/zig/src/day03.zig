@@ -33,7 +33,7 @@ inline fn is_dont(s: []const u8) bool {
     return mem.startsWith(u8, s, "don't()");
 }
 
-pub fn part1(_: Allocator) !usize {
+fn part1(_: Allocator) !usize {
     var i: u64 = 0;
     var sum: u64 = 0;
 
@@ -50,7 +50,7 @@ pub fn part1(_: Allocator) !usize {
     return sum;
 }
 
-pub fn part2(_: Allocator) !usize {
+fn part2(_: Allocator) !usize {
     var i: u64 = 0;
     var enable = true;
     var sum: u64 = 0;
@@ -80,12 +80,24 @@ pub fn part2(_: Allocator) !usize {
     return sum;
 }
 
+pub fn solution() Solution {
+    return .{
+        .day = .@"03",
+        .p1 = .{ .f = part1, .expected = 173731097 },
+        .p2 = .{ .f = part2, .expected = 93729253 },
+    };
+}
+
 test "day03 part1" {
     _ = try aoc.validate(part1, 173731097, .@"03", .one, testing.allocator);
 }
 
 test "day03 part2" {
     _ = try aoc.validate(part2, 93729253, .@"03", .two, testing.allocator);
+}
+
+test "day03 solution" {
+    _ = try solution().solve(testing.allocator);
 }
 
 test "day03 parse" {

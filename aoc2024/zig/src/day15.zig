@@ -3,6 +3,7 @@ const Allocator = std.mem.Allocator;
 const testing = std.testing;
 
 const aoc = @import("aoc");
+const Solution = aoc.Solution;
 
 const DIM: usize = 51;
 const GRID_END: usize = DIM * (DIM - 1);
@@ -20,7 +21,7 @@ const Direction = enum(i32) {
     null = 0,
 };
 
-pub fn part1(_: std.mem.Allocator) !usize {
+fn part1(_: std.mem.Allocator) !usize {
     @memcpy(&input, input_raw); // we need a mutable copy of the input
     var grid: []u8 = input[0..GRID_END];
 
@@ -207,7 +208,7 @@ fn move_vertical(grid: *[]u8, bot: *i32, i: i32, dir: i32) void {
     }
 }
 
-pub fn part2(_: std.mem.Allocator) !usize {
+fn part2(_: std.mem.Allocator) !usize {
     @memcpy(&input, input_raw); // we need a mutable copy of the input
     var grid, var bot = parse();
 
@@ -235,6 +236,14 @@ pub fn part2(_: std.mem.Allocator) !usize {
     };
 
     return result;
+}
+
+pub fn solution() Solution {
+    return .{
+        .day = .@"15",
+        .p1 = .{ .f = part1, .expected = 1526673 },
+        .p2 = .{ .f = part2, .expected = 1535509 },
+    };
 }
 
 test "day15 part1" {

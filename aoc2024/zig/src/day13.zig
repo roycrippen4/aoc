@@ -7,6 +7,7 @@ const Writer = std.io.Writer;
 
 const aoc = @import("aoc");
 const Point = aoc.Point;
+const Solution = aoc.Solution;
 
 const input = @embedFile("data/day13/data.txt");
 
@@ -107,7 +108,7 @@ fn is_positive_int(f: f64) bool {
     return fract == 0 and int > 0;
 }
 
-pub fn part1(_: mem.Allocator) !usize {
+fn part1(_: mem.Allocator) !usize {
     var result: usize = 0;
     var it = mem.splitSequence(u8, mem.trimEnd(u8, input, "\n"), "\n\n");
     while (it.next()) |s| {
@@ -116,7 +117,7 @@ pub fn part1(_: mem.Allocator) !usize {
     return result;
 }
 
-pub fn part2(_: std.mem.Allocator) !usize {
+fn part2(_: std.mem.Allocator) !usize {
     var result: usize = 0;
     var it = mem.splitSequence(u8, mem.trimEnd(u8, input, "\n"), "\n\n");
     while (it.next()) |s| {
@@ -125,12 +126,24 @@ pub fn part2(_: std.mem.Allocator) !usize {
     return result;
 }
 
+pub fn solution() Solution {
+    return .{
+        .day = .@"13",
+        .p1 = .{ .f = part1, .expected = 29436 },
+        .p2 = .{ .f = part2, .expected = 103_729_094_227_877 },
+    };
+}
+
 test "day13 part1" {
     _ = try aoc.validate(part1, 29436, .@"13", .one, testing.allocator);
 }
 
 test "day13 part2" {
     _ = try aoc.validate(part2, 103_729_094_227_877, .@"13", .two, testing.allocator);
+}
+
+test "day13 solution" {
+    _ = try solution().solve(testing.allocator);
 }
 
 test "day13 is_positive_int" {

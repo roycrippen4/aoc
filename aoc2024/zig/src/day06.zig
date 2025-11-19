@@ -3,6 +3,7 @@ const testing = std.testing;
 const Allocator = std.mem.Allocator;
 
 const aoc = @import("aoc");
+const Solution = aoc.Solution;
 const Point = aoc.Point;
 
 const Direction = enum {
@@ -111,7 +112,7 @@ fn find_path(gpa: Allocator, grid: Grid, start: Point, size: usize) !UsizeSet {
 
 const input = @embedFile("data/day06/data.txt");
 
-pub fn part1(gpa: std.mem.Allocator) anyerror!usize {
+fn part1(gpa: std.mem.Allocator) anyerror!usize {
     var grid, const size, const start = try parse(gpa, input);
     var path = try find_path(gpa, grid, start, size);
 
@@ -318,7 +319,7 @@ fn find_cycles(
     return count.load(.monotonic);
 }
 
-pub fn part2(gpa: std.mem.Allocator) anyerror!usize {
+fn part2(gpa: std.mem.Allocator) anyerror!usize {
     var grid, const size, const start = try parse(gpa, input);
     var path = try find_path(gpa, grid, start, size);
     var jump_map = try find_jumps(gpa, grid, size);
@@ -333,12 +334,24 @@ pub fn part2(gpa: std.mem.Allocator) anyerror!usize {
     return cycles;
 }
 
+pub fn solution() Solution {
+    return .{
+        .day = .@"06",
+        .p1 = .{ .f = part1, .expected = 4559 },
+        .p2 = .{ .f = part2, .expected = 1604 },
+    };
+}
+
 test "day06 part1" {
     _ = try aoc.validate(part1, 4559, .@"06", .one, testing.allocator);
 }
 
 test "day06 part2" {
     _ = try aoc.validate(part2, 1604, .@"06", .two, testing.allocator);
+}
+
+test "day06 solution" {
+    _ = try solution().solve(testing.allocator);
 }
 
 test "day06 key_to_pos and pos_to_key" {

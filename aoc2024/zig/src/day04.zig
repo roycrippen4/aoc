@@ -43,7 +43,7 @@ inline fn southeast(g: Grid, a: u32, x: usize, y: usize) u32 {
     return a | (b << 8) | (c << 16) | (d << 24);
 }
 
-pub fn part1(gpa: Allocator) anyerror!usize {
+fn part1(gpa: Allocator) anyerror!usize {
     var g: Grid = try .from_string(gpa, input);
     try g.pad_sides(4, '.');
 
@@ -85,7 +85,7 @@ inline fn is_sam_or_mas(slice: []const u8) bool {
     return eql(u8, slice, "MAS") or eql(u8, slice, "SAM");
 }
 
-pub fn part2(gpa: Allocator) anyerror!usize {
+fn part2(gpa: Allocator) anyerror!usize {
     var g: Grid = try .from_string(gpa, input);
     try g.pad_sides(4, '.');
     defer g.deinit();
@@ -111,10 +111,22 @@ pub fn part2(gpa: Allocator) anyerror!usize {
     return count;
 }
 
+pub fn solution() Solution {
+    return .{
+        .day = .@"04",
+        .p1 = .{ .f = part1, .expected = 2483 },
+        .p2 = .{ .f = part2, .expected = 1925 },
+    };
+}
+
 test "day04 part1" {
     _ = try aoc.validate(part1, 2483, .@"04", .one, testing.allocator);
 }
 
 test "day04 part2" {
     _ = try aoc.validate(part2, 1925, .@"04", .two, testing.allocator);
+}
+
+test "day04 solution" {
+    _ = try solution().solve(testing.allocator);
 }

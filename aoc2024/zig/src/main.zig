@@ -3,22 +3,6 @@ const builtin = @import("builtin");
 
 const aoc = @import("aoc");
 
-const day01 = @import("day01.zig");
-const day02 = @import("day02.zig");
-const day03 = @import("day03.zig");
-const day04 = @import("day04.zig");
-const day05 = @import("day05.zig");
-const day06 = @import("day06.zig");
-const day07 = @import("day07.zig");
-const day08 = @import("day08.zig");
-const day09 = @import("day09.zig");
-const day10 = @import("day10.zig");
-const day11 = @import("day11.zig");
-const day12 = @import("day12.zig");
-const day13 = @import("day13.zig");
-const day14 = @import("day14.zig");
-const day15 = @import("day15.zig");
-
 var debug_allocator: std.heap.DebugAllocator(.{}) = .init;
 
 pub fn main() !void {
@@ -34,50 +18,21 @@ pub fn main() !void {
 
     var total_time: u64 = 0;
 
-    total_time += try aoc.validate(day01.part1, 1506483, .@"01", .one, gpa);
-    total_time += try aoc.validate(day01.part2, 23126924, .@"01", .two, gpa);
-
-    total_time += try aoc.validate(day02.part1, 202, .@"02", .one, gpa);
-    total_time += try aoc.validate(day02.part2, 271, .@"02", .two, gpa);
-
-    total_time += try aoc.validate(day03.part1, 173731097, .@"03", .one, gpa);
-    total_time += try aoc.validate(day03.part2, 93729253, .@"03", .two, gpa);
-
-    total_time += try aoc.validate(day04.part1, 2483, .@"04", .one, gpa);
-    total_time += try aoc.validate(day04.part2, 1925, .@"04", .two, gpa);
-
-    total_time += try aoc.validate(day05.part1, 7198, .@"05", .one, gpa);
-    total_time += try aoc.validate(day05.part2, 4230, .@"05", .two, gpa);
-
-    total_time += try aoc.validate(day06.part1, 4559, .@"06", .one, gpa);
-    total_time += try aoc.validate(day06.part2, 1604, .@"06", .two, gpa);
-
-    total_time += try aoc.validate(day07.part1, 303766880536, .@"07", .one, gpa);
-    total_time += try aoc.validate(day07.part2, 337041851384440, .@"07", .two, gpa);
-
-    total_time += try aoc.validate(day08.part1, 244, .@"08", .one, gpa);
-    total_time += try aoc.validate(day08.part2, 912, .@"08", .two, gpa);
-
-    total_time += try aoc.validate(day09.part1, 6448989155953, .@"09", .one, gpa);
-    total_time += try aoc.validate(day09.part2, 6476642796832, .@"09", .two, gpa);
-
-    total_time += try aoc.validate(day10.part1, 517, .@"10", .one, gpa);
-    total_time += try aoc.validate(day10.part2, 1116, .@"10", .two, gpa);
-
-    total_time += try aoc.validate(day11.part1, 220999, .@"11", .one, gpa);
-    total_time += try aoc.validate(day11.part2, 261936432123724, .@"11", .two, gpa);
-
-    total_time += try aoc.validate(day12.part1, 1361494, .@"12", .one, gpa);
-    total_time += try aoc.validate(day12.part2, 830516, .@"12", .two, gpa);
-
-    total_time += try aoc.validate(day13.part1, 29436, .@"13", .one, gpa);
-    total_time += try aoc.validate(day13.part2, 103_729_094_227_877, .@"13", .two, gpa);
-
-    total_time += try aoc.validate(day14.part1, 230900224, .@"14", .one, gpa);
-    total_time += try aoc.validate(day14.part2, 6532, .@"14", .two, gpa);
-
-    total_time += try aoc.validate(day15.part1, 1526673, .@"15", .one, gpa);
-    total_time += try aoc.validate(day15.part2, 1535509, .@"15", .two, gpa);
+    total_time += try @import("day01.zig").solution().solve(gpa);
+    total_time += try @import("day02.zig").solution().solve(gpa);
+    total_time += try @import("day03.zig").solution().solve(gpa);
+    total_time += try @import("day04.zig").solution().solve(gpa);
+    total_time += try @import("day05.zig").solution().solve(gpa);
+    total_time += try @import("day06.zig").solution().solve(gpa);
+    total_time += try @import("day07.zig").solution().solve(gpa);
+    total_time += try @import("day08.zig").solution().solve(gpa);
+    total_time += try @import("day09.zig").solution().solve(gpa);
+    total_time += try @import("day10.zig").solution().solve(gpa);
+    total_time += try @import("day11.zig").solution().solve(gpa);
+    total_time += try @import("day12.zig").solution().solve(gpa);
+    total_time += try @import("day13.zig").solution().solve(gpa);
+    total_time += try @import("day14.zig").solution().solve(gpa);
+    total_time += try @import("day15.zig").solution().solve(gpa);
 
     var buf: [64]u8 = undefined;
     const time = try aoc.time.color(total_time, &buf);

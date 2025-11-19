@@ -4,6 +4,7 @@ const HashMap = std.AutoHashMap;
 const testing = std.testing;
 
 const aoc = @import("aoc");
+const Solution = aoc.Solution;
 
 const input = std.mem.trim(u8, @embedFile("data/day01/data.txt"), "\n");
 
@@ -15,7 +16,7 @@ fn parseTuple(line: []const u8) !struct { usize, usize } {
     return .{ l, r };
 }
 
-pub fn part1(_: Allocator) !usize {
+fn part1(_: Allocator) !usize {
     var left: aoc.Stack(usize, 1024) = .{};
     var right: aoc.Stack(usize, 1024) = .{};
 
@@ -46,7 +47,7 @@ inline fn updateOrInsert(map: *HashMap(usize, usize), key: usize) !void {
     }
 }
 
-pub fn part2(gpa: Allocator) !usize {
+fn part2(gpa: Allocator) !usize {
     var left: HashMap(usize, usize) = .init(gpa);
     try left.ensureTotalCapacity(1100);
     defer left.deinit();
@@ -77,12 +78,24 @@ pub fn part2(gpa: Allocator) !usize {
     return total;
 }
 
+pub fn solution() Solution {
+    return .{
+        .day = .@"01",
+        .p1 = .{ .f = part1, .expected = 1506483 },
+        .p2 = .{ .f = part2, .expected = 23126924 },
+    };
+}
+
 test "day01 part1" {
     _ = try aoc.validate(part1, 1506483, aoc.Day.@"01", aoc.Part.one, testing.allocator);
 }
 
 test "day01 part2" {
     _ = try aoc.validate(part2, 23126924, aoc.Day.@"01", aoc.Part.two, testing.allocator);
+}
+
+test "day01 solution" {
+    _ = try solution().solve(testing.allocator);
 }
 
 test "day01 parseTuple" {

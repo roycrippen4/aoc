@@ -5,6 +5,7 @@ const Allocator = std.mem.Allocator;
 const testing = std.testing;
 
 const aoc = @import("aoc");
+const Solution = aoc.Solution;
 const split_once = aoc.slice.split_once;
 
 const input = @embedFile("data/day14/data.txt");
@@ -96,7 +97,7 @@ inline fn multiply_quadrant_counts(acc: Bot) usize {
     return tl * tr * bl * br;
 }
 
-pub fn part1(_: std.mem.Allocator) !usize {
+fn part1(_: std.mem.Allocator) !usize {
     var acc: Bot = .{ 0, 0, 0, 0 };
 
     var buf: [WIDTH * HEIGHT]Bot = undefined;
@@ -164,7 +165,7 @@ fn get_offsets(averages: Offsets) struct { Offset, Offset } {
     return .{ min_x, min_y };
 }
 
-pub fn part2(_: std.mem.Allocator) !usize {
+fn part2(_: std.mem.Allocator) !usize {
     var buf: [WIDTH * HEIGHT]Bot = undefined;
     const bots = parse_bots(&buf)[0..N_BOTS];
 
@@ -184,10 +185,22 @@ pub fn part2(_: std.mem.Allocator) !usize {
     unreachable;
 }
 
-test "day13 part1" {
-    _ = try aoc.validate(part1, 230900224, .@"13", .one, testing.allocator);
+pub fn solution() Solution {
+    return .{
+        .day = .@"14",
+        .p1 = .{ .f = part1, .expected = 230900224 },
+        .p2 = .{ .f = part2, .expected = 6532 },
+    };
 }
 
-test "day13 part2" {
-    _ = try aoc.validate(part2, 6532, .@"13", .two, testing.allocator);
+test "day14 part1" {
+    _ = try aoc.validate(part1, 230900224, .@"14", .one, testing.allocator);
+}
+
+test "day14 part2" {
+    _ = try aoc.validate(part2, 6532, .@"14", .two, testing.allocator);
+}
+
+test "day14 solution" {
+    _ = try solution().solve(testing.allocator);
 }

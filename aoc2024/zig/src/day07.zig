@@ -1,11 +1,12 @@
 const std = @import("std");
 const Allocator = std.mem.Allocator;
-const t = std.testing;
+const testing = std.testing;
 const mem = std.mem;
 const fmt = std.fmt;
 const parseInt = fmt.parseInt;
 
 const aoc = @import("aoc");
+const Solution = aoc.Solution;
 
 fn n_contains(target: usize, sub: usize) struct { found: bool, target: usize } {
     var target_mut = target;
@@ -61,7 +62,7 @@ fn is_target(ops: []usize, idx: usize, target: usize, is_part2: enum { yes, no }
 
 const input = @embedFile("data/day07/data.txt");
 
-pub fn part1(_: Allocator) !usize {
+fn part1(_: Allocator) !usize {
     var lines = aoc.slice.lines(input);
     var ops: [64]usize = undefined;
     var result: usize = 0;
@@ -87,7 +88,7 @@ pub fn part1(_: Allocator) !usize {
     return result;
 }
 
-pub fn part2(_: Allocator) !usize {
+fn part2(_: Allocator) !usize {
     var lines = aoc.slice.lines(input);
     var ops: [64]usize = undefined;
     var result: usize = 0;
@@ -112,10 +113,22 @@ pub fn part2(_: Allocator) !usize {
     return result;
 }
 
+pub fn solution() Solution {
+    return .{
+        .day = .@"07",
+        .p1 = .{ .f = part1, .expected = 303766880536 },
+        .p2 = .{ .f = part2, .expected = 337041851384440 },
+    };
+}
+
 test "day07 part1" {
-    _ = try aoc.validate(part1, 303766880536, aoc.Day.@"07", aoc.Part.one, t.allocator);
+    _ = try aoc.validate(part1, 303766880536, .@"07", .one, testing.allocator);
 }
 
 test "day07 part2" {
-    _ = try aoc.validate(part2, 337041851384440, aoc.Day.@"07", aoc.Part.two, t.allocator);
+    _ = try aoc.validate(part2, 337041851384440, .@"07", .two, testing.allocator);
+}
+
+test "day07 solution" {
+    _ = try solution().solve(testing.allocator);
 }

@@ -98,28 +98,41 @@ pub fn Stack(comptime T: type, comptime N: usize) type {
             return .{ .items = self.items[0..self.len] };
         }
 
-        pub fn print(self: *const Self) void {
+        /// Returns `true` if the stack contains the `needle` within its initialized memory slice.
+        pub inline fn contains(self: *const Self, needle: T) bool {
+            return std.mem.indexOfScalar(T, self.items[0..self.items.len], needle) != null;
+        }
+
+        pub fn format(self: Self, writer: *std.io.Writer) std.io.Writer.Error!void {
             if (self.is_empty()) {
-                std.debug.print("{{<empty>}}\n", .{});
+                try writer.print("Stack{{ len = 0, capacity = {d}, items = {{}} }}", .{self.capacity});
                 return;
             }
 
             const fmt = switch (@typeInfo(T)) {
-                .float => "    {f},\n",
-                .int => "    {d},\n",
-                .bool => "    {},\n",
-                .null => "    null,\n",
-                else => "    {any},\n",
+                .int => "        {d},\n",
+                .float => "        {d.5}\n",
+                .bool => "        {},\n",
+                .null => "        null,\n",
+                else => "        {any},\n",
             };
 
-            std.debug.print("Stack{{\n", .{});
-            for (self.items[0..self.len]) |item| {
-                std.debug.print(fmt, .{item});
-            }
-
-            std.debug.print("}}\n", .{});
+            try writer.print("Stack{{\n    len = 0,\n    capacity = {d},\n    items = {{\n", .{self.capacity});
+            for (self.items[0..self.len]) |item| try writer.print(fmt, .{item});
+            try writer.print("    }}\n}}", .{});
         }
     };
+}
+test "stack contains" {
+    var s: Stack(usize, 10) = .{
+        .items = .{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 },
+        .len = 10,
+        .capacity = 10,
+    };
+
+    try testing.expect(!s.contains(11));
+    try testing.expect(s.contains(6));
+    try testing.expect(s.contains(9));
 }
 
 fn StackIterator(comptime T: type) type {

@@ -3,6 +3,7 @@ const Allocator = std.mem.Allocator;
 const testing = std.testing;
 
 const aoc = @import("aoc");
+const Solution = aoc.Solution;
 
 const input = @embedFile("data/day02/data.txt");
 
@@ -29,7 +30,7 @@ fn isSafe(line: []const u8) bool {
     return true;
 }
 
-pub fn part1(_: Allocator) anyerror!usize {
+fn part1(_: Allocator) !usize {
     var answer: usize = 0;
     var linesIter = std.mem.tokenizeScalar(u8, input, '\n');
 
@@ -81,7 +82,7 @@ fn check(nums: []const i64) bool {
     return true;
 }
 
-pub fn part2(allocator: Allocator) anyerror!usize {
+fn part2(allocator: Allocator) !usize {
     var answer: usize = 0;
     var it = std.mem.tokenizeScalar(u8, input, '\n');
 
@@ -93,6 +94,18 @@ pub fn part2(allocator: Allocator) anyerror!usize {
     }
 
     return answer;
+}
+
+pub fn solution() Solution {
+    return .{
+        .day = .@"02",
+        .p1 = .{ .f = part1, .expected = 202 },
+        .p2 = .{ .f = part2, .expected = 271 },
+    };
+}
+
+test "day02 solution" {
+    _ = try solution().solve(testing.allocator);
 }
 
 test "day02 part1" {

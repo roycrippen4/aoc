@@ -3,6 +3,7 @@ const Allocator = std.mem.Allocator;
 const testing = std.testing;
 
 const aoc = @import("aoc");
+const Solution = aoc.Solution;
 
 const input = @embedFile("data/day12/data.txt");
 const size = aoc.slice.line_count(input);
@@ -70,7 +71,7 @@ fn blood_fill1(x: usize, y: usize, v: u8, dq: *Deque, visited: *Visited) !usize 
     return peri * area;
 }
 
-pub fn part1(_: Allocator) !usize {
+fn part1(_: Allocator) !usize {
     var visited: Visited = .{.{false} ** size} ** size;
     var result: usize = 0;
     var dq: Deque = .{};
@@ -144,7 +145,7 @@ fn blood_fill2(x: usize, y: usize, v: u8, visited: *Visited) !usize {
     return sides * area;
 }
 
-pub fn part2(_: Allocator) !usize {
+fn part2(_: Allocator) !usize {
     var visited: Visited = .{.{false} ** size} ** size;
     var result: usize = 0;
 
@@ -159,10 +160,22 @@ pub fn part2(_: Allocator) !usize {
     return result;
 }
 
+pub fn solution() Solution {
+    return .{
+        .day = .@"12",
+        .p1 = .{ .f = part1, .expected = 1361494 },
+        .p2 = .{ .f = part2, .expected = 830516 },
+    };
+}
+
 test "day12 part1" {
     _ = try aoc.validate(part1, 1361494, .@"12", .one, testing.allocator);
 }
 
 test "day12 part2" {
     _ = try aoc.validate(part2, 830516, .@"12", .two, testing.allocator);
+}
+
+test "day12 solution" {
+    _ = try solution().solve(testing.allocator);
 }

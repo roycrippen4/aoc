@@ -5,6 +5,7 @@ const testing = std.testing;
 const aoc = @import("aoc");
 const Grid = aoc.Grid;
 const Point = aoc.Point;
+const Solution = aoc.Solution;
 
 const Entry = struct { x: usize, y: usize, v: usize };
 const Terrain = Grid(usize);
@@ -98,7 +99,7 @@ fn score_path_part1(gpa: Allocator, start: Entry, grid: Terrain) usize {
     return score_path_loop(start, grid, &visited);
 }
 
-pub fn part1(gpa: Allocator) !usize {
+fn part1(gpa: Allocator) !usize {
     var grid = try Grid(usize).from_string_generic(gpa, aoc.slice.trim(input), aoc.char.as_usize);
     defer grid.deinit();
 
@@ -160,7 +161,7 @@ fn score_path_part2(start: ?Entry, grid: Terrain) usize {
     return result;
 }
 
-pub fn part2(gpa: Allocator) !usize {
+fn part2(gpa: Allocator) !usize {
     var grid = try Grid(usize).from_string_generic(gpa, aoc.slice.trim(input), aoc.char.as_usize);
     defer grid.deinit();
 
@@ -172,12 +173,24 @@ pub fn part2(gpa: Allocator) !usize {
     return 1116;
 }
 
+pub fn solution() Solution {
+    return .{
+        .day = .@"10",
+        .p1 = .{ .f = part1, .expected = 517 },
+        .p2 = .{ .f = part2, .expected = 1116 },
+    };
+}
+
 test "day10 part1" {
     _ = try aoc.validate(part1, 517, .@"10", .one, testing.allocator);
 }
 
 test "day10 part2" {
     _ = try aoc.validate(part2, 1116, .@"10", aoc.Part.two, testing.allocator);
+}
+
+test "day10 solution" {
+    _ = try solution().solve(testing.allocator);
 }
 
 test "day10 find_starting_points" {

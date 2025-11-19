@@ -3,6 +3,7 @@ const Allocator = std.mem.Allocator;
 const testing = std.testing;
 
 const aoc = @import("aoc");
+const Solution = aoc.Solution;
 
 const Map = std.AutoHashMap(usize, usize);
 const SmStack = aoc.Stack(usize, 160);
@@ -128,12 +129,20 @@ fn transform(number: usize, indices: *Map, todo: *SmStack) struct { usize, usize
     };
 }
 
-pub fn part1(gpa: Allocator) !usize {
+fn part1(gpa: Allocator) !usize {
     return count_stones(gpa, 25);
 }
 
-pub fn part2(gpa: Allocator) !usize {
+fn part2(gpa: Allocator) !usize {
     return count_stones(gpa, 75);
+}
+
+pub fn solution() Solution {
+    return .{
+        .day = .@"11",
+        .p1 = .{ .f = part1, .expected = 220999 },
+        .p2 = .{ .f = part2, .expected = 261936432123724 },
+    };
 }
 
 test "day11 part1" {
@@ -142,4 +151,8 @@ test "day11 part1" {
 
 test "day11 part2" {
     _ = try aoc.validate(part2, 261936432123724, .@"11", .two, testing.allocator);
+}
+
+test "day11 solution" {
+    _ = try solution().solve(testing.allocator);
 }
