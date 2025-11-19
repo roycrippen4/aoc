@@ -1,6 +1,8 @@
-const aoc = @import("aoc");
 const std = @import("std");
 const Allocator = std.mem.Allocator;
+const testing = std.testing;
+
+const aoc = @import("aoc");
 
 const input = @embedFile("data/day02/data.txt");
 
@@ -93,30 +95,28 @@ pub fn part2(allocator: Allocator) anyerror!usize {
     return answer;
 }
 
-const t = std.testing;
-
 test "day02 part1" {
-    _ = try aoc.validate(part1, 202, aoc.Day.@"02", aoc.Part.one, t.allocator);
+    _ = try aoc.validate(part1, 202, aoc.Day.@"02", aoc.Part.one, testing.allocator);
 }
 
 test "day02 part2" {
-    _ = try aoc.validate(part2, 271, aoc.Day.@"02", aoc.Part.two, t.allocator);
+    _ = try aoc.validate(part2, 271, aoc.Day.@"02", aoc.Part.two, testing.allocator);
 }
 
 test "day02 isSafe" {
-    try t.expect(isSafe("7 6 4 2 1"));
-    try t.expect(!isSafe("1 2 7 8 9"));
-    try t.expect(!isSafe("9 7 6 2 1"));
-    try t.expect(!isSafe("1 3 2 4 5"));
-    try t.expect(!isSafe("8 6 4 4 1"));
-    try t.expect(isSafe("1 3 6 7 9"));
+    try testing.expect(isSafe("7 6 4 2 1"));
+    try testing.expect(!isSafe("1 2 7 8 9"));
+    try testing.expect(!isSafe("9 7 6 2 1"));
+    try testing.expect(!isSafe("1 3 2 4 5"));
+    try testing.expect(!isSafe("8 6 4 4 1"));
+    try testing.expect(isSafe("1 3 6 7 9"));
 }
 
 test "day02 check" {
-    try t.expect(check(&[_]i64{ 7, 6, 4, 2, 1 }));
-    try t.expect(!check(&[_]i64{ 1, 2, 7, 8, 9 }));
-    try t.expect(!check(&[_]i64{ 9, 7, 6, 2, 1 }));
-    try t.expect(check(&[_]i64{ 1, 3, 2, 4, 5 }));
-    try t.expect(check(&[_]i64{ 8, 6, 4, 4, 1 }));
-    try t.expect(check(&[_]i64{ 1, 3, 6, 7, 9 }));
+    try testing.expect(check(&[_]i64{ 7, 6, 4, 2, 1 }));
+    try testing.expect(!check(&[_]i64{ 1, 2, 7, 8, 9 }));
+    try testing.expect(!check(&[_]i64{ 9, 7, 6, 2, 1 }));
+    try testing.expect(check(&[_]i64{ 1, 3, 2, 4, 5 }));
+    try testing.expect(check(&[_]i64{ 8, 6, 4, 4, 1 }));
+    try testing.expect(check(&[_]i64{ 1, 3, 6, 7, 9 }));
 }
