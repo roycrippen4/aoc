@@ -1,9 +1,7 @@
-open Util
 open Printf
 module H = Hashtbl
 
-let input =
-  read_to_string "/home/roy/dev/aoc/aoc2024/data/day06/data.txt" |> String.trim
+let input = Util.read_to_string "../data/day06/data.txt" |> String.trim
 
 module Kind = struct
   type t = Guard | Block | Empty
@@ -323,11 +321,15 @@ let get_p1_path (map : cells) : path_step Q.t =
 
 let solve2 () =
   let map, pos = process_input () in
+
+  cur.x <- pos.x;
+  cur.y <- pos.y;
+
   let path = get_p1_path map in
   walk_maps map path pos
 
 (* exports *)
 
-let part1 () = validate solve1 4559 "06" One
-let part2 () = validate solve2 1604 "06" Two
-let solution : solution = { part1; part2 }
+let part1 () = Util.validate solve1 4559 "06" One
+let part2 () = Util.validate solve2 1604 "06" Two
+let solution : Util.solution = { part1; part2 }
