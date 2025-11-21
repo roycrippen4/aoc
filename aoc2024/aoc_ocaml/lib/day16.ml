@@ -58,9 +58,9 @@ let rec reverse_dfs todo =
 
         [ forward; left; right ]
         |> List.iter (fun (pos, dir, cost) ->
-               if cost = seen.%{pos}.(dir) then (
-                 Deque.enqueue_back !todo (pos, dir, cost);
-                 seen.%{pos}.(dir) <- max_int));
+            if cost = seen.%{pos}.(dir) then (
+              Deque.enqueue_back !todo (pos, dir, cost);
+              seen.%{pos}.(dir) <- max_int));
 
         reverse_dfs todo
 
@@ -99,8 +99,8 @@ let solve1 () =
   let todo = ref (create ()) in
   [ 0; 1; 2; 3 ]
   |> List.iter (fun dir ->
-         if seen.%{goal}.(dir) = !lowest then
-           Deque.enqueue_back !todo (goal, dir, !lowest));
+      if seen.%{goal}.(dir) = !lowest then
+        Deque.enqueue_back !todo (goal, dir, !lowest));
 
   reverse_dfs todo;
   !lowest

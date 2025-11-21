@@ -79,10 +79,10 @@ let rec search step =
 
   bots
   |> List.iter (fun bot ->
-         let x = (bot.px + (bot.vx * step mod width) + width) mod width in
-         let y = (bot.py + (bot.vy * step mod height) + height) mod height in
-         occupied.((y * width) + x) <- step;
-         row_count.(y) <- row_count.(y) + 1);
+      let x = (bot.px + (bot.vx * step mod width) + width) mod width in
+      let y = (bot.py + (bot.vy * step mod height) + height) mod height in
+      occupied.((y * width) + x) <- step;
+      row_count.(y) <- row_count.(y) + 1);
 
   if has_run step then step else search (step + 1)
 

@@ -131,8 +131,8 @@ let build_adder = function
       if
         H.values exprs
         |> List.exists (function
-             | And (a, b) when a = output || b = output -> true
-             | _ -> false)
+          | And (a, b) when a = output || b = output -> true
+          | _ -> false)
       then None
       else Some output
   | _, Xor ((120, _, _), (121, _, _)) -> None
@@ -143,8 +143,8 @@ let build_adder = function
       if
         H.values exprs
         |> List.exists (function
-             | Or (a, b) when a = output || b = output -> true
-             | _ -> false)
+          | Or (a, b) when a = output || b = output -> true
+          | _ -> false)
       then None
       else Some output
   | _ -> None

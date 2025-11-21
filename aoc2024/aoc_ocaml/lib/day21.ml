@@ -331,9 +331,9 @@ let rec seq_len n_bots dirs : int =
   let press_seq () =
     pairs (DirKey.A :: dirs)
     |> map (fun (a, b) ->
-           DirKey.go_press a b
-           |> map (seq_len (n_bots - 1))
-           |> fold_left min max_int)
+        DirKey.go_press a b
+        |> map (seq_len (n_bots - 1))
+        |> fold_left min max_int)
     |> fold_left ( + ) 0
   in
 

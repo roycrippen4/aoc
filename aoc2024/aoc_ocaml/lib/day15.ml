@@ -9,20 +9,20 @@ type bot = { mutable x : int; mutable y : int }
 let string_of_grid s =
   G.of_string s
   |> G.map_values (function
-       | '@' -> Bot
-       | 'O' -> Start
-       | '.' -> Empty
-       | '#' -> Wall
-       | _ -> assert false)
+    | '@' -> Bot
+    | 'O' -> Start
+    | '.' -> Empty
+    | '#' -> Wall
+    | _ -> assert false)
 
 let string_of_directions s =
   String.lines s |> List.map String.explode |> List.flatten
   |> List.map (function
-       | '^' -> Up
-       | 'v' -> Down
-       | '<' -> Left
-       | '>' -> Right
-       | _ -> assert false)
+    | '^' -> Up
+    | 'v' -> Down
+    | '<' -> Left
+    | '>' -> Right
+    | _ -> assert false)
 
 let ( <$> ) f g (x, y) = (f x, g y)
 let input = "/home/roy/dev/aoc/aoc2024/data/day15/data.txt" |> read_to_string
@@ -99,12 +99,12 @@ let string_of_grid s =
 
   Buffer.contents buf |> G.of_string
   |> G.map_values (function
-       | '@' -> Bot
-       | '[' -> Start
-       | ']' -> End
-       | '.' -> Empty
-       | '#' -> Wall
-       | _ -> assert false)
+    | '@' -> Bot
+    | '[' -> Start
+    | ']' -> End
+    | '.' -> Empty
+    | '#' -> Wall
+    | _ -> assert false)
 
 let parse str =
   String.trim str
@@ -191,8 +191,8 @@ let move_vert x y up =
   | Some moves ->
       moves
       |> List.iter (fun (x, y, k) ->
-             g.(y).(x) <- Empty;
-             g.(y + dy).(x) <- k);
+          g.(y).(x) <- Empty;
+          g.(y + dy).(x) <- k);
       bot.y <- y
 
 let next d =

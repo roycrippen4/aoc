@@ -325,20 +325,20 @@ module Dijkstra (W : Walkable) = struct
                 else (
                   nbor4_coords u
                   |> List.iter (fun v ->
-                         if inside g v then
-                           let cell = get g v in
-                           if W.passable cell then
-                             let alt = W.add d (W.cost cell) in
-                             match Hashtbl.find_opt dist v with
-                             | None ->
-                                 Hashtbl.add dist v alt;
-                                 Hashtbl.add prev v u;
-                                 Q.push pq (alt, v)
-                             | Some old when W.compare alt old < 0 ->
-                                 Hashtbl.replace dist v alt;
-                                 Hashtbl.replace prev v u;
-                                 Q.push pq (alt, v)
-                             | _ -> ());
+                      if inside g v then
+                        let cell = get g v in
+                        if W.passable cell then
+                          let alt = W.add d (W.cost cell) in
+                          match Hashtbl.find_opt dist v with
+                          | None ->
+                              Hashtbl.add dist v alt;
+                              Hashtbl.add prev v u;
+                              Q.push pq (alt, v)
+                          | Some old when W.compare alt old < 0 ->
+                              Hashtbl.replace dist v alt;
+                              Hashtbl.replace prev v u;
+                              Q.push pq (alt, v)
+                          | _ -> ());
                   loop ()))
       in
       loop ()
