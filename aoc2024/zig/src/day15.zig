@@ -253,3 +253,7 @@ test "day15 part1" {
 test "day15 part2" {
     _ = try aoc.validate(part2, 1535509, .@"15", .two, testing.allocator);
 }
+
+test "day15 solution" {
+    _ = try solution().solve(testing.allocator);
+}
