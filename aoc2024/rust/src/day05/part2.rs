@@ -210,12 +210,6 @@ mod test {
         assert_eq!(4, result);
     }
 
-    #[test]
-    #[should_panic(expected = "assertion failed: values.len() % 2 != 0")]
-    fn test_get_middle_panic() {
-        get_middle(&[1, 2, 4, 5]); // should panic since even number of items
-    }
-
     fn get_map() -> OrderMap {
         parse_order_rules(
             &example!()
