@@ -3,7 +3,7 @@ pub mod macros;
 mod aoc;
 mod direction;
 mod grid;
-mod point;
+pub mod point;
 mod quicksort;
 mod string_methods;
 mod timing;

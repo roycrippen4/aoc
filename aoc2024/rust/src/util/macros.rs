@@ -14,6 +14,25 @@ macro_rules! data {
     };
 }
 
+#[macro_export]
+macro_rules! line_count {
+    ($str: expr) => {{
+        let input = $str.as_bytes();
+        let mut i = 0;
+        let mut count: usize = 0;
+
+        while i < input.len() {
+            if input[i] == b'\n' {
+                count += 1;
+            }
+
+            i += 1;
+        }
+
+        count
+    }};
+}
+
 /// Colors string `s` fg color with `r`, `g`, `b` values using ansci escape codes.
 /// `r`, `g`, and `b` values range from 0 to 255;
 ///

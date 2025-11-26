@@ -10,65 +10,21 @@ pub struct Point<T> {
     pub y: T,
 }
 
-impl<T> Div for Point<T>
-where
-    T: Div<Output = T> + num_traits::Num + std::marker::Copy,
-{
-    type Output = Point<T>;
-
-    fn div(self, other: Self) -> Self::Output {
-        let x = self.x / other.x;
-        let y = self.y / other.y;
-        Point::new(x, y)
-    }
-}
-
-impl<T> Mul for Point<T>
-where
-    T: Div<Output = T> + num_traits::Num + std::marker::Copy,
-{
-    type Output = Point<T>;
-
-    fn mul(self, other: Self) -> Self::Output {
-        let x = self.x * other.x;
-        let y = self.y * other.y;
-        Point::new(x, y)
-    }
-}
-
-impl<T> Add for Point<T>
-where
-    T: Div<Output = T> + num_traits::Num + std::marker::Copy,
-{
-    type Output = Point<T>;
-
-    fn add(self, other: Self) -> Self::Output {
-        let x = self.x + other.x;
-        let y = self.y + other.y;
-
-        Point::new(x, y)
-    }
-}
-
-impl<T> Sub for Point<T>
-where
-    T: Div<Output = T> + num_traits::Num + std::marker::Copy,
-{
-    type Output = Point<T>;
-
-    fn sub(self, other: Self) -> Self::Output {
-        let x = self.x - other.x;
-        let y = self.y - other.y;
-        Point::new(x, y)
-    }
-}
+pub const UP: Point<i32> = Point::new(0, -1);
+pub const DOWN: Point<i32> = Point::new(0, 1);
+pub const LEFT: Point<i32> = Point::new(-1, 0);
+pub const RIGHT: Point<i32> = Point::new(1, 0);
 
 impl<T> Point<T>
 where
     T: Num + Copy,
 {
-    pub fn new(x: T, y: T) -> Self {
+    pub const fn new(x: T, y: T) -> Self {
         Point { x, y }
+    }
+
+    pub fn origin() -> Self {
+        Point::new(T::zero(), T::zero())
     }
 
     fn unit_step(&self, d: Direction) -> Self {
@@ -227,9 +183,71 @@ where
     }
 }
 
-impl std::fmt::Display for Point<usize> {
+impl<T> From<(T, T)> for Point<T> {
+    fn from((x, y): (T, T)) -> Self {
+        Point { x, y }
+    }
+}
+
+impl<T> Div for Point<T>
+where
+    T: Div<Output = T> + num_traits::Num + std::marker::Copy,
+{
+    type Output = Point<T>;
+
+    fn div(self, other: Self) -> Self::Output {
+        let x = self.x / other.x;
+        let y = self.y / other.y;
+        Point::new(x, y)
+    }
+}
+
+impl<T> Mul for Point<T>
+where
+    T: Div<Output = T> + num_traits::Num + std::marker::Copy,
+{
+    type Output = Point<T>;
+
+    fn mul(self, other: Self) -> Self::Output {
+        let x = self.x * other.x;
+        let y = self.y * other.y;
+        Point::new(x, y)
+    }
+}
+
+impl<T> Add for Point<T>
+where
+    T: Div<Output = T> + num_traits::Num + std::marker::Copy,
+{
+    type Output = Point<T>;
+
+    fn add(self, other: Self) -> Self::Output {
+        let x = self.x + other.x;
+        let y = self.y + other.y;
+
+        Point::new(x, y)
+    }
+}
+
+impl<T> Sub for Point<T>
+where
+    T: Div<Output = T> + num_traits::Num + std::marker::Copy,
+{
+    type Output = Point<T>;
+
+    fn sub(self, other: Self) -> Self::Output {
+        let x = self.x - other.x;
+        let y = self.y - other.y;
+        Point::new(x, y)
+    }
+}
+
+impl<T> std::fmt::Display for Point<T>
+where
+    T: std::fmt::Debug,
+{
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "({}, {})", self.x, self.y)
+        write!(f, "({:?}, {:?})", self.x, self.y)
     }
 }
 
