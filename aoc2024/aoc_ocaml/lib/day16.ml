@@ -11,16 +11,15 @@ let input = path |> read_to_string |> String.trim
 let lines = input |> String.lines
 
 (* dimensions *)
-let height = List.length lines
-let width = lines |> List.hd |> chars |> List.length
-let size = width * height
+let dim = List.length lines
+let size = dim * dim
 
 (* parse grid *)
 let grid = lines |> List.map chars |> List.flatten |> Array.of_list
 
 (* Easy indexing *)
-let ( .%{} ) g (p : Point.t) = g.((p.y * width) + p.x)
-let ( .%{}<- ) g (p : Point.t) v = g.((p.y * width) + p.x) <- v
+let ( .%{} ) g (p : Point.t) = g.((p.y * dim) + p.x)
+let ( .%{}<- ) g (p : Point.t) v = g.((p.y * dim) + p.x) <- v
 let ( ++ ) = Point.( ++ )
 let ( -- ) = Point.( -- )
 
@@ -33,7 +32,7 @@ let best_paths = Array.init size (fun _ -> false)
 let not_wall pos = grid.%{pos} <> '#'
 let is_cheaper (pos, dir, cost) = cost < seen.%{pos}.(dir)
 let not_empty dq = not (Deque.is_empty dq)
-let point_of_index idx = Point.make (idx mod width) (idx / height)
+let point_of_index idx = Point.make (idx mod dim) (idx / dim)
 
 (* get start/end *)
 let start = grid |> Array.find_index (( = ) 'S') |> Option.get |> point_of_index
@@ -87,7 +86,6 @@ let rec dfs () =
       dfs ()
 
 let solve1 () =
-  let open Deque in
   Deque.enqueue_back !first (start, 0, 0);
   seen.%{start}.(0) <- 0;
 
@@ -96,18 +94,21 @@ let solve1 () =
     swap first second
   done;
 
-  let todo = ref (create ()) in
-  [ 0; 1; 2; 3 ]
-  |> List.iter (fun dir ->
-      if seen.%{goal}.(dir) = !lowest then
-        Deque.enqueue_back !todo (goal, dir, !lowest));
-
-  reverse_dfs todo;
   !lowest
 
 (* part 2 *)
 
 let solve2 () =
+  let todo = ref (Deque.create ()) in
+
+  let queue_unseen dir =
+    if seen.%{goal}.(dir) = !lowest then
+      Deque.enqueue_back !todo (goal, dir, !lowest)
+  in
+  [ 0; 1; 2; 3 ] |> List.iter queue_unseen;
+
+  reverse_dfs todo;
+
   let add_if_true acc bool = if bool then acc + 1 else acc in
   Array.fold_left add_if_true 0 best_paths
 
