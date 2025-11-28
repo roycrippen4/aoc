@@ -1,7 +1,7 @@
-use std::{
-    fmt,
-    time::{Duration, Instant},
-};
+#![allow(unused)]
+
+use std::fmt;
+use std::time::{Duration, Instant};
 
 use crate::rgb;
 

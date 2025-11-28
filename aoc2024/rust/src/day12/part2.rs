@@ -116,14 +116,14 @@ mod test {
     use crate::{
         day12::part2::count_corners,
         example,
-        util::{Day::Day12, Part::Part2, validate},
+        util::{Day::Day12, validate},
     };
 
     use super::{Grid, evaluate, solve};
 
     #[test]
     fn test_solve() {
-        validate(solve, 830516, Day12(Part2));
+        validate(solve, 830516, Day12);
     }
 
     #[test]

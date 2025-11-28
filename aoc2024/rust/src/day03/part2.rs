@@ -41,13 +41,6 @@ pub fn solve() -> usize {
         .evaluate()
 }
 
-pub fn p2_example() -> usize {
-    include_str!("data/example-part2.txt")
-        .lines()
-        .map(evaluate)
-        .sum()
-}
-
 fn evaluate(line: &str) -> usize {
     let trimmed: String = line.chars().filter(|c| !c.is_whitespace()).collect();
     let ops: Vec<_> = RE.find_iter(&trimmed).map(|c| c.as_str()).collect();
@@ -85,19 +78,13 @@ fn parse_mul(s: &str) -> usize {
 
 #[cfg(test)]
 mod test {
-    use crate::util::{Day::Day03, Part::Part2, validate};
+    use crate::util::{Day::Day03, validate};
 
-    use super::{evaluate, p2_example, solve};
+    use super::{evaluate, solve};
 
     #[test]
     fn test_solve() {
-        validate(solve, 93729253, Day03(Part2));
-    }
-
-    #[test]
-    fn test_example() {
-        let result = p2_example();
-        assert_eq!(48, result)
+        validate(solve, 93729253, Day03);
     }
 
     #[test]

@@ -1,10 +1,25 @@
-pub mod part1;
-pub mod part2;
-
 use std::collections::VecDeque;
 
 use crate::util::Point;
 use crate::util::point::{DOWN, LEFT, RIGHT, UP};
+use crate::{Day, Runner, Solution};
+
+mod part1;
+mod part2;
+
+pub fn solution() -> Solution {
+    Solution {
+        day: Day::Day16,
+        p1: Runner {
+            expected: 133584,
+            f: part1::solve,
+        },
+        p2: Runner {
+            expected: 622,
+            f: part2::solve,
+        },
+    }
+}
 
 #[inline(always)]
 pub(in crate::day16) const fn index(p: Point<i32>) -> usize {

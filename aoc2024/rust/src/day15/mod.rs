@@ -1,5 +1,21 @@
-pub mod part1;
-pub mod part2;
+use crate::{Day, Runner, Solution};
+
+mod part1;
+mod part2;
+
+pub fn solution() -> Solution {
+    Solution {
+        day: Day::Day15,
+        p1: Runner {
+            expected: 1526673,
+            f: part1::solve,
+        },
+        p2: Runner {
+            expected: 1535509,
+            f: part2::solve,
+        },
+    }
+}
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 enum Direction {

@@ -1,5 +1,6 @@
 use std::str::FromStr;
 
+#[allow(unused)]
 pub trait StringMethods {
     fn create_pad(len: usize, ch: char) -> String;
     fn to_char_vec(&self) -> Vec<char>;

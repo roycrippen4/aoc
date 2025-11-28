@@ -36,6 +36,7 @@ where
     pub width: usize,
 }
 
+#[allow(unused)]
 impl<T> Grid<T>
 where
     T: std::fmt::Debug,
@@ -423,6 +424,7 @@ where
 }
 
 impl Grid<char> {
+    #[allow(clippy::wrong_self_convention)]
     /// Will fail if the characters in the grid are not ascii!
     pub fn as_usize(self) -> Grid<usize> {
         Grid {

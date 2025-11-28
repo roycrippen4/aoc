@@ -35,7 +35,7 @@ fn evaluate(data: &str, iterations: usize) -> usize {
                 *new_stones.entry(1).or_insert(0) += amount;
             } else {
                 let d = num_digits(val);
-                if d % 2 == 0 {
+                if d.is_multiple_of(2) {
                     let (first, second) = split_in_half(val);
                     *new_stones.entry(first).or_insert(0) += amount;
                     *new_stones.entry(second).or_insert(0) += amount;
@@ -57,13 +57,13 @@ pub fn solve() -> usize {
 #[cfg(test)]
 mod test {
 
-    use crate::util::{Day::Day11, Part::Part1, validate};
+    use crate::util::{Day::Day11, validate};
 
     use super::{evaluate, solve};
 
     #[test]
     fn test_solve() {
-        validate(solve, 220999, Day11(Part1));
+        validate(solve, 220999, Day11);
     }
 
     #[test]

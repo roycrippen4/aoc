@@ -191,14 +191,14 @@ pub fn solve() -> usize {
 mod test {
     use crate::{
         example,
-        util::{Day::Day15, Part::Part1, validate},
+        util::{Day::Day15, validate},
     };
 
     use super::{Direction, Grid, Kind, evaluate, solve};
 
     #[test]
     fn test_solve() {
-        validate(solve, 1526673, Day15(Part1));
+        validate(solve, 1526673, Day15);
     }
 
     #[test]

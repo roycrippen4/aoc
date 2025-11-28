@@ -1,5 +1,3 @@
-#![allow(unused)]
-
 use std::collections::VecDeque;
 
 use crate::data;
@@ -67,19 +65,18 @@ pub fn solve() -> usize {
     evaluate(data!())
 }
 
-#[allow(unused)]
 #[cfg(test)]
 mod test {
     use crate::{
         example,
-        util::{Day::Day16, Part::Part2, validate},
+        util::{Day::Day16, validate},
     };
 
     use super::{evaluate, solve};
 
     #[test]
     fn test_solve() {
-        validate(solve, 622, Day16(Part2));
+        validate(solve, 622, Day16);
     }
 
     #[test]

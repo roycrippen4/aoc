@@ -1,4 +1,9 @@
 use core::fmt;
+use std::time::Duration;
+
+use comfy_table::Table;
+
+use crate::util::colorize_time;
 
 #[derive(Debug, Clone, Copy)]
 pub enum Part {
@@ -18,62 +23,146 @@ impl fmt::Display for Part {
 
 #[derive(Debug, Clone, Copy)]
 pub enum Day {
-    Day01(Part),
-    Day02(Part),
-    Day03(Part),
-    Day04(Part),
-    Day05(Part),
-    Day06(Part),
-    Day07(Part),
-    Day08(Part),
-    Day09(Part),
-    Day10(Part),
-    Day11(Part),
-    Day12(Part),
-    Day13(Part),
-    Day14(Part),
-    Day15(Part),
-    Day16(Part),
-    Day17(Part),
-    Day18(Part),
-    Day19(Part),
-    Day20(Part),
-    Day21(Part),
-    Day22(Part),
-    Day23(Part),
-    Day24(Part),
-    Day25(Part),
+    Day01,
+    Day02,
+    Day03,
+    Day04,
+    Day05,
+    Day06,
+    Day07,
+    Day08,
+    Day09,
+    Day10,
+    Day11,
+    Day12,
+    Day13,
+    Day14,
+    Day15,
+    Day16,
+    Day17,
+    Day18,
+    Day19,
+    Day20,
+    Day21,
+    Day22,
+    Day23,
+    Day24,
+    Day25,
+}
+
+impl From<Day> for usize {
+    fn from(value: Day) -> Self {
+        match value {
+            Day::Day01 => 1,
+            Day::Day02 => 2,
+            Day::Day03 => 3,
+            Day::Day04 => 4,
+            Day::Day05 => 5,
+            Day::Day06 => 6,
+            Day::Day07 => 7,
+            Day::Day08 => 8,
+            Day::Day09 => 9,
+            Day::Day10 => 10,
+            Day::Day11 => 11,
+            Day::Day12 => 12,
+            Day::Day13 => 13,
+            Day::Day14 => 14,
+            Day::Day15 => 15,
+            Day::Day16 => 16,
+            Day::Day17 => 17,
+            Day::Day18 => 18,
+            Day::Day19 => 19,
+            Day::Day20 => 20,
+            Day::Day21 => 21,
+            Day::Day22 => 22,
+            Day::Day23 => 23,
+            Day::Day24 => 24,
+            Day::Day25 => 25,
+        }
+    }
 }
 
 impl fmt::Display for Day {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let day_str = match self {
-            Day::Day01(part) => format!("Day 01 {part}"),
-            Day::Day02(part) => format!("Day 02 {part}"),
-            Day::Day03(part) => format!("Day 03 {part}"),
-            Day::Day04(part) => format!("Day 04 {part}"),
-            Day::Day05(part) => format!("Day 05 {part}"),
-            Day::Day06(part) => format!("Day 06 {part}"),
-            Day::Day07(part) => format!("Day 07 {part}"),
-            Day::Day08(part) => format!("Day 08 {part}"),
-            Day::Day09(part) => format!("Day 09 {part}"),
-            Day::Day10(part) => format!("Day 10 {part}"),
-            Day::Day11(part) => format!("Day 11 {part}"),
-            Day::Day12(part) => format!("Day 12 {part}"),
-            Day::Day13(part) => format!("Day 13 {part}"),
-            Day::Day14(part) => format!("Day 14 {part}"),
-            Day::Day15(part) => format!("Day 15 {part}"),
-            Day::Day16(part) => format!("Day 16 {part}"),
-            Day::Day17(part) => format!("Day 17 {part}"),
-            Day::Day18(part) => format!("Day 18 {part}"),
-            Day::Day19(part) => format!("Day 19 {part}"),
-            Day::Day20(part) => format!("Day 20 {part}"),
-            Day::Day21(part) => format!("Day 21 {part}"),
-            Day::Day22(part) => format!("Day 22 {part}"),
-            Day::Day23(part) => format!("Day 23 {part}"),
-            Day::Day24(part) => format!("Day 24 {part}"),
-            Day::Day25(part) => format!("Day 25 {part}"),
+            Day::Day01 => "Day 01",
+            Day::Day02 => "Day 02",
+            Day::Day03 => "Day 03",
+            Day::Day04 => "Day 04",
+            Day::Day05 => "Day 05",
+            Day::Day06 => "Day 06",
+            Day::Day07 => "Day 07",
+            Day::Day08 => "Day 08",
+            Day::Day09 => "Day 09",
+            Day::Day10 => "Day 10",
+            Day::Day11 => "Day 11",
+            Day::Day12 => "Day 12",
+            Day::Day13 => "Day 13",
+            Day::Day14 => "Day 14",
+            Day::Day15 => "Day 15",
+            Day::Day16 => "Day 16",
+            Day::Day17 => "Day 17",
+            Day::Day18 => "Day 18",
+            Day::Day19 => "Day 19",
+            Day::Day20 => "Day 20",
+            Day::Day21 => "Day 21",
+            Day::Day22 => "Day 22",
+            Day::Day23 => "Day 23",
+            Day::Day24 => "Day 24",
+            Day::Day25 => "Day 25",
         };
         write!(f, "{day_str}")
+    }
+}
+
+pub struct Runner {
+    pub expected: usize,
+    pub f: fn() -> usize,
+}
+
+impl Runner {
+    /// Convenience wrapper to call `self.f`
+    pub fn run(&self) -> usize {
+        (self.f)()
+    }
+
+    /// Validates that `self.expected` == `self.f()`
+    pub fn validate(&self, day: Day, part: Part) {
+        assert_eq!(
+            self.expected,
+            self.run(),
+            "\x1b[31m{day} {part} produced the wrong answer\x1b[0m",
+        );
+    }
+
+    /// Validates that `self.expected` == `self.f()`
+    /// returns the amount of time it took to run
+    pub fn timed_validate(&self, day: Day, part: Part) -> Duration {
+        let now = std::time::Instant::now();
+        self.validate(day, part);
+        now.elapsed()
+    }
+}
+
+pub struct Solution {
+    pub day: Day,
+    pub p1: Runner,
+    pub p2: Runner,
+}
+
+impl Solution {
+    /// Runs both parts and returns the sum of both parts runtime durations
+    pub fn solve(&self, table: &mut Table) -> Duration {
+        let p1 = self.p1.timed_validate(self.day, Part::Part1);
+        let p2 = self.p2.timed_validate(self.day, Part::Part2);
+        let day: usize = self.day.into();
+
+        table.add_row(vec![
+            day.to_string(),
+            colorize_time(&p1),
+            colorize_time(&p2),
+        ]);
+
+        p1 + p2
     }
 }

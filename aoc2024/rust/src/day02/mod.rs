@@ -1,5 +1,4 @@
-pub mod part1;
-pub mod part2;
+use crate::{Day, Runner, Solution};
 
 fn into_isize_vec(line: &str) -> Vec<isize> {
     line.split_whitespace()
@@ -7,7 +6,19 @@ fn into_isize_vec(line: &str) -> Vec<isize> {
         .collect()
 }
 
-pub fn in_range(vals: &[isize]) -> bool {
-    vals.windows(2)
-        .all(|win| (-3..=-1).contains(&(win[0] - win[1])))
+mod part1;
+mod part2;
+
+pub fn solution() -> Solution {
+    Solution {
+        day: Day::Day02,
+        p1: Runner {
+            expected: 202,
+            f: part1::solve,
+        },
+        p2: Runner {
+            expected: 271,
+            f: part2::solve,
+        },
+    }
 }

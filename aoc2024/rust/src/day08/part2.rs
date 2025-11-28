@@ -84,14 +84,14 @@ mod test {
 
     use crate::{
         example,
-        util::{Day::Day08, Part::Part2, validate},
+        util::{Day::Day08, validate},
     };
 
     use super::{evaluate, solve};
 
     #[test]
     fn test_solve() {
-        validate(solve, 912, Day08(Part2));
+        validate(solve, 912, Day08);
     }
 
     #[test]

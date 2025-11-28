@@ -45,23 +45,6 @@ impl From<char> for Direction {
     }
 }
 
-#[allow(unused)]
-fn show_grid(g: &Grid<Kind>, bot: Point<usize>) {
-    for y in 0..g.height {
-        let mut row = String::new();
-        for x in 0..g.width {
-            if (x, y) == (bot.x, bot.y) {
-                row.push('@');
-            } else {
-                row.push(char::from(g[(x, y)]));
-            }
-        }
-
-        println!("{row}");
-    }
-    println!();
-}
-
 #[derive(Default)]
 struct Scratch {
     seen: Vec<u32>,

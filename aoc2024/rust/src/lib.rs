@@ -17,4 +17,5 @@ pub mod day16;
 
 pub const DIRECTIONS: [(isize, isize); 4] = [(1, 0), (-1, 0), (0, 1), (0, -1)];
 
-pub mod util;
+mod util;
+pub use util::{Day, Part, Runner, Solution, colorize_time};

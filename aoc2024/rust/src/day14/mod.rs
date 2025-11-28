@@ -1,5 +1,21 @@
-pub mod part1;
-pub mod part2;
+use crate::{Day, Runner, Solution};
+
+mod part1;
+mod part2;
+
+pub fn solution() -> Solution {
+    Solution {
+        day: Day::Day14,
+        p1: Runner {
+            expected: 230900224,
+            f: part1::solve,
+        },
+        p2: Runner {
+            expected: 6532,
+            f: part2::solve,
+        },
+    }
+}
 
 const WIDTH: usize = 101;
 const HEIGHT: usize = 103;
