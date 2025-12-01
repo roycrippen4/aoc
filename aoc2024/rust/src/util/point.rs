@@ -83,25 +83,25 @@ impl Point {
 
     fn unit_step_mut(&mut self, d: Direction) -> &mut Self {
         match d {
-            Direction::North => self.y = self.y - 1,
-            Direction::South => self.y = self.y + 1,
-            Direction::West => self.x = self.x - 1,
-            Direction::East => self.x = self.x + 1,
+            Direction::North => self.y -= 1,
+            Direction::South => self.y += 1,
+            Direction::West => self.x -= 1,
+            Direction::East => self.x += 1,
             Direction::NorthEast => {
-                self.x = self.x + 1;
-                self.y = self.y - 1;
+                self.x += 1;
+                self.y -= 1;
             }
             Direction::NorthWest => {
-                self.x = self.x - 1;
-                self.y = self.y - 1;
+                self.x -= 1;
+                self.y -= 1;
             }
             Direction::SouthEast => {
-                self.x = self.x + 1;
-                self.y = self.y + 1;
+                self.x += 1;
+                self.y += 1;
             }
             Direction::SouthWest => {
-                self.x = self.x - 1;
-                self.y = self.y + 1;
+                self.x -= 1;
+                self.y += 1;
             }
         };
 
