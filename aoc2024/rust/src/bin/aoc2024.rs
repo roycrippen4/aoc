@@ -1,9 +1,6 @@
 use std::time::Duration;
 
-use aoc2024::{
-    Solution, day01, day02, day03, day04, day05, day06, day07, day08, day09, day10, day11, day12,
-    day13, day14, day15, day16,
-};
+use aoc2024 as aoc;
 
 use comfy_table::Table;
 use comfy_table::modifiers::UTF8_ROUND_CORNERS;
@@ -26,23 +23,24 @@ fn main() {
     println!("{table}");
 }
 
-fn get_solutions() -> Vec<Solution> {
+fn get_solutions() -> Vec<aoc::Solution> {
     vec![
-        day01::solution(),
-        day02::solution(),
-        day03::solution(),
-        day04::solution(),
-        day05::solution(),
-        day06::solution(),
-        day07::solution(),
-        day08::solution(),
-        day09::solution(),
-        day10::solution(),
-        day11::solution(),
-        day12::solution(),
-        day13::solution(),
-        day14::solution(),
-        day15::solution(),
-        day16::solution(),
+        aoc::day01::solution(),
+        aoc::day02::solution(),
+        aoc::day03::solution(),
+        aoc::day04::solution(),
+        aoc::day05::solution(),
+        aoc::day06::solution(),
+        aoc::day07::solution(),
+        aoc::day08::solution(),
+        aoc::day09::solution(),
+        aoc::day10::solution(),
+        aoc::day11::solution(),
+        aoc::day12::solution(),
+        aoc::day13::solution(),
+        aoc::day14::solution(),
+        aoc::day15::solution(),
+        aoc::day16::solution(),
+        aoc::day17::solution(),
     ]
 }
