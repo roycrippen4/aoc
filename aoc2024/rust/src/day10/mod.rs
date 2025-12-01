@@ -1,10 +1,17 @@
 use std::str::FromStr;
 
+use crate::util::{Entry, Grid};
 use crate::{Day, Runner, Solution};
 
-fn find_starting_points(grid: &crate::util::Grid<usize>) -> Vec<crate::util::Entry<usize>> {
+fn find_starting_points(grid: &Grid<usize>) -> Vec<Entry<usize>> {
     (0..grid.height)
-        .flat_map(|y| (0..grid.width).filter_map(move |x| (grid[(x, y)] == 0).then_some((x, y, 0))))
+        .flat_map(|y| {
+            (0..grid.width).filter_map(move |x| {
+                let xi = x as isize;
+                let yi = y as isize;
+                (grid[(xi, yi)] == 0).then_some((xi, yi, 0))
+            })
+        })
         .collect()
 }
 

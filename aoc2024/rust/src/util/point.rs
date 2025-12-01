@@ -2,45 +2,38 @@ use super::Direction;
 
 use std::ops::{Add, Div, Mul, Sub};
 
-use num_traits::Num;
-
 #[derive(Clone, Copy, Debug, PartialEq, Hash)]
-pub struct Point<T> {
-    pub x: T,
-    pub y: T,
+pub struct Point {
+    pub x: isize,
+    pub y: isize,
 }
 
-pub const UP: Point<i32> = Point::new(0, -1);
-pub const DOWN: Point<i32> = Point::new(0, 1);
-pub const LEFT: Point<i32> = Point::new(-1, 0);
-pub const RIGHT: Point<i32> = Point::new(1, 0);
+pub const UP: Point = Point::new(0, -1);
+pub const DOWN: Point = Point::new(0, 1);
+pub const LEFT: Point = Point::new(-1, 0);
+pub const RIGHT: Point = Point::new(1, 0);
 
-impl<T> Point<T>
-where
-    T: Num + Copy,
-{
-    pub const fn new(x: T, y: T) -> Self {
+impl Point {
+    pub const fn new(x: isize, y: isize) -> Self {
         Point { x, y }
     }
 
     pub fn origin() -> Self {
-        Point::new(T::zero(), T::zero())
+        Point::new(0, 0)
     }
 
     fn unit_step(&self, d: Direction) -> Self {
         let Point { x, y } = *self;
 
-        let one = T::one();
-
         match d {
-            Direction::North => Point::new(x, y - one),
-            Direction::South => Point::new(x, y + one),
-            Direction::West => Point::new(x - one, y),
-            Direction::East => Point::new(x + one, y),
-            Direction::NorthEast => Point::new(x + one, y - one),
-            Direction::NorthWest => Point::new(x - one, y - one),
-            Direction::SouthEast => Point::new(x + one, y + one),
-            Direction::SouthWest => Point::new(x - one, y + one),
+            Direction::North => Point::new(x, y - 1),
+            Direction::South => Point::new(x, y + 1),
+            Direction::West => Point::new(x - 1, y),
+            Direction::East => Point::new(x + 1, y),
+            Direction::NorthEast => Point::new(x + 1, y - 1),
+            Direction::NorthWest => Point::new(x - 1, y - 1),
+            Direction::SouthEast => Point::new(x + 1, y + 1),
+            Direction::SouthWest => Point::new(x - 1, y + 1),
         }
     }
 
@@ -89,28 +82,26 @@ where
     // =============== Mutable ===============
 
     fn unit_step_mut(&mut self, d: Direction) -> &mut Self {
-        let one = T::one();
-
         match d {
-            Direction::North => self.y = self.y - one,
-            Direction::South => self.y = self.y + one,
-            Direction::West => self.x = self.x - one,
-            Direction::East => self.x = self.x + one,
+            Direction::North => self.y = self.y - 1,
+            Direction::South => self.y = self.y + 1,
+            Direction::West => self.x = self.x - 1,
+            Direction::East => self.x = self.x + 1,
             Direction::NorthEast => {
-                self.x = self.x + one;
-                self.y = self.y - one;
+                self.x = self.x + 1;
+                self.y = self.y - 1;
             }
             Direction::NorthWest => {
-                self.x = self.x - one;
-                self.y = self.y - one;
+                self.x = self.x - 1;
+                self.y = self.y - 1;
             }
             Direction::SouthEast => {
-                self.x = self.x + one;
-                self.y = self.y + one;
+                self.x = self.x + 1;
+                self.y = self.y + 1;
             }
             Direction::SouthWest => {
-                self.x = self.x - one;
-                self.y = self.y + one;
+                self.x = self.x - 1;
+                self.y = self.y + 1;
             }
         };
 
@@ -183,17 +174,14 @@ where
     }
 }
 
-impl<T> From<(T, T)> for Point<T> {
-    fn from((x, y): (T, T)) -> Self {
+impl From<(isize, isize)> for Point {
+    fn from((x, y): (isize, isize)) -> Self {
         Point { x, y }
     }
 }
 
-impl<T> Div for Point<T>
-where
-    T: Div<Output = T> + num_traits::Num + std::marker::Copy,
-{
-    type Output = Point<T>;
+impl Div for Point {
+    type Output = Point;
 
     fn div(self, other: Self) -> Self::Output {
         let x = self.x / other.x;
@@ -202,11 +190,8 @@ where
     }
 }
 
-impl<T> Mul for Point<T>
-where
-    T: Div<Output = T> + num_traits::Num + std::marker::Copy,
-{
-    type Output = Point<T>;
+impl Mul for Point {
+    type Output = Point;
 
     fn mul(self, other: Self) -> Self::Output {
         let x = self.x * other.x;
@@ -215,11 +200,8 @@ where
     }
 }
 
-impl<T> Add for Point<T>
-where
-    T: Div<Output = T> + num_traits::Num + std::marker::Copy,
-{
-    type Output = Point<T>;
+impl Add for Point {
+    type Output = Point;
 
     fn add(self, other: Self) -> Self::Output {
         let x = self.x + other.x;
@@ -229,11 +211,8 @@ where
     }
 }
 
-impl<T> Sub for Point<T>
-where
-    T: Div<Output = T> + num_traits::Num + std::marker::Copy,
-{
-    type Output = Point<T>;
+impl Sub for Point {
+    type Output = Point;
 
     fn sub(self, other: Self) -> Self::Output {
         let x = self.x - other.x;
@@ -242,12 +221,9 @@ where
     }
 }
 
-impl<T> std::fmt::Display for Point<T>
-where
-    T: std::fmt::Debug,
-{
+impl std::fmt::Display for Point {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "({:?}, {:?})", self.x, self.y)
+        write!(f, "({}, {})", self.x, self.y)
     }
 }
 

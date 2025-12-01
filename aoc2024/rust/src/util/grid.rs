@@ -1,48 +1,41 @@
 use anyhow::Result;
+use std::fmt::{Debug, Display, Formatter};
+use std::ops::{Index, IndexMut};
 use std::str::FromStr;
 
 use super::Point;
 
-pub type Entry<T> = (usize, usize, T);
+pub type Entry<T> = (isize, isize, T);
 
-impl<T> From<Point<usize>> for Entry<T>
-where
-    T: Default,
-{
-    fn from(p: Point<usize>) -> Self {
+impl<T: Default> From<Point> for Entry<T> {
+    fn from(p: Point) -> Self {
         (p.x, p.y, T::default())
     }
 }
 
-impl<T> From<Entry<T>> for Point<usize> {
+impl<T> From<Entry<T>> for Point {
     fn from(e: Entry<T>) -> Self {
         Point::new(e.0, e.1)
     }
 }
 
-impl<T> From<&Entry<T>> for Point<usize> {
+impl<T> From<&Entry<T>> for Point {
     fn from(e: &Entry<T>) -> Self {
         Point::new(e.0, e.1)
     }
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct Grid<T>
-where
-    T: std::fmt::Debug + Clone,
-{
+pub struct Grid<T: Debug + Copy> {
     inner: Vec<Vec<T>>,
     pub height: usize,
+    pub height_i: isize,
     pub width: usize,
+    pub width_i: isize,
 }
 
 #[allow(unused)]
-impl<T> Grid<T>
-where
-    T: std::fmt::Debug,
-    T: Clone,
-    T: Copy,
-{
+impl<T: Debug + Copy> Grid<T> {
     // ==========================================================
     // ===================== Static Methods =====================
     // ==========================================================
@@ -54,7 +47,9 @@ where
 
         Self {
             height,
+            height_i: height as isize,
             width,
+            width_i: width as isize,
             inner,
         }
     }
@@ -63,7 +58,9 @@ where
     pub fn new(height: usize, width: usize) -> Self {
         Self {
             height,
+            height_i: height as isize,
             width,
+            width_i: width as isize,
             inner: vec![],
         }
     }
@@ -75,7 +72,10 @@ where
     ///
     /// [WARN!]: This should only be used with square, e.g. 3x3, grids!
     pub fn rotate_clockwise(g: &Self) -> Self {
-        Self::new(g.height, g.width).map_coords(|p| g[Point::new(p.y, (g.height - 1) - p.x)])
+        Self::new(g.height, g.width).map_coords(|p| {
+            let new_p = Point::new(p.y, (g.height_i - 1) - p.x);
+            g[new_p]
+        })
     }
 
     /// Creates a new `Grid` by rotating the provided grid 90-degrees counter-clockwise.
@@ -86,7 +86,7 @@ where
     /// [WARN!]: This should only be used with square, e.g. 3x3, grids!
     pub fn rotate_counter_clockwise(grid: &Self) -> Self {
         Self::new(grid.height, grid.width).map_coords(|p_new| {
-            let p_old = Point::new((grid.width - 1) - p_new.y, p_new.x);
+            let p_old = Point::new((grid.width_i - 1) - p_new.y, p_new.x);
             grid[p_old]
         })
     }
@@ -98,7 +98,7 @@ where
     /// Takes a `Point<usize>` and returns true if that point is contained in the grid
     pub fn inside<P: GridPoint>(&self, p: P) -> bool {
         let (x, y) = p.to_coordinate_pair();
-        y < self.height && x < self.width
+        y < self.height_i && x < self.width_i
     }
 
     /// Makes a new grid with the same dimensions as the current grid with all values initialized to `value`
@@ -115,7 +115,7 @@ where
     /// otherwise returns `None`.
     pub fn get<P: GridPoint>(&self, idx: P) -> Option<&T> {
         let (x, y) = idx.to_coordinate_pair();
-        if y < self.height && x < self.width {
+        if y < self.height_i && x < self.width_i {
             Some(&self[(x, y)])
         } else {
             None
@@ -123,7 +123,7 @@ where
     }
 
     /// Searches for an element's position in the grid that satisfies a predicate.
-    pub fn find_position<P>(&self, mut pred: P) -> Option<(usize, usize)>
+    pub fn find_position<P>(&self, mut pred: P) -> Option<(isize, isize)>
     where
         P: FnMut(Entry<&T>) -> bool,
     {
@@ -184,11 +184,12 @@ where
     }
 
     /// Returns an iterator over the entries in the grid
-    pub fn entries(&self) -> impl Iterator<Item = (usize, usize, &T)> + '_ {
-        self.inner
-            .iter()
-            .enumerate()
-            .flat_map(|(y, row)| row.iter().enumerate().map(move |(x, v)| (x, y, v)))
+    pub fn entries(&self) -> impl Iterator<Item = (isize, isize, &T)> + '_ {
+        self.inner.iter().enumerate().flat_map(|(y, row)| {
+            row.iter()
+                .enumerate()
+                .map(move |(x, v)| (x as isize, y as isize, v))
+        })
     }
 
     /// Filters the `grid` by predicate `p` for each entry in the `grid`
@@ -209,9 +210,9 @@ where
 
     /// Returns all coordinates `(x, y)` that satisfy the predicate `P` over each `coordinate` in
     /// the `grid`
-    pub fn filter_coords<P>(&self, mut p: P) -> Vec<(usize, usize)>
+    pub fn filter_coords<P>(&self, mut p: P) -> Vec<(isize, isize)>
     where
-        P: FnMut((usize, usize)) -> bool,
+        P: FnMut((isize, isize)) -> bool,
     {
         self.entries().fold(vec![], |mut acc, (x, y, _)| {
             if p((x, y)) {
@@ -234,7 +235,7 @@ where
     /// otherwise returns `None`.
     pub fn get_mut<P: GridPoint>(&mut self, p: P) -> Option<&mut T> {
         let (x, y) = p.to_coordinate_pair();
-        if y < self.height && x < self.width {
+        if y < self.height_i && x < self.width_i {
             Some(&mut self[(x, y)])
         } else {
             None
@@ -242,9 +243,13 @@ where
     }
 
     /// Applies the function `f` to each coordinate `p` in the `grid`, replacing the original value
-    pub fn map_coords(mut self, f: impl Fn(Point<usize>) -> T) -> Self {
+    pub fn map_coords(mut self, f: impl Fn(Point) -> T) -> Self {
         self.inner = (0..self.height)
-            .map(|y| (0..self.width).map(|x| f(Point::new(x, y))).collect())
+            .map(|y| {
+                (0..self.width)
+                    .map(|x| f(Point::new(x as isize, y as isize)))
+                    .collect()
+            })
             .collect();
 
         self
@@ -364,10 +369,11 @@ where
 
     /// Returns an iterator over the `Entry<T>` for each element in the grid. Consumes the grid.
     pub fn into_entries(self) -> impl Iterator<Item = Entry<T>> {
-        self.inner
-            .into_iter()
-            .enumerate()
-            .flat_map(|(y, row)| row.into_iter().enumerate().map(move |(x, v)| (x, y, v)))
+        self.inner.into_iter().enumerate().flat_map(|(y, row)| {
+            row.into_iter()
+                .enumerate()
+                .map(move |(x, v)| (x as isize, y as isize, v))
+        })
     }
 
     /// Folds over the grid via application of `f` over each entry, consuming the grid
@@ -382,7 +388,7 @@ where
     pub fn map<F, U>(self, f: F) -> Grid<U>
     where
         F: Fn(Entry<T>) -> U,
-        U: std::fmt::Debug + Clone,
+        U: Debug + Copy,
     {
         let inner = self
             .inner
@@ -391,7 +397,7 @@ where
             .map(|(y, row)| {
                 row.into_iter()
                     .enumerate()
-                    .map(|(x, v)| f((x, y, v)))
+                    .map(|(x, v)| f((x as isize, y as isize, v)))
                     .collect()
             })
             .collect();
@@ -399,7 +405,9 @@ where
         Grid {
             inner,
             width: self.width,
+            width_i: self.width_i,
             height: self.height,
+            height_i: self.width_i,
         }
     }
 
@@ -407,7 +415,7 @@ where
     pub fn map_values<F, U>(self, f: F) -> Grid<U>
     where
         F: Fn(T) -> U,
-        U: std::fmt::Debug + Clone,
+        U: Debug + Copy,
     {
         let inner = self
             .inner
@@ -418,7 +426,9 @@ where
         Grid {
             inner,
             width: self.width,
+            width_i: self.width_i,
             height: self.height,
+            height_i: self.width_i,
         }
     }
 }
@@ -429,7 +439,9 @@ impl Grid<char> {
     pub fn as_usize(self) -> Grid<usize> {
         Grid {
             width: self.width,
+            width_i: self.width_i,
             height: self.height,
+            height_i: self.width_i,
             inner: self
                 .inner
                 .into_iter()
@@ -443,11 +455,8 @@ impl Grid<char> {
     }
 }
 
-impl<T> std::fmt::Display for Grid<T>
-where
-    T: std::fmt::Debug + Clone,
-{
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl<T: Debug + Copy> Display for Grid<T> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         if self.inner.is_empty() {
             return Ok(());
         }
@@ -473,11 +482,7 @@ where
     }
 }
 
-impl<T> FromStr for Grid<T>
-where
-    T: std::fmt::Debug + Clone,
-    T: From<char>,
-{
+impl<T: Debug + Copy + From<char>> FromStr for Grid<T> {
     type Err = anyhow::Error;
 
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
@@ -491,105 +496,94 @@ where
 
         Ok(Grid {
             inner: ts,
-            height,
             width,
+            width_i: width as isize,
+            height,
+            height_i: height as isize,
         })
     }
 }
 
-impl<T> From<Vec<Vec<T>>> for Grid<T>
-where
-    T: std::fmt::Debug + Clone,
-{
+impl<T: Debug + Copy> From<Vec<Vec<T>>> for Grid<T> {
     fn from(inner: Vec<Vec<T>>) -> Self {
         let width = inner[0].len();
         let height = inner.len();
         Grid {
             inner,
             width,
+            width_i: width as isize,
             height,
+            height_i: height as isize,
         }
     }
 }
 
-impl<T> From<&[Vec<T>]> for Grid<T>
-where
-    T: std::fmt::Debug + Clone,
-{
+impl<T: Debug + Copy> From<&[Vec<T>]> for Grid<T> {
     fn from(inner: &[Vec<T>]) -> Self {
         let width = inner[0].len();
         let height = inner.len();
         Grid {
             inner: inner.to_vec(),
             width,
+            width_i: width as isize,
             height,
+            height_i: height as isize,
         }
     }
 }
 
 /// A trait for types that can be converted into grid coordinates.
-pub trait GridPoint: std::fmt::Debug + Copy + Clone {
+pub trait GridPoint: Debug + Copy {
     /// Returns the (x, y) coordinates represented by this index.
-    fn to_coordinate_pair(&self) -> (usize, usize);
+    fn to_coordinate_pair(&self) -> (isize, isize);
 
     /// Returns the `Point<usize>` represented by this index.
-    fn to_point(&self) -> Point<usize>;
+    fn to_point(&self) -> Point;
 }
 
-impl GridPoint for Point<usize> {
-    fn to_coordinate_pair(&self) -> (usize, usize) {
+impl GridPoint for Point {
+    fn to_coordinate_pair(&self) -> (isize, isize) {
         (self.x, self.y)
     }
 
-    fn to_point(&self) -> Point<usize> {
+    fn to_point(&self) -> Point {
         *self
     }
 }
 
-impl GridPoint for (usize, usize) {
-    fn to_coordinate_pair(&self) -> (usize, usize) {
+impl GridPoint for (isize, isize) {
+    fn to_coordinate_pair(&self) -> (isize, isize) {
         *self
     }
 
-    fn to_point(&self) -> Point<usize> {
+    fn to_point(&self) -> Point {
         Point::new(self.0, self.1)
     }
 }
 
-impl<T> GridPoint for Entry<T>
-where
-    T: std::fmt::Debug + Copy,
-{
-    fn to_coordinate_pair(&self) -> (usize, usize) {
+impl<T: Debug + Copy> GridPoint for Entry<T> {
+    fn to_coordinate_pair(&self) -> (isize, isize) {
         (self.0, self.1)
     }
 
-    fn to_point(&self) -> Point<usize> {
+    fn to_point(&self) -> Point {
         Point::from(self)
     }
 }
 
-impl<T, P> std::ops::IndexMut<P> for Grid<T>
-where
-    P: GridPoint,
-    T: std::fmt::Debug + Clone,
-{
+impl<T: Debug + Copy, P: GridPoint> IndexMut<P> for Grid<T> {
     fn index_mut(&mut self, p: P) -> &mut Self::Output {
         let (x, y) = p.to_coordinate_pair();
-        &mut self.inner[y][x]
+        &mut self.inner[y as usize][x as usize]
     }
 }
 
-impl<T, P> std::ops::Index<P> for Grid<T>
-where
-    P: GridPoint,
-    T: std::fmt::Debug + Clone,
-{
+impl<T: Debug + Copy, P: GridPoint> Index<P> for Grid<T> {
     type Output = T;
 
     fn index(&self, p: P) -> &Self::Output {
         let (x, y) = p.to_coordinate_pair();
-        &self.inner[y][x]
+        &self.inner[y as usize][x as usize]
     }
 }
 
@@ -615,7 +609,9 @@ mod tests {
         let expected = Grid {
             inner: expected_inner,
             width: 5,
+            width_i: 5,
             height: 5,
+            height_i: 5,
         };
 
         grid.rotate_clockwise_mut();
@@ -635,7 +631,9 @@ mod tests {
                 vec![0, 1, 2, 3, 4],
             ],
             width: 5,
+            width_i: 5,
             height: 5,
+            height_i: 5,
         };
 
         grid.rotate_counter_clockwise_mut();

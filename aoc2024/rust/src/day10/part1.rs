@@ -12,7 +12,7 @@ fn neighbors(
 
     let mut ns = [None; 4];
 
-    if x < g.width - 1 && g[(x + 1, y)] == t && !visited[(x + 1, y)] {
+    if x < g.width_i - 1 && g[(x + 1, y)] == t && !visited[(x + 1, y)] {
         ns[0] = Some((x + 1, y, g[(x + 1, y)]))
     }
 
@@ -24,7 +24,7 @@ fn neighbors(
         ns[2] = Some((x, y - 1, g[(x, y - 1)]));
     }
 
-    if y < g.height - 1 && g[(x, y + 1)] == t && !visited[(x, y + 1)] {
+    if y < g.height_i - 1 && g[(x, y + 1)] == t && !visited[(x, y + 1)] {
         ns[3] = Some((x, y + 1, g[(x, y + 1)]));
     }
 

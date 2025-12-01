@@ -12,14 +12,11 @@ fn neighbors(point: Entry<usize>, grid: &Grid<usize>) -> [Option<Entry<usize>>; 
     let mut i = 0;
 
     for (dx, dy) in DIRECTIONS {
-        let nx = x as isize + dx;
-        let ny = y as isize + dy;
-        if nx >= 0 && nx < w && ny >= 0 && ny < h {
-            let (nx, ny) = (nx as usize, ny as usize);
-            if grid[(nx, ny)] == t {
-                ns[i] = Some((nx, ny, grid[(nx, ny)]));
-                i += 1;
-            }
+        let nx = x + dx;
+        let ny = y + dy;
+        if nx >= 0 && nx < w && ny >= 0 && ny < h && grid[(nx, ny)] == t {
+            ns[i] = Some((nx, ny, grid[(nx, ny)]));
+            i += 1;
         }
     }
 

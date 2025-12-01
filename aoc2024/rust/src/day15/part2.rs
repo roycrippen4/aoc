@@ -66,8 +66,8 @@ impl Scratch {
     }
 
     #[inline]
-    fn idx(&self, x: usize, y: usize) -> usize {
-        y * self.w + x
+    fn idx(&self, x: isize, y: isize) -> usize {
+        (y * self.w as isize + x) as usize
     }
 
     #[inline]
@@ -82,7 +82,7 @@ impl Scratch {
     }
 }
 
-fn collect_moves(grid: &Grid<Kind>, p: Point<usize>, dy: isize, s: &mut Scratch, tag: u32) -> bool {
+fn collect_moves(grid: &Grid<Kind>, p: Point, dy: isize, s: &mut Scratch, tag: u32) -> bool {
     let k = grid[p];
     if !matches!(k, Kind::Start | Kind::End) {
         return false;
@@ -98,8 +98,8 @@ fn collect_moves(grid: &Grid<Kind>, p: Point<usize>, dy: isize, s: &mut Scratch,
     s.seen[i1] = tag;
     s.seen[i2] = tag;
 
-    let ny = match (p.y as isize).checked_add(dy) {
-        Some(v) if v >= 0 && (v as usize) < s.h => v as usize,
+    let ny = match p.y.checked_add(dy) {
+        Some(v) if v >= 0 && (v as usize) < s.h => v,
         _ => return false,
     };
 
@@ -126,13 +126,7 @@ fn collect_moves(grid: &Grid<Kind>, p: Point<usize>, dy: isize, s: &mut Scratch,
     true
 }
 
-fn move_vert(
-    grid: &mut Grid<Kind>,
-    bot: &mut Point<usize>,
-    p: Point<usize>,
-    up: bool,
-    s: &mut Scratch,
-) {
+fn move_vert(grid: &mut Grid<Kind>, bot: &mut Point, p: Point, up: bool, s: &mut Scratch) {
     let dy = if up { -1 } else { 1 };
     let tag = s.mark();
     s.moves.clear();
@@ -143,12 +137,12 @@ fn move_vert(
 
     for (x, y, k) in s.moves.drain(..) {
         grid[(x, y)] = Kind::Empty;
-        grid[(x, (y as isize + dy) as usize)] = k;
+        grid[(x, (y + dy))] = k;
     }
     bot.y = p.y;
 }
 
-fn step(b: &mut Point<usize>, g: &mut Grid<Kind>, d: Direction, s: &mut Scratch) {
+fn step(b: &mut Point, g: &mut Grid<Kind>, d: Direction, s: &mut Scratch) {
     match d {
         Direction::Left => match g[(b.x - 1, b.y)] {
             Kind::End => move_left(b.x - 3, b, g),
@@ -216,12 +210,12 @@ fn parse_input(data: &str) -> (Grid<Kind>, Vec<Direction>) {
         .unwrap()
 }
 
-fn get_bot(grid: &mut Grid<Kind>) -> Point<usize> {
+fn get_bot(grid: &mut Grid<Kind>) -> Point {
     let (x, y, _) = grid.find_replace(|(_, _, k)| *k == Kind::Bot, Kind::Empty);
     Point::new(x, y)
 }
 
-fn move_right(x: usize, bot: &mut Point<usize>, grid: &mut Grid<Kind>) {
+fn move_right(x: isize, bot: &mut Point, grid: &mut Grid<Kind>) {
     let mut x = x;
 
     loop {
@@ -240,7 +234,7 @@ fn move_right(x: usize, bot: &mut Point<usize>, grid: &mut Grid<Kind>) {
     }
 }
 
-fn move_left(x: usize, bot: &mut Point<usize>, grid: &mut Grid<Kind>) {
+fn move_left(x: isize, bot: &mut Point, grid: &mut Grid<Kind>) {
     let mut x = x;
 
     loop {
@@ -272,7 +266,7 @@ fn evaluate(data: &str) -> usize {
     let mut acc = 0usize;
     for y in 0..grid.height {
         for x in 0..grid.width {
-            if grid[(x, y)] == Kind::Start {
+            if grid[(x as isize, y as isize)] == Kind::Start {
                 acc += 100 * y + x;
             }
         }
