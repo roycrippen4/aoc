@@ -367,8 +367,8 @@ val same_size_with : 'b -> 'a t -> 'b t
 
 (** A “type‑class” describing how to walk on a grid.
 
-    - ['cell] is the type stored in the grid (e.g. [char], [terrain]).
-    - ['t] is the accumulated cost / distance (e.g. [int], [float]).
+    - ['t] is the type stored in the grid (e.g. [char], [terrain]).
+    - ['cost] is the accumulated cost / distance (e.g. [int], [float]).
 
     The functor needs:
     - a total order on distances ([compare])
@@ -376,22 +376,22 @@ val same_size_with : 'b -> 'a t -> 'b t
     - a predicate that says whether a cell is enterable ([passable])
     - a function that returns the cost of stepping onto a cell ([cost_of]) *)
 module type Walkable = sig
-  type cell
   type t
+  type cost
 
-  val compare : t -> t -> int
+  val compare : cost -> cost -> int
   (** Total order on costs (≤ 0 → “no cheaper”). *)
 
-  val add : t -> t -> t
+  val add : cost -> cost -> cost
   (** [add a b] = cost of doing [a] then [b]. *)
 
-  val zero : t
+  val zero : cost
   (** Cost at the start position. *)
 
-  val passable : cell -> bool
+  val passable : t -> bool
   (** May we walk onto this cell? *)
 
-  val cost : cell -> t
+  val cost_of : t -> cost
   (** Cost incurred when entering this cell. *)
 end
 
@@ -419,5 +419,5 @@ end
     Complexity is O(E log V) with E ≤ 4·V for a grid (E = edges, V = passable
     cells). *)
 module Dijkstra (W : Walkable) : sig
-  val walk : W.cell t -> Point.t -> Point.t -> Point.t list option
+  val walk : W.t t -> Point.t -> Point.t -> Point.t list option
 end

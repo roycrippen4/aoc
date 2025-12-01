@@ -3,14 +3,14 @@ open Util
 (* part 1 *)
 
 module Kind = struct
-  type cell = Wall | Empty | Path
-  type t = int
+  type t = Wall | Empty | Path
+  type cost = int
 
   let compare = compare
   let add = ( + )
   let zero = 0
   let passable cell = cell = Empty
-  let cost _ = 1
+  let cost_of _ = 1
 
   (* *)
   let char_of_kind = function Wall -> '#' | Empty -> '.' | Path -> 'O'

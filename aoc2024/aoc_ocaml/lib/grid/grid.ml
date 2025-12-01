@@ -273,28 +273,28 @@ let ( .%{} ) g p = get g (p.Point.x, p.Point.y)
 let ( .%{}<- ) g p v = set g (p.Point.x, p.Point.y) v
 
 module type Walkable = sig
-  type cell
   type t
+  type cost
 
-  val compare : t -> t -> int
-  val add : t -> t -> t
-  val zero : t
-  val passable : cell -> bool
-  val cost : cell -> t
+  val compare : cost -> cost -> int
+  val add : cost -> cost -> cost
+  val zero : cost
+  val passable : t -> bool
+  val cost_of : t -> cost
 end
 
 module Dijkstra (W : Walkable) = struct
   module P = Point
 
   module Node = struct
-    type t = W.t * (int * int)
+    type t = W.cost * (int * int)
 
     let compare (d1, _) (d2, _) = W.compare d2 d1 (* ← flipped *)
   end
 
   module Q = Bheap.Make (Node)
 
-  let walk (g : W.cell t) (start : P.t) (goal : P.t) : P.t list option =
+  let walk (g : W.t t) (start : P.t) (goal : P.t) : P.t list option =
     let start_pos = (start.x, start.y) and goal_pos = (goal.x, goal.y) in
 
     if not (inside g start_pos && inside g goal_pos) then None
@@ -328,7 +328,7 @@ module Dijkstra (W : Walkable) = struct
                       if inside g v then
                         let cell = get g v in
                         if W.passable cell then
-                          let alt = W.add d (W.cost cell) in
+                          let alt = W.add d (W.cost_of cell) in
                           match Hashtbl.find_opt dist v with
                           | None ->
                               Hashtbl.add dist v alt;
