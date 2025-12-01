@@ -28,19 +28,11 @@ pub fn solve() -> usize {
 
 #[cfg(test)]
 mod test {
-    use crate::example;
+    use super::solve;
     use crate::util::{Day::Day16, validate};
-
-    use super::{evaluate, solve};
 
     #[test]
     fn test_solve() {
         validate(solve, 133584, Day16);
-    }
-
-    #[test]
-    fn test_evaluate() {
-        let result = evaluate(example!());
-        dbg!(result);
     }
 }
