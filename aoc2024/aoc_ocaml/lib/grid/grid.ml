@@ -287,59 +287,77 @@ module Dijkstra (W : Walkable) = struct
   module P = Point
 
   module Node = struct
-    type t = W.cost * (int * int)
+    type t = { cost : W.cost; pos : int * int }
 
-    let compare (d1, _) (d2, _) = W.compare d2 d1 (* ← flipped *)
+    let compare a b = W.compare b.cost a.cost (* ← flipped *)
   end
 
   module Q = Bheap.Make (Node)
 
   let walk (g : W.t t) (start : P.t) (goal : P.t) : P.t list option =
-    let start_pos = (start.x, start.y) and goal_pos = (goal.x, goal.y) in
+    let start_pos = (start.x, start.y) in
+    let goal_pos = (goal.x, goal.y) in
 
-    if not (inside g start_pos && inside g goal_pos) then None
-    else if not (W.passable (get g start_pos) && W.passable (get g goal_pos))
-    then None
+    let can_start = inside g start_pos && W.passable (get g start_pos) in
+    let can_end = inside g goal_pos && W.passable (get g goal_pos) in
+
+    if not (can_start && can_end) then None
     else
-      let dist = Hashtbl.create 97 and prev = Hashtbl.create 97 in
-      Hashtbl.add dist start_pos W.zero;
-
+      let dist = Hashtbl.create 97 in
+      let prev = Hashtbl.create 97 in
       let pq = Q.create () in
-      Q.push pq (W.zero, start_pos);
 
-      let rec reconstruct p acc =
-        let pt = P.make (fst p) (snd p) in
-        match Hashtbl.find_opt prev p with
-        | None -> List.rev (pt :: acc)
-        | Some pre -> reconstruct pre (pt :: acc)
+      Hashtbl.add dist start_pos W.zero;
+      Q.push pq { cost = W.zero; pos = start_pos };
+
+      let reconstruct p =
+        let rec loop p acc =
+          let pt = P.make (fst p) (snd p) in
+          let acc = pt :: acc in
+
+          match Hashtbl.find_opt prev p with
+          | None -> List.rev acc
+          | Some pre -> loop pre acc
+        in
+        loop p []
+      in
+
+      let relax pos nbor current_cost =
+        if inside g nbor then
+          let cell = get g nbor in
+
+          if W.passable cell then
+            let new_cost = W.add current_cost (W.cost_of cell) in
+
+            let is_improvement =
+              match Hashtbl.find_opt dist nbor with
+              | None -> true
+              | Some best -> W.compare new_cost best < 0
+            in
+
+            if is_improvement then (
+              Hashtbl.replace dist nbor new_cost;
+              Hashtbl.replace prev nbor pos;
+              Q.push pq { cost = new_cost; pos = nbor })
       in
 
       let rec loop () =
         match Q.pop pq with
         | None -> None
-        | Some (d, u) -> (
-            match Hashtbl.find_opt dist u with
-            | Some best when W.compare d best > 0 -> loop ()
-            | _ ->
-                if u = goal_pos then Some (reconstruct u []) (* success *)
-                else (
-                  nbor4_coords u
-                  |> List.iter (fun v ->
-                      if inside g v then
-                        let cell = get g v in
-                        if W.passable cell then
-                          let alt = W.add d (W.cost_of cell) in
-                          match Hashtbl.find_opt dist v with
-                          | None ->
-                              Hashtbl.add dist v alt;
-                              Hashtbl.add prev v u;
-                              Q.push pq (alt, v)
-                          | Some old when W.compare alt old < 0 ->
-                              Hashtbl.replace dist v alt;
-                              Hashtbl.replace prev v u;
-                              Q.push pq (alt, v)
-                          | _ -> ());
-                  loop ()))
+        | Some { cost; pos } ->
+            if pos = goal_pos then Some (reconstruct pos)
+            else
+              let is_stale =
+                match Hashtbl.find_opt dist pos with
+                | Some best -> W.compare cost best > 0
+                | None -> true
+              in
+
+              if is_stale then loop ()
+              else (
+                nbor4_coords pos |> List.iter (fun nbor -> relax pos nbor cost);
+                loop ())
       in
+
       loop ()
 end
