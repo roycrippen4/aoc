@@ -2,7 +2,8 @@ use std::collections::HashSet;
 
 use rayon::prelude::*;
 
-use crate::{data, util::StringMethods};
+use crate::data;
+use crate::util::StringMethods;
 
 type PathSet = HashSet<(usize, usize)>;
 type Obs = (usize, usize);
@@ -127,9 +128,9 @@ pub fn solve() -> usize {
 
 #[cfg(test)]
 mod test {
-    use crate::util::{Day::Day06, validate};
-
     use super::solve;
+    use crate::util::Day::Day06;
+    use crate::util::validate;
 
     #[test]
     fn test_solve() {

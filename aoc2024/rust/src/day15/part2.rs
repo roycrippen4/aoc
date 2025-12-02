@@ -280,9 +280,8 @@ pub fn solve() -> usize {
 
 #[cfg(test)]
 mod test {
-    use crate::example;
-
     use super::{evaluate, solve};
+    use crate::example;
 
     #[test]
     fn test_solve() {

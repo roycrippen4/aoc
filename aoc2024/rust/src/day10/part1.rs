@@ -67,12 +67,10 @@ pub fn solve() -> usize {
 mod test {
     use std::str::FromStr;
 
-    use crate::{
-        example,
-        util::{Day::Day10, Grid, validate},
-    };
-
     use super::{evaluate, score_path, solve};
+    use crate::example;
+    use crate::util::Day::Day10;
+    use crate::util::{Grid, validate};
 
     #[test]
     fn test_solve() {

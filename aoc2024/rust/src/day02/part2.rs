@@ -1,6 +1,5 @@
-use crate::data;
-
 use super::into_isize_vec;
+use crate::data;
 
 fn expand(values: &[isize]) -> Vec<Vec<isize>> {
     (0..values.len())
@@ -36,9 +35,9 @@ pub fn solve() -> usize {
 
 #[cfg(test)]
 mod test {
-    use crate::{data, day02::into_isize_vec};
-
     use super::is_safe;
+    use crate::data;
+    use crate::day02::into_isize_vec;
 
     #[test]
     fn test_is_safe() {

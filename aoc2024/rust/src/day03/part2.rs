@@ -1,5 +1,6 @@
-use regex::Regex;
 use std::sync::LazyLock;
+
+use regex::Regex;
 
 use crate::data;
 
@@ -78,9 +79,9 @@ fn parse_mul(s: &str) -> usize {
 
 #[cfg(test)]
 mod test {
-    use crate::util::{Day::Day03, validate};
-
     use super::{evaluate, solve};
+    use crate::util::Day::Day03;
+    use crate::util::validate;
 
     #[test]
     fn test_solve() {

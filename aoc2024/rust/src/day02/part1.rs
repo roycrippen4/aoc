@@ -1,6 +1,5 @@
-use crate::data;
-
 use super::into_isize_vec;
+use crate::data;
 
 /// determines if a given string is safe
 fn is_safe(values: &[isize]) -> bool {
@@ -24,9 +23,9 @@ pub fn solve() -> usize {
 
 #[cfg(test)]
 mod test {
-    use crate::util::{Day::Day02, validate};
-
     use super::solve;
+    use crate::util::Day::Day02;
+    use crate::util::validate;
 
     #[test]
     fn test_solve() {

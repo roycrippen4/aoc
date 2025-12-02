@@ -114,9 +114,9 @@ pub fn solve() -> usize {
 
 #[cfg(test)]
 mod test {
-    use crate::util::{Day::Day09, validate};
-
     use super::{collect_files, evaluate, expand, solve};
+    use crate::util::Day::Day09;
+    use crate::util::validate;
 
     const EXAMPLE: &str = "2333133121414131402";
 

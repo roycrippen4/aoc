@@ -1,4 +1,5 @@
-use crate::{data, util::StringMethods};
+use crate::data;
+use crate::util::StringMethods;
 
 fn create_grid(input: &str) -> Vec<Vec<char>> {
     let mut data: Vec<String> = input.lines().map(String::into_padded).collect();
@@ -56,8 +57,8 @@ pub fn solve() -> usize {
 mod test {
 
     use super::solve;
-
-    use crate::util::{Day::Day04, validate};
+    use crate::util::Day::Day04;
+    use crate::util::validate;
 
     #[test]
     fn test_solve() {

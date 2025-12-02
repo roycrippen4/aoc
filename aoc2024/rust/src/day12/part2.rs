@@ -113,13 +113,11 @@ pub fn solve() -> usize {
 
 #[cfg(test)]
 mod test {
-    use crate::{
-        day12::part2::count_corners,
-        example,
-        util::{Day::Day12, validate},
-    };
-
     use super::{Grid, evaluate, solve};
+    use crate::day12::part2::count_corners;
+    use crate::example;
+    use crate::util::Day::Day12;
+    use crate::util::validate;
 
     #[test]
     fn test_solve() {

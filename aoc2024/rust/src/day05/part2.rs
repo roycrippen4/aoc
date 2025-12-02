@@ -149,12 +149,10 @@ pub fn solve() -> usize {
 
 #[cfg(test)]
 mod test {
-    use crate::{
-        example,
-        util::{Day::Day05, validate},
-    };
-
     use super::{OrderMap, fix_order, get_middle, parse_order_rules, parse_updates, solve};
+    use crate::example;
+    use crate::util::Day::Day05;
+    use crate::util::validate;
 
     #[test]
     fn test_solve() {

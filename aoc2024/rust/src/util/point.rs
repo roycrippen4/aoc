@@ -1,6 +1,6 @@
-use super::Direction;
-
 use std::ops::{Add, Div, Mul, Sub};
+
+use super::Direction;
 
 #[derive(Clone, Copy, Debug, PartialEq, Hash, Eq)]
 pub struct Point {

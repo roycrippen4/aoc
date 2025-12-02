@@ -1,4 +1,5 @@
-use crate::{data, util::quicksort};
+use crate::data;
+use crate::util::quicksort;
 
 fn into_tuple(line: &str) -> (usize, usize) {
     let mut pair = line.split("  ");
@@ -27,9 +28,9 @@ pub fn solve() -> usize {
 
 #[cfg(test)]
 mod test {
-    use crate::util::{Day::Day01, validate};
-
     use super::solve;
+    use crate::util::Day::Day01;
+    use crate::util::validate;
 
     #[test]
     fn test_solve() {

@@ -1,7 +1,6 @@
 use std::fmt::Display;
 
 use super::{Direction, Kind};
-
 use crate::data;
 
 struct Grid {
@@ -189,12 +188,10 @@ pub fn solve() -> usize {
 
 #[cfg(test)]
 mod test {
-    use crate::{
-        example,
-        util::{Day::Day15, validate},
-    };
-
     use super::{Direction, Grid, Kind, evaluate, solve};
+    use crate::example;
+    use crate::util::Day::Day15;
+    use crate::util::validate;
 
     #[test]
     fn test_solve() {

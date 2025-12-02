@@ -1,8 +1,7 @@
 use std::collections::VecDeque;
 
-use crate::data;
-
 use super::{AREA, START, State, dfs, index};
+use crate::data;
 
 fn evaluate(data: &str) -> usize {
     let grid: Vec<_> = data.lines().flat_map(|l| l.chars()).collect();
@@ -29,7 +28,8 @@ pub fn solve() -> usize {
 #[cfg(test)]
 mod test {
     use super::solve;
-    use crate::util::{Day::Day16, validate};
+    use crate::util::Day::Day16;
+    use crate::util::validate;
 
     #[test]
     fn test_solve() {

@@ -1,8 +1,7 @@
 use rayon::prelude::*;
 
-use crate::data;
-
 use super::{HEIGHT, WIDTH, parse_input, step};
+use crate::data;
 
 const RUN: usize = 11;
 
@@ -36,9 +35,9 @@ pub fn solve() -> usize {
 
 #[cfg(test)]
 mod test {
-    use crate::util::{Day::Day14, validate};
-
     use super::solve;
+    use crate::util::Day::Day14;
+    use crate::util::validate;
 
     #[test]
     fn test_solve() {

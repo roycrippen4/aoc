@@ -1,4 +1,5 @@
-use crate::{data, util::StringMethods};
+use crate::data;
+use crate::util::StringMethods;
 
 const MAS: [char; 3] = ['M', 'A', 'S'];
 const SAM: [char; 3] = ['S', 'A', 'M'];
@@ -48,8 +49,8 @@ pub fn solve() -> usize {
 mod test {
 
     use super::solve;
-
-    use crate::util::{Day::Day04, validate};
+    use crate::util::Day::Day04;
+    use crate::util::validate;
 
     #[test]
     fn test_solve() {

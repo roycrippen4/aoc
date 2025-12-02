@@ -3,9 +3,8 @@
 use std::fmt;
 use std::time::{Duration, Instant};
 
-use crate::rgb;
-
 use super::Day;
+use crate::rgb;
 
 enum TimeRange {
     Seconds,

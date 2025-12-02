@@ -1,5 +1,6 @@
-use crate::data;
 use std::iter::repeat_n;
+
+use crate::data;
 
 fn parse(data: &str) -> Vec<Option<usize>> {
     data.trim()
@@ -43,12 +44,10 @@ pub fn solve() -> usize {
 #[cfg(test)]
 mod test {
 
-    use crate::{
-        example,
-        util::{Day::Day09, validate},
-    };
-
     use super::{evaluate, parse, solve};
+    use crate::example;
+    use crate::util::Day::Day09;
+    use crate::util::validate;
 
     #[test]
     fn test_solve() {

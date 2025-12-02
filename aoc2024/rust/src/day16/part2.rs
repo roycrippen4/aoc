@@ -1,8 +1,7 @@
 use std::collections::VecDeque;
 
-use crate::data;
-
 use super::{AREA, BestPaths, DIRECTIONS, END, START, Seen, State, dfs, index};
+use crate::data;
 
 fn rev_dfs(todo: &mut VecDeque<State>, best_paths: &mut BestPaths, seen: &mut Seen) {
     let Some((pos, dir, cost)) = todo.pop_front() else {
@@ -68,7 +67,8 @@ pub fn solve() -> usize {
 #[cfg(test)]
 mod test {
     use super::solve;
-    use crate::util::{Day::Day16, validate};
+    use crate::util::Day::Day16;
+    use crate::util::validate;
 
     #[test]
     fn test_solve() {
