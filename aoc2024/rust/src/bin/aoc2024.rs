@@ -1,7 +1,6 @@
 use std::time::Duration;
 
 use aoc2024 as aoc;
-
 use comfy_table::Table;
 use comfy_table::modifiers::UTF8_ROUND_CORNERS;
 use comfy_table::presets::UTF8_FULL;
@@ -42,5 +41,6 @@ fn get_solutions() -> Vec<aoc::Solution> {
         aoc::day15::solution(),
         aoc::day16::solution(),
         aoc::day17::solution(),
+        aoc::day18::solution(),
     ]
 }
