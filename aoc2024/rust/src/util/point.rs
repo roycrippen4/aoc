@@ -2,7 +2,7 @@ use super::Direction;
 
 use std::ops::{Add, Div, Mul, Sub};
 
-#[derive(Clone, Copy, Debug, PartialEq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Hash, Eq)]
 pub struct Point {
     pub x: isize,
     pub y: isize,

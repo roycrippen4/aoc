@@ -17,13 +17,13 @@ pub fn solution() -> Solution {
     }
 }
 
-pub(in crate::day17) const A: usize = 59590048;
-pub(in crate::day17) const B: usize = 0;
-pub(in crate::day17) const C: usize = 0;
-pub(in crate::day17) const LEN: usize = 16;
-pub(in crate::day17) const PROGRAM: [usize; 16] = [2, 4, 1, 5, 7, 5, 0, 3, 1, 6, 4, 3, 5, 5, 3, 0];
+const A: usize = 59590048;
+const B: usize = 0;
+const C: usize = 0;
+const LEN: usize = 16;
+const PROGRAM: [usize; 16] = [2, 4, 1, 5, 7, 5, 0, 3, 1, 6, 4, 3, 5, 5, 3, 0];
 
-pub(in crate::day17) fn run(mut a: usize, mut b: usize, mut c: usize) -> Vec<usize> {
+fn run(mut a: usize, mut b: usize, mut c: usize) -> Vec<usize> {
     let mut out: Vec<usize> = vec![];
     let mut pc = 0;
 

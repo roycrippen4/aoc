@@ -1,7 +1,8 @@
-use anyhow::Result;
 use std::fmt::{Debug, Display, Formatter};
 use std::ops::{Index, IndexMut};
 use std::str::FromStr;
+
+use anyhow::Result;
 
 use super::Point;
 
@@ -98,7 +99,7 @@ impl<T: Debug + Copy> Grid<T> {
     /// Takes a `Point<usize>` and returns true if that point is contained in the grid
     pub fn inside<P: GridPoint>(&self, p: P) -> bool {
         let (x, y) = p.to_coordinate_pair();
-        y < self.height_i && x < self.width_i
+        y >= 0 && y < self.height_i && x >= 0 && x < self.width_i
     }
 
     /// Makes a new grid with the same dimensions as the current grid with all values initialized to `value`
@@ -108,18 +109,20 @@ impl<T: Debug + Copy> Grid<T> {
 
     /// Safely gets an immutable reference to a value in the grid.
     ///
-    /// This method is generic and accepts any type that implements the `GridIndex`
-    /// trait, such as `Point<usize>` or `(usize, usize)`.
-    ///
     /// Returns `Some(&T)` if the coordinates are within the grid bounds,
     /// otherwise returns `None`.
     pub fn get<P: GridPoint>(&self, idx: P) -> Option<&T> {
-        let (x, y) = idx.to_coordinate_pair();
-        if y < self.height_i && x < self.width_i {
-            Some(&self[(x, y)])
+        if self.inside(idx) {
+            Some(&self[idx])
         } else {
             None
         }
+    }
+
+    /// Gets an immutable reference to a value in the grid.
+    /// Returns `&T` and does not check if the index is within the grid bounds
+    pub fn get_unchecked<P: GridPoint>(&self, idx: P) -> &T {
+        &self[idx]
     }
 
     /// Searches for an element's position in the grid that satisfies a predicate.

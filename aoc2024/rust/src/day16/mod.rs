@@ -22,7 +22,7 @@ pub fn solution() -> Solution {
 }
 
 #[inline(always)]
-pub(in crate::day16) const fn index(p: Point) -> usize {
+const fn index(p: Point) -> usize {
     (p.y as usize * DIM) + p.x as usize
 }
 
@@ -55,19 +55,19 @@ macro_rules! find_point {
     }};
 }
 
-pub(in crate::day16) const INPUT: &str = crate::data!();
-pub(in crate::day16) const DIM: usize = crate::line_count!(INPUT);
-pub(in crate::day16) const AREA: usize = DIM * DIM;
-pub(in crate::day16) const DIRECTIONS: [Point; 4] = [RIGHT, DOWN, LEFT, UP];
+const INPUT: &str = crate::data!();
+const DIM: usize = crate::line_count!(INPUT);
+const AREA: usize = DIM * DIM;
+const DIRECTIONS: [Point; 4] = [RIGHT, DOWN, LEFT, UP];
 
-pub(in crate::day16) const START: Point = find_point!(INPUT, b'S');
-pub(in crate::day16) const END: Point = find_point!(INPUT, b'E');
+const START: Point = find_point!(INPUT, b'S');
+const END: Point = find_point!(INPUT, b'E');
 
-pub(in crate::day16) type State = (Point, usize, usize);
-pub(in crate::day16) type BestPaths = [bool; AREA];
-pub(in crate::day16) type Seen = [[usize; 4]; AREA];
+type State = (Point, usize, usize);
+type BestPaths = [bool; AREA];
+type Seen = [[usize; 4]; AREA];
 
-pub(in crate::day16) fn dfs(
+fn dfs(
     first: &mut VecDeque<State>,
     second: &mut VecDeque<State>,
     lowest: &mut usize,
