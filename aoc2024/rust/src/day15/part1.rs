@@ -9,6 +9,7 @@ struct Grid {
     bot_y: usize,
 }
 
+#[allow(clippy::needless_range_loop)]
 fn get_bot_pos(data: &[Vec<Kind>]) -> (usize, usize) {
     for y in 0..data.len() {
         for x in 0..data[0].len() {

@@ -3,6 +3,7 @@ use std::fmt;
 use crate::data;
 use crate::util::StringMethods;
 
+#[allow(clippy::needless_range_loop)]
 /// returns (x, y) coordinates and direction of the guard's starting position
 fn find_guard(grid: &[Vec<char>]) -> (usize, usize, Direction) {
     for y in 0..grid[0].len() {

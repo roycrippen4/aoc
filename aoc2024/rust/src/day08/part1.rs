@@ -19,6 +19,7 @@ fn rotate_point(p: Point, pivot: Point, width: usize, height: usize) -> Option<P
     }
 }
 
+#[allow(clippy::needless_range_loop)]
 fn get_antennas(grid: &[Row]) -> Mapping {
     let mut map: Mapping = HashMap::new();
 
