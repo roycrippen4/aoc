@@ -1,4 +1,5 @@
 const std = @import("std");
+const parseInt = std.fmt.parseInt;
 const Allocator = std.mem.Allocator;
 const testing = std.testing;
 
@@ -7,20 +8,19 @@ const Solution = aoc.Solution;
 
 const input = @embedFile("data/day01/data.txt");
 
+inline fn parse_value(line: []const u8) !isize {
+    const sign: isize = if (line[0] == 'L') @as(isize, -1) else 1;
+    return try parseInt(isize, line[1..], 10) * sign;
+}
+
 fn part1(_: Allocator) !usize {
     var it = aoc.slice.lines(input);
     var dial: isize = 50;
     var count: usize = 0;
 
     while (it.next()) |line| {
-        const dir = line[0];
-        const value = try std.fmt.parseInt(isize, line[1..], 10);
-
-        dial = if (dir == 'L')
-            @mod(@mod(dial - value, 100) + 100, 100)
-        else
-            @mod(@mod(dial + value, 100) + 100, 100);
-
+        const value = try parse_value(line);
+        dial = @mod(dial + value, 100);
         if (dial == 0) count += 1;
     }
 
@@ -28,14 +28,32 @@ fn part1(_: Allocator) !usize {
 }
 
 fn part2(_: Allocator) !usize {
-    return 42;
+    var it = aoc.slice.lines(input);
+
+    var dial: isize = 50;
+    var count: isize = 0;
+
+    while (it.next()) |line| {
+        const value = try parseInt(isize, line[1..], 10);
+
+        if (line[0] == 'R') {
+            count += @divFloor(dial + value, 100);
+            dial = @mod(dial + value, 100);
+        } else {
+            count += @divFloor(value, 100);
+            if (dial != 0 and @mod(value, 100) >= dial) count += 1;
+            dial = @mod(dial - value, 100);
+        }
+    }
+
+    return @intCast(count);
 }
 
 pub fn solution() Solution {
     return .{
         .day = .@"01",
         .p1 = .{ .f = part1, .expected = 1097 },
-        .p2 = .{ .f = part2, .expected = 42 },
+        .p2 = .{ .f = part2, .expected = 7101 },
     };
 }
 
@@ -44,7 +62,7 @@ test "day01 part1" {
 }
 
 test "day01 part2" {
-    _ = try aoc.validate(part2, 42, .@"01", .two, testing.allocator);
+    _ = try aoc.validate(part2, 7101, .@"01", .two, testing.allocator);
 }
 
 test "day01 solution" {
