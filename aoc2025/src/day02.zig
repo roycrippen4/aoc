@@ -37,26 +37,11 @@ inline fn into_id(n: usize) usize {
     return n * pow10 + n;
 }
 
-inline fn has_even_digits(num: usize) bool {
-    var n = num;
-    var count: usize = 0;
-
-    while (n != 0) {
-        n /= 10;
-        count += 1;
-    }
-
-    return count % 2 == 0;
-}
-
 fn sum_invalid_ids(range_str: []const u8) !usize {
     const lo_str, const hi_str = split_once(u8, range_str, '-');
 
     const lo_original = try parseInt(usize, lo_str, 10);
     const hi_original = try parseInt(usize, hi_str, 10);
-
-    // const lo_has_even_digits = has_even_digits(lo_original);
-    // const hi_has_even_digits = has_even_digits(hi_original);
 
     const lo_has_even_digits = lo_str.len % 2 == 0;
     const hi_has_even_digits = hi_str.len % 2 == 0;
