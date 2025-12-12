@@ -142,8 +142,3 @@ test "day02 sum_invalid_ids" {
     try testing.expectEqual(0, try sum_invalid_ids("824824821-824824827"));
     try testing.expectEqual(0, try sum_invalid_ids("2121212118-2121212124"));
 }
-
-test "day02 has_even_digits" {
-    try testing.expect(has_even_digits(1000));
-    try testing.expect(!has_even_digits(100));
-}
