@@ -1,4 +1,6 @@
 const std = @import("std");
+const log10_int = std.math.log10_int;
+const pow = std.math.pow;
 const parseInt = std.fmt.parseInt;
 const Allocator = std.mem.Allocator;
 const testing = std.testing;
@@ -32,8 +34,8 @@ inline fn quantize_lo(lo: []const u8) usize {
 }
 
 inline fn into_id(n: usize) usize {
-    const d = std.math.log10_int(n) + 1;
-    const pow10 = std.math.pow(usize, 10, d);
+    const d = log10_int(n) + 1;
+    const pow10 = pow(usize, 10, d);
     return n * pow10 + n;
 }
 
@@ -87,15 +89,92 @@ fn part1(_: Allocator) !usize {
     return sum;
 }
 
+fn repeat(n_str: []const u8, len: usize) !usize {
+    const n = try parseInt(usize, n_str, 10);
+    const num = pow(usize, 10, len) - 1;
+    const den = pow(usize, 10, n_str.len) - 1;
+    return n * (num / den);
+}
+
+fn sum_invalid_ids2(range_str: []const u8) !usize {
+    var s: aoc.Stack(usize, 1000) = .{};
+    var sum: usize = 0;
+
+    const lo_str, const hi_str = split_once(u8, range_str, '-');
+
+    const lo_original = try parseInt(usize, lo_str, 10);
+    const hi_original = try parseInt(usize, hi_str, 10);
+
+    var i: usize = 1;
+    while (i <= lo_str.len / 2) : (i += 1) {
+        if (lo_str.len % i != 0) continue;
+
+        const r = try repeat(lo_str[0..i], lo_str.len);
+
+        if (r > lo_original and r < hi_original and !s.contains(r)) {
+            sum += r;
+            s.push(r);
+        }
+    }
+    i = 1;
+
+    while (i <= hi_str.len / 2) : (i += 1) {
+        if (hi_str.len % i != 0) continue;
+
+        const r = try repeat(hi_str[0..i], hi_str.len);
+
+        if (r > lo_original and r < hi_original and !s.contains(r)) {
+            sum += r;
+            s.push(r);
+        }
+    }
+
+    var clen = lo_str.len;
+    while (clen <= hi_str.len) : (clen += 1) {
+        const eff_lo = if (clen == lo_str.len) lo_original else pow(usize, 10, clen - 1);
+        const eff_hi = if (clen == hi_str.len) hi_original else pow(usize, 10, clen) - 1;
+
+        var d: usize = 1;
+        while (d <= clen / 2) : (d += 1) {
+            if (clen % d != 0) continue;
+
+            const num = pow(usize, 10, clen) - 1;
+            const den = pow(usize, 10, d) - 1;
+            const mult = num / den;
+
+            const gen_min = (eff_lo + mult - 1) / mult;
+            const gen_max = eff_hi / mult;
+
+            var g = gen_min;
+            while (g <= gen_max) : (g += 1) {
+                const id = g * mult;
+                if (!s.contains(id)) {
+                    sum += id;
+                    s.push(id);
+                }
+            }
+        }
+    }
+
+    return sum;
+}
+
 fn part2(_: Allocator) !usize {
-    return 42;
+    var sum: usize = 0;
+
+    var it = std.mem.splitScalar(u8, input, ',');
+    while (it.next()) |range| {
+        sum += try sum_invalid_ids2(range);
+    }
+
+    return sum;
 }
 
 pub fn solution() Solution {
     return .{
         .day = .@"02",
         .p1 = .{ .f = part1, .expected = 18893502033 },
-        .p2 = .{ .f = part2, .expected = 42 },
+        .p2 = .{ .f = part2, .expected = 26202168557 },
     };
 }
 
@@ -110,12 +189,23 @@ test "day02 part 1 example" {
     try testing.expectEqual(1227775554, sum);
 }
 
+test "day02 part 2 example" {
+    var sum: usize = 0;
+
+    var it = std.mem.splitScalar(u8, example, ',');
+    while (it.next()) |range| {
+        sum += try sum_invalid_ids2(range);
+    }
+
+    try testing.expectEqual(4174379265, sum);
+}
+
 test "day02 part1" {
     _ = try aoc.validate(part1, 18893502033, .@"02", .one, testing.allocator);
 }
 
 test "day02 part2" {
-    _ = try aoc.validate(part2, 42, .@"02", .two, testing.allocator);
+    _ = try aoc.validate(part2, 26202168557, .@"02", .two, testing.allocator);
 }
 
 test "day02 solution" {
@@ -141,4 +231,18 @@ test "day02 sum_invalid_ids" {
     try testing.expectEqual(0, try sum_invalid_ids("565653-565659"));
     try testing.expectEqual(0, try sum_invalid_ids("824824821-824824827"));
     try testing.expectEqual(0, try sum_invalid_ids("2121212118-2121212124"));
+}
+
+test "day02 sum_invalid_ids2" {
+    try testing.expectEqual(11 + 22, try sum_invalid_ids2("11-22"));
+    try testing.expectEqual(99 + 111, try sum_invalid_ids2("95-115"));
+    try testing.expectEqual(999 + 1010, try sum_invalid_ids2("998-1012"));
+    try testing.expectEqual(1188511885, try sum_invalid_ids2("1188511880-1188511890"));
+    try testing.expectEqual(222222, try sum_invalid_ids2("222220-222224"));
+    try testing.expectEqual(0, try sum_invalid_ids2("1698522-1698528"));
+    try testing.expectEqual(446446, try sum_invalid_ids2("446443-446449"));
+    try testing.expectEqual(38593859, try sum_invalid_ids2("38593856-38593862"));
+    try testing.expectEqual(565656, try sum_invalid_ids2("565653-565659"));
+    try testing.expectEqual(824824824, try sum_invalid_ids2("824824821-824824827"));
+    try testing.expectEqual(2121212121, try sum_invalid_ids2("2121212118-2121212124"));
 }
