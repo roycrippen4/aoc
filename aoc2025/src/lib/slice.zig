@@ -22,6 +22,27 @@ pub inline fn split_once(comptime T: type, s: []const T, delim: T) struct { []co
     };
 }
 
+/// Splits an input slice in half at it's middle index.
+/// If the slice has an odd number of digits, then `snd` will contain the extra T
+pub inline fn split_evenly(comptime T: type, s: []const T) struct { []const T, []const T } {
+    const half_len = s.len / 2;
+
+    return .{
+        s[0..half_len],
+        s[half_len..],
+    };
+}
+
+test "slice split_evenly" {
+    const a, const b = split_evenly(u8, "123456");
+    try testing.expectEqualStrings("123", a);
+    try testing.expectEqualStrings("456", b);
+
+    const x, const y = split_evenly(u8, "1234567");
+    try testing.expectEqualStrings("123", x);
+    try testing.expectEqualStrings("4567", y);
+}
+
 /// Split a slice at a given index.
 /// The second slice in the returned tuple will contain the value at the index
 /// Will return `.{ s, "" }` if the provided index is greater-than or equal-to the length of the slice.
