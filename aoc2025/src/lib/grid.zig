@@ -9,9 +9,46 @@ pub fn Grid(comptime T: type) type {
     return struct {
         const Self = @This();
         buf: []T,
-        gpa: Allocator,
         width: usize,
         height: usize,
+
+        const Entry = struct {
+            const SelfEntry = @This();
+            x: usize,
+            y: usize,
+            v: T,
+
+            pub inline fn format(self: SelfEntry, writer: *std.io.Writer) std.io.Writer.Error!void {
+                const fmt = if (T == u8)
+                    "'{c}'"
+                else switch (@typeInfo(T)) {
+                    .int => "{d}",
+                    .float => "{d.5}",
+                    .bool => "{}",
+                    .null => "null",
+                    else => "{any}",
+                };
+
+                try writer.print("Entry{{ .x = {d}, .y = {d}, .v = ", .{ self.x, self.y });
+                try writer.print(fmt, .{self.v});
+                try writer.print(" }}", .{});
+            }
+
+            pub inline fn to_point(self: SelfEntry) Point {
+                return .{
+                    .x = self.x,
+                    .y = self.y,
+                };
+            }
+
+            pub inline fn from_point(p: Point, v: T) SelfEntry {
+                return .{
+                    .x = p.x,
+                    .y = p.y,
+                    .v = v,
+                };
+            }
+        };
 
         /// Initialize the grid
         pub fn new(gpa: Allocator, width: usize, height: usize) Error!Self {
@@ -23,7 +60,6 @@ pub fn Grid(comptime T: type) type {
 
             return Self{
                 .buf = buf,
-                .gpa = gpa,
                 .width = width,
                 .height = height,
             };
@@ -69,7 +105,7 @@ pub fn Grid(comptime T: type) type {
             }
 
             var self = try Grid(u8).new(gpa, width, height);
-            errdefer self.deinit();
+            errdefer self.deinit(gpa);
 
             lines.reset();
             var y: usize = 0;
@@ -121,9 +157,9 @@ pub fn Grid(comptime T: type) type {
         }
 
         /// Free memory. Important: pointers derived from `self.items` become invalid.
-        pub fn deinit(self: *Self) void {
+        pub fn deinit(self: *Self, gpa: Allocator) void {
             if (@sizeOf(T) > 0) {
-                self.gpa.free(self.buf);
+                gpa.free(self.buf);
             }
 
             self.* = undefined;
@@ -172,18 +208,30 @@ pub fn Grid(comptime T: type) type {
         }
 
         /// Convert an index into a coordinate
-        pub inline fn coord(self: Self, i: usize) Point {
-            return .init(i % self.width, i / self.width);
+        pub inline fn index_to_point(self: Self, index: usize) Point {
+            std.debug.assert(index < self.buf.len);
+            return .init(index % self.width, index / self.width);
+        }
+
+        pub inline fn entry_by_index(self: Self, index: usize) Entry {
+            std.debug.assert(index < self.buf.len);
+            const p = self.index_to_point(index);
+            const v = self.buf[index];
+
+            return .{
+                .x = p.x,
+                .y = p.y,
+                .v = v,
+            };
         }
 
         /// Creates a copy of the grid, using the same allocator.
-        pub fn clone(self: Self) Error!Self {
-            const buf = try self.gpa.alloc(T, self.width * self.height);
-            errdefer self.gpa.free(buf);
+        pub fn clone(self: Self, gpa: Allocator) Error!Self {
+            const buf = try gpa.alloc(T, self.width * self.height);
+            errdefer gpa.free(buf);
             @memcpy(buf, self.buf);
             return Self{
                 .buf = buf,
-                .gpa = self.gpa,
                 .width = self.width,
                 .height = self.height,
             };
@@ -191,14 +239,10 @@ pub fn Grid(comptime T: type) type {
 
         /// Searches for the first element's position that satisfies the predicate
         pub fn find(self: *const Self, comptime predicate: fn (Point, T) bool) ?Point {
-            for (0..self.height) |y| {
-                for (0..self.width) |x| {
-                    const p = Point.init(x, y);
-                    if (predicate(p, self.get(p))) {
-                        return p;
-                    }
-                }
-            }
+            for (0..self.height) |y| for (0..self.width) |x| {
+                const p = Point.init(x, y);
+                if (predicate(p, self.get(p))) return p;
+            };
             return null;
         }
 
@@ -238,30 +282,26 @@ pub fn Grid(comptime T: type) type {
 
         /// Creates a new `Grid(U)` from a `Grid(T)` by applying
         /// the function `f(Entry(U))` to each element in the input `Grid`.
-        pub fn map(self: *const Self, comptime U: type, f: fn (Point, T) U) !Grid(U) {
-            var g = try Grid(U).new(self.gpa, self.width, self.height);
+        pub fn map(self: *const Self, comptime U: type, gpa: Allocator, f: fn (Point, T) U) !Grid(U) {
+            var g = try Grid(U).new(gpa, self.width, self.height);
 
-            for (0..g.height) |y| {
-                for (0..g.width) |x| {
-                    const p = Point.init(x, y);
-                    const old_v = self.get(p);
-                    const new_v = f(p, old_v);
-                    g.set(p, new_v);
-                }
-            }
+            for (0..g.height) |y| for (0..g.width) |x| {
+                const p = Point.init(x, y);
+                const old_v = self.get(p);
+                const new_v = f(p, old_v);
+                g.set(p, new_v);
+            };
 
             return g;
         }
 
         /// Applies a function to each element of the grid, mutating it in place.
         pub fn map_mut(self: *Self, f: fn (Point, T) T) void {
-            for (0..self.height) |y| {
-                for (0..self.width) |x| {
-                    const p = Point.init(x, y);
-                    const i = self.idx(p);
-                    self.buf[i] = f(p, self.buf[i]);
-                }
-            }
+            for (0..self.height) |y| for (0..self.width) |x| {
+                const p = Point.init(x, y);
+                const i = self.idx(p);
+                self.buf[i] = f(p, self.buf[i]);
+            };
         }
 
         /// Rotates a square grid 90 degrees clockwise in-place.
@@ -272,20 +312,18 @@ pub fn Grid(comptime T: type) type {
             if (N == 0) return;
             const n_minus_1 = N - 1;
 
-            for (0..N / 2) |y| {
-                for (y..n_minus_1 - y) |x| {
-                    const idx1 = y * N + x;
-                    const idx2 = x * N + (n_minus_1 - y);
-                    const idx3 = (n_minus_1 - y) * N + (n_minus_1 - x);
-                    const idx4 = (n_minus_1 - x) * N + y;
+            for (0..N / 2) |y| for (y..n_minus_1 - y) |x| {
+                const idx1 = y * N + x;
+                const idx2 = x * N + (n_minus_1 - y);
+                const idx3 = (n_minus_1 - y) * N + (n_minus_1 - x);
+                const idx4 = (n_minus_1 - x) * N + y;
 
-                    const temp = self.buf[idx1];
-                    self.buf[idx1] = self.buf[idx4];
-                    self.buf[idx4] = self.buf[idx3];
-                    self.buf[idx3] = self.buf[idx2];
-                    self.buf[idx2] = temp;
-                }
-            }
+                const temp = self.buf[idx1];
+                self.buf[idx1] = self.buf[idx4];
+                self.buf[idx4] = self.buf[idx3];
+                self.buf[idx3] = self.buf[idx2];
+                self.buf[idx2] = temp;
+            };
         }
 
         /// Rotates a square grid 90 degrees counter-clockwise in-place.
@@ -296,32 +334,28 @@ pub fn Grid(comptime T: type) type {
             if (N == 0) return;
             const n_minus_1 = N - 1;
 
-            for (0..N / 2) |y| {
-                for (y..n_minus_1 - y) |x| {
-                    const idx1 = y * N + x;
-                    const idx2 = x * N + (n_minus_1 - y);
-                    const idx3 = (n_minus_1 - y) * N + (n_minus_1 - x);
-                    const idx4 = (n_minus_1 - x) * N + y;
+            for (0..N / 2) |y| for (y..n_minus_1 - y) |x| {
+                const idx1 = y * N + x;
+                const idx2 = x * N + (n_minus_1 - y);
+                const idx3 = (n_minus_1 - y) * N + (n_minus_1 - x);
+                const idx4 = (n_minus_1 - x) * N + y;
 
-                    const temp = self.buf[idx1];
-                    self.buf[idx1] = self.buf[idx2];
-                    self.buf[idx2] = self.buf[idx3];
-                    self.buf[idx3] = self.buf[idx4];
-                    self.buf[idx4] = temp;
-                }
-            }
+                const temp = self.buf[idx1];
+                self.buf[idx1] = self.buf[idx2];
+                self.buf[idx2] = self.buf[idx3];
+                self.buf[idx3] = self.buf[idx4];
+                self.buf[idx4] = temp;
+            };
         }
 
         /// Creates a new, transposed version of the grid.
         /// The width and height are swapped.
-        pub fn transpose(self: Self) !Self {
-            var transposed_grid = try Self.new(self.gpa, self.height, self.width);
+        pub fn transpose(self: Self, gpa: Allocator) !Self {
+            var transposed_grid = try Self.new(gpa, self.height, self.width);
 
-            for (0..self.height) |y| {
-                for (0..self.width) |x| {
-                    transposed_grid.set(.{ .x = y, .y = x }, self.get_by_coord(x, y));
-                }
-            }
+            for (0..self.height) |y| for (0..self.width) |x| {
+                transposed_grid.set(.{ .x = y, .y = x }, self.get_by_coord(x, y));
+            };
 
             return transposed_grid;
         }
@@ -330,9 +364,9 @@ pub fn Grid(comptime T: type) type {
         /// positions to the right, padded with the given value.
         /// This aligns the top-left to bottom-right diagonals into columns.
         /// The new grid will have a width of `self.width + self.height - 1`.
-        pub fn skew(self: Self, pad: T) !Self {
+        pub fn skew(self: Self, gpa: Allocator, pad: T) !Self {
             const new_width = self.width + self.height - 1;
-            var skew_grid = try Self.make(self.gpa, pad, new_width, self.height);
+            var skew_grid = try Self.make(gpa, pad, new_width, self.height);
 
             for (0..self.height) |y| {
                 const src_start = y * self.width;
@@ -359,11 +393,11 @@ pub fn Grid(comptime T: type) type {
         }
 
         /// Adds padding to the start of each row in the grid.
-        pub fn pad_left(self: *Self, n: comptime_int, pad: T) !void {
+        pub fn pad_left(self: *Self, gpa: Allocator, n: comptime_int, pad: T) !void {
             if (n == 0) return;
 
             const new_width = self.width + n;
-            const new_inner = try self.gpa.alloc(T, new_width * self.height);
+            const new_inner = try gpa.alloc(T, new_width * self.height);
 
             for (0..self.height) |y| {
                 const new_start = y * new_width;
@@ -379,18 +413,18 @@ pub fn Grid(comptime T: type) type {
                 );
             }
 
-            self.gpa.free(self.buf);
+            gpa.free(self.buf);
             self.buf = new_inner;
             self.width = new_width;
         }
 
         /// Adds padding to the end of each row in the grid.
-        pub fn pad_right(self: *Self, n: comptime_int, pad: T) !void {
+        pub fn pad_right(self: *Self, gpa: Allocator, n: comptime_int, pad: T) !void {
             if (n == 0) return;
 
             const old_width = self.width;
             const new_width = old_width + n;
-            const new_inner = try self.gpa.alloc(T, new_width * self.height);
+            const new_inner = try gpa.alloc(T, new_width * self.height);
 
             for (0..self.height) |y| {
                 const new_start = y * new_width;
@@ -405,16 +439,16 @@ pub fn Grid(comptime T: type) type {
                 }
             }
 
-            self.gpa.free(self.buf);
+            gpa.free(self.buf);
             self.buf = new_inner;
             self.width = new_width;
         }
 
         /// Adds padding rows to the top of the grid.
-        pub fn pad_up(self: *Self, n: usize, pad: T) !void {
+        pub fn pad_up(self: *Self, gpa: Allocator, n: usize, pad: T) !void {
             if (n == 0) return;
             const size = self.width * (self.height + n);
-            const new_inner = try self.gpa.alloc(T, size);
+            const new_inner = try gpa.alloc(T, size);
 
             for (new_inner[0 .. n * self.width]) |*item| {
                 item.* = pad;
@@ -424,18 +458,18 @@ pub fn Grid(comptime T: type) type {
             const src = self.buf[0..];
             @memcpy(dest, src);
 
-            self.gpa.free(self.buf);
+            gpa.free(self.buf);
             self.buf = new_inner;
             self.height = self.height + n;
         }
 
         /// Adds padding rows to the bottom of the grid.
-        pub fn pad_down(self: *Self, n: usize, pad: T) !void {
+        pub fn pad_down(self: *Self, gpa: Allocator, n: usize, pad: T) !void {
             if (n == 0) return;
 
             const old_size = self.width * self.height;
             const size = self.width * (self.height + n);
-            const new_inner = try self.gpa.alloc(T, size);
+            const new_inner = try gpa.alloc(T, size);
 
             for (new_inner[old_size..]) |*item| {
                 item.* = pad;
@@ -445,18 +479,18 @@ pub fn Grid(comptime T: type) type {
             const src = self.buf[0..];
             @memcpy(dest, src);
 
-            self.gpa.free(self.buf);
+            gpa.free(self.buf);
             self.buf = new_inner;
             self.height = self.height + n;
         }
 
         /// Adds padding to the left *and* right sides of the grid.
-        pub fn pad_horizontal(self: *Self, n: usize, pad: T) !void {
+        pub fn pad_horizontal(self: *Self, gpa: Allocator, n: usize, pad: T) !void {
             if (n == 0) return;
 
             const old_width = self.width;
             const new_width = old_width + n * 2;
-            const new_inner = try self.gpa.alloc(T, new_width * self.height);
+            const new_inner = try gpa.alloc(T, new_width * self.height);
 
             for (0..self.height) |y| {
                 const new_start = y * new_width + n;
@@ -475,19 +509,19 @@ pub fn Grid(comptime T: type) type {
                 }
             }
 
-            self.gpa.free(self.buf);
+            gpa.free(self.buf);
             self.buf = new_inner;
             self.width = new_width;
         }
 
         /// Adds padding to the top *and* bottom of the grid.
-        pub fn pad_vertical(self: *Self, n: usize, pad: T) !void {
+        pub fn pad_vertical(self: *Self, gpa: Allocator, n: usize, pad: T) !void {
             if (n == 0) return;
 
             const new_start = n * self.width;
             const old_size = self.width * self.height;
             const size = self.width * (self.height + n + n);
-            const new_inner = try self.gpa.alloc(T, size);
+            const new_inner = try gpa.alloc(T, size);
 
             // Copy the original into the middle
             const dest = new_inner[new_start .. new_start + old_size];
@@ -504,20 +538,20 @@ pub fn Grid(comptime T: type) type {
                 item.* = pad;
             }
 
-            self.gpa.free(self.buf);
+            gpa.free(self.buf);
             self.buf = new_inner;
             self.height = self.height + n + n;
         }
 
         /// Adds padding to all sides of the grid.
-        pub fn pad_sides(self: *Self, n: usize, pad: T) !void {
+        pub fn pad_sides(self: *Self, gpa: Allocator, n: usize, pad: T) !void {
             if (n == 0) return;
 
             const old_width = self.width;
             const old_height = self.height;
             const new_width = old_width + n * 2;
             const new_height = old_height + n * 2;
-            const new_inner = try self.gpa.alloc(T, new_width * new_height);
+            const new_inner = try gpa.alloc(T, new_width * new_height);
 
             // top pad
             const top_pad_size = n * new_width;
@@ -551,7 +585,7 @@ pub fn Grid(comptime T: type) type {
                 item.* = pad;
             }
 
-            self.gpa.free(self.buf);
+            gpa.free(self.buf);
             self.buf = new_inner;
             self.width = new_width;
             self.height = new_height;
@@ -559,32 +593,32 @@ pub fn Grid(comptime T: type) type {
 
         /// Removes padding from the top and bottom of the grid.
         /// Panics in debug mode if `n * 2` is greater than or equal to the grid height.
-        pub fn strip_vertical(self: *Self, n: usize) !void {
+        pub fn strip_vertical(self: *Self, gpa: Allocator, n: usize) !void {
             if (n == 0) return;
             std.debug.assert(n * 2 < self.height);
 
             const new_height = self.height - n * 2;
             const new_size = self.width * new_height;
-            const new_inner = try self.gpa.alloc(T, new_size);
+            const new_inner = try gpa.alloc(T, new_size);
 
             const copy_start = n * self.width;
             const source = self.buf[copy_start .. copy_start + new_size];
             @memcpy(new_inner, source);
 
-            self.gpa.free(self.buf);
+            gpa.free(self.buf);
             self.buf = new_inner;
             self.height = new_height;
         }
 
         /// Removes padding from the left and right sides of the grid.
         /// Panics in debug mode if `n * 2` is greater than or equal to the grid width.
-        pub fn strip_horizontal(self: *Self, n: usize) !void {
+        pub fn strip_horizontal(self: *Self, gpa: Allocator, n: usize) !void {
             if (n == 0) return;
             std.debug.assert(n * 2 < self.width);
 
             const old_width = self.width;
             const new_width = self.width - n * 2;
-            const new_inner = try self.gpa.alloc(T, new_width * self.height);
+            const new_inner = try gpa.alloc(T, new_width * self.height);
 
             for (0..self.height) |y| {
                 const new_row_start = y * new_width;
@@ -595,60 +629,60 @@ pub fn Grid(comptime T: type) type {
                 @memcpy(dest, source);
             }
 
-            self.gpa.free(self.buf);
+            gpa.free(self.buf);
             self.buf = new_inner;
             self.width = new_width;
         }
 
         /// Removes padding from all four sides of the grid.
-        pub fn strip_sides(self: *Self, n: usize) !void {
-            try self.strip_horizontal(n);
-            try self.strip_vertical(n);
+        pub fn strip_sides(self: *Self, gpa: Allocator, n: usize) !void {
+            try self.strip_horizontal(gpa, n);
+            try self.strip_vertical(gpa, n);
         }
 
         /// Removes n rows from the top of the grid.
-        pub fn strip_up(self: *Self, n: usize) !void {
+        pub fn strip_up(self: *Self, gpa: Allocator, n: usize) !void {
             if (n == 0) return;
             std.debug.assert(n < self.height);
 
             const new_height = self.height - n;
             const new_size = self.width * new_height;
-            const new_inner = try self.gpa.alloc(T, new_size);
+            const new_inner = try gpa.alloc(T, new_size);
 
             const copy_start = n * self.width;
             const source = self.buf[copy_start..];
             @memcpy(new_inner, source);
 
-            self.gpa.free(self.buf);
+            gpa.free(self.buf);
             self.buf = new_inner;
             self.height = new_height;
         }
 
         /// Removes n rows from the bottom of the grid.
-        pub fn strip_down(self: *Self, n: usize) !void {
+        pub fn strip_down(self: *Self, gpa: Allocator, n: usize) !void {
             if (n == 0) return;
             std.debug.assert(n < self.height);
 
             const new_height = self.height - n;
             const new_size = self.width * new_height;
-            const new_inner = try self.gpa.alloc(T, new_size);
+            const new_inner = try gpa.alloc(T, new_size);
 
             const source = self.buf[0..new_size];
             @memcpy(new_inner, source);
 
-            self.gpa.free(self.buf);
+            gpa.free(self.buf);
             self.buf = new_inner;
             self.height = new_height;
         }
 
         /// Removes n columns from the left of the grid.
-        pub fn strip_left(self: *Self, n: usize) !void {
+        pub fn strip_left(self: *Self, gpa: Allocator, n: usize) !void {
             if (n == 0) return;
             std.debug.assert(n < self.width);
 
             const old_width = self.width;
             const new_width = self.width - n;
-            const new_inner = try self.gpa.alloc(T, new_width * self.height);
+            const new_inner = try gpa.alloc(T, new_width * self.height);
 
             for (0..self.height) |y| {
                 const new_row_start = y * new_width;
@@ -659,19 +693,19 @@ pub fn Grid(comptime T: type) type {
                 @memcpy(dest, source);
             }
 
-            self.gpa.free(self.buf);
+            gpa.free(self.buf);
             self.buf = new_inner;
             self.width = new_width;
         }
 
         /// Removes n columns from the right of the grid.
-        pub fn strip_right(self: *Self, n: usize) !void {
+        pub fn strip_right(self: *Self, gpa: Allocator, n: usize) !void {
             if (n == 0) return;
             std.debug.assert(n < self.width);
 
             const old_width = self.width;
             const new_width = self.width - n;
-            const new_inner = try self.gpa.alloc(T, new_width * self.height);
+            const new_inner = try gpa.alloc(T, new_width * self.height);
 
             for (0..self.height) |y| {
                 const new_row_start = y * new_width;
@@ -682,7 +716,7 @@ pub fn Grid(comptime T: type) type {
                 @memcpy(dest, source);
             }
 
-            self.gpa.free(self.buf);
+            gpa.free(self.buf);
             self.buf = new_inner;
             self.width = new_width;
         }
@@ -820,10 +854,10 @@ test "grid pad_sides strip_sides" {
 
     var g = try Grid(u8).from_string(t.allocator, s);
     var copy = try g.clone();
-    defer g.deinit();
-    defer copy.deinit();
+    defer g.deinit(t.allocator);
+    defer copy.deinit(t.allocator);
 
-    try g.pad_sides(1, '.');
+    try g.pad_sides(t.allocator, 1, '.');
 
     const expected = .{
         '.', '.', '.', '.',
@@ -854,11 +888,11 @@ test "grid pad_vertical strip_vertical" {
     ;
 
     var g = try Grid(u8).from_string(t.allocator, s);
-    var copy = try g.clone();
-    defer g.deinit();
-    defer copy.deinit();
+    var copy = try g.clone(t.allocator);
+    defer g.deinit(t.allocator);
+    defer copy.deinit(t.allocator);
 
-    try g.pad_vertical(1, '!');
+    try g.pad_vertical(t.allocator, 1, '!');
 
     const expected = .{
         '!', '!', '!',
@@ -871,12 +905,12 @@ test "grid pad_vertical strip_vertical" {
     try t.expectEqual(3, g.width);
     try t.expectEqual(5, g.height);
 
-    try g.pad_vertical(0, 0);
+    try g.pad_vertical(t.allocator, 0, 0);
     try t.expectEqualSlices(u8, &expected, g.buf);
     try t.expectEqual(3, g.width);
     try t.expectEqual(5, g.height);
 
-    try g.strip_vertical(1);
+    try g.strip_vertical(t.allocator, 1);
     try t.expectEqual(3, g.width);
     try t.expectEqual(3, g.height);
     try t.expectEqualSlices(u8, copy.buf, g.buf);
@@ -885,8 +919,8 @@ test "grid pad_vertical strip_vertical" {
 test "grid pad_horizontal strip_horizontal" {
     var g = try Grid(u16).make_with(t.allocator, 3, 3, sum);
     var copy = try g.clone();
-    defer g.deinit();
-    defer copy.deinit();
+    defer g.deinit(t.allocator);
+    defer copy.deinit(t.allocator);
 
     try g.pad_horizontal(1, 0);
 
@@ -914,8 +948,8 @@ test "grid pad_down strip_down" {
     var g = try Grid(u16).make_with(t.allocator, 3, 3, sum);
     var copy = try g.clone();
 
-    defer g.deinit();
-    defer copy.deinit();
+    defer g.deinit(t.allocator);
+    defer copy.deinit(t.allocator);
 
     try g.pad_down(1, 5);
 
@@ -943,8 +977,8 @@ test "grid pad_down strip_down" {
 test "grid pad_up strip_up" {
     var g = try Grid(u16).make_with(t.allocator, 3, 3, sum);
     var copy = try g.clone();
-    defer g.deinit();
-    defer copy.deinit();
+    defer g.deinit(t.allocator);
+    defer copy.deinit(t.allocator);
 
     try g.pad_up(2, 5);
     const expected = .{
@@ -972,8 +1006,8 @@ test "grid pad_up strip_up" {
 test "grid pad_left strip_left" {
     var g = try Grid(u16).make_with(t.allocator, 3, 3, sum);
     var copy = try g.clone();
-    defer g.deinit();
-    defer copy.deinit();
+    defer g.deinit(t.allocator);
+    defer copy.deinit(t.allocator);
 
     try g.pad_left(1, 5);
     const expected = .{
@@ -999,8 +1033,8 @@ test "grid pad_left strip_left" {
 test "grid pad_right strip_right" {
     var g = try Grid(u16).make_with(t.allocator, 3, 3, sum);
     var copy = try g.clone();
-    defer g.deinit();
-    defer copy.deinit();
+    defer g.deinit(t.allocator);
+    defer copy.deinit(t.allocator);
 
     try g.pad_right(1, 5);
 
@@ -1026,7 +1060,7 @@ test "grid pad_right strip_right" {
 
 test "grid new" {
     var grid = try Grid(u16).make_with(t.allocator, 5, 5, sum);
-    defer grid.deinit();
+    defer grid.deinit(t.allocator);
 
     try t.expectEqual(25, grid.buf.len);
     try t.expectEqual(5, grid.width);
@@ -1048,7 +1082,7 @@ test "grid new argument errors" {
 
 test "grid make" {
     var grid = try Grid(usize).make(t.allocator, 420, 5, 5);
-    defer grid.deinit();
+    defer grid.deinit(t.allocator);
     try t.expectEqual(25, grid.buf.len);
     try t.expectEqual(420, grid.buf[0]); // Check first
     try t.expectEqual(420, grid.buf[12]); // Check middle
@@ -1098,7 +1132,7 @@ test "grid inside function" {
 
 test "grid get, get_opt, get_ptr, get_opt_ptr, set" {
     var grid = try Grid(u16).make_with(t.allocator, 3, 2, sum);
-    defer grid.deinit();
+    defer grid.deinit(t.allocator);
 
     try t.expectEqual(@as(u16, 0), grid.get(Point.init(0, 0)));
     try t.expectEqual(@as(u16, 2), grid.get(Point.init(2, 0)));
@@ -1133,7 +1167,7 @@ test "grid get, get_opt, get_ptr, get_opt_ptr, set" {
 
 test "grid map (non-mutating)" {
     var grid = try Grid(u16).make(t.allocator, 10, 3, 2);
-    defer grid.deinit();
+    defer grid.deinit(t.allocator);
 
     const add_pos = struct {
         fn func(pos: Point, val: u16) u16 {
@@ -1144,7 +1178,7 @@ test "grid map (non-mutating)" {
     }.func;
 
     var mapped_grid = try grid.map(u16, add_pos);
-    defer mapped_grid.deinit();
+    defer mapped_grid.deinit(t.allocator);
 
     try t.expectEqual(@as(u16, 10), grid.get(Point.init(0, 0)));
     try t.expectEqual(@as(u16, 10), grid.get(Point.init(2, 1)));
@@ -1162,7 +1196,7 @@ test "grid map (non-mutating)" {
 
 test "grid map_mut" {
     var grid = try Grid(u16).new(t.allocator, 5, 5);
-    defer grid.deinit();
+    defer grid.deinit(t.allocator);
     grid.map_mut(sum); // Test map_mut which uses idx internally
     try t.expectEqual(@as(usize, 25), grid.buf.len);
     try t.expectEqual(@as(u16, 0), grid.get(Point.init(0, 0)));
@@ -1174,11 +1208,11 @@ test "grid clone" {
     const width = 4;
     const height = 3;
     var original = try Grid(u16).new(t.allocator, width, height);
-    defer original.deinit();
+    defer original.deinit(t.allocator);
     original.map_mut(sum); // Fill with initial values
 
     var cloned = try original.clone();
-    defer cloned.deinit();
+    defer cloned.deinit(t.allocator);
 
     try t.expectEqual(original.width, cloned.width);
     try t.expectEqual(original.height, cloned.height);
@@ -1204,7 +1238,7 @@ test "grid clone" {
 test "grid edge cases 1xN and Nx1" {
     // 1x5 Grid
     var grid1x5 = try Grid(u8).make(t.allocator, 1, 1, 5);
-    defer grid1x5.deinit();
+    defer grid1x5.deinit(t.allocator);
     try t.expectEqual(@as(usize, 1), grid1x5.width);
     try t.expectEqual(@as(usize, 5), grid1x5.height);
     try t.expectEqual(@as(usize, 5), grid1x5.width * grid1x5.height);
@@ -1217,7 +1251,7 @@ test "grid edge cases 1xN and Nx1" {
 
     // 5x1 Grid
     var grid5x1 = try Grid(u8).make(t.allocator, 2, 5, 1);
-    defer grid5x1.deinit();
+    defer grid5x1.deinit(t.allocator);
     try t.expectEqual(@as(usize, 5), grid5x1.width);
     try t.expectEqual(@as(usize, 1), grid5x1.height);
     try t.expectEqual(@as(usize, 5), grid5x1.width * grid5x1.height);
@@ -1231,7 +1265,7 @@ test "grid edge cases 1xN and Nx1" {
 
 test "grid find" {
     var grid = try Grid(u16).make_with(t.allocator, 4, 3, sum);
-    defer grid.deinit();
+    defer grid.deinit(t.allocator);
 
     const is_five = struct {
         fn p(_: Point, val: u16) bool {
@@ -1262,7 +1296,7 @@ test "grid from_string" {
     ;
 
     var g = try Grid(u8).from_string(t.allocator, s);
-    defer g.deinit();
+    defer g.deinit(t.allocator);
 
     try t.expectEqual(g.get(Point.init(1, 1)), '5');
     try t.expectEqual(g.get(Point.init(2, 2)), '9');
@@ -1280,8 +1314,8 @@ test "grid transpose clockwise" {
         \\789
     );
 
-    defer expected.deinit();
-    defer actual.deinit();
+    defer expected.deinit(t.allocator);
+    defer actual.deinit(t.allocator);
 
     actual.transpose_clockwise();
 
@@ -1300,8 +1334,8 @@ test "grid transpose counter clockwise" {
         \\789
     );
 
-    defer expected.deinit();
-    defer actual.deinit();
+    defer expected.deinit(t.allocator);
+    defer actual.deinit(t.allocator);
 
     actual.transpose_counter_clockwise();
     try t.expectEqualSlices(u8, expected.buf, actual.buf);
@@ -1313,10 +1347,10 @@ test "grid transpose round trip" {
         \\456
         \\789
     );
-    defer g.deinit();
+    defer g.deinit(t.allocator);
 
     var clone = try g.clone();
-    defer clone.deinit();
+    defer clone.deinit(t.allocator);
 
     // Rotate 360 should be the same as the original
     clone.transpose_clockwise();
@@ -1377,7 +1411,7 @@ test "grid is generic" {
     ;
 
     var g = try Grid(Item).from_string_generic(t.allocator, s, Item.from_char);
-    defer g.deinit();
+    defer g.deinit(t.allocator);
 
     try t.expectEqual(Item.x, g.buf[0]);
     try t.expectEqual(Item.o, g.buf[1]);
