@@ -21,6 +21,7 @@ pub fn main() !void {
     total_time += try @import("day01.zig").solution().solve(gpa);
     total_time += try @import("day02.zig").solution().solve(gpa);
     total_time += try @import("day03.zig").solution().solve(gpa);
+    total_time += try @import("day04.zig").solution().solve(gpa);
 
     var buf: [64]u8 = undefined;
     const time = try aoc.time.color(total_time, &buf);
