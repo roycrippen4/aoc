@@ -2,6 +2,20 @@ const std = @import("std");
 const Allocator = std.mem.Allocator;
 const testing = std.testing;
 
+pub fn is_primitive_type(comptime T: type) bool {
+    switch (@typeInfo(T)) {
+        .int, .float, .bool, .void, .noreturn, .@"opaque", .type => return true,
+        else => return false,
+    }
+}
+
+test "stack is_primitive_type" {
+    try testing.expect(is_primitive_type(usize));
+    try testing.expect(is_primitive_type(bool));
+    try testing.expect(!is_primitive_type([]const u8));
+    try testing.expect(!is_primitive_type(struct { bar: bool }));
+}
+
 pub fn Stack(comptime T: type, comptime N: usize) type {
     return struct {
         /// Number of items currently used by the stack
@@ -48,6 +62,10 @@ pub fn Stack(comptime T: type, comptime N: usize) type {
         pub inline fn push(self: *Self, item: T) void {
             self.items[self.len] = item;
             self.len += 1;
+        }
+
+        pub inline fn to_slice(self: Self) []const T {
+            return self.items[0..self.len];
         }
 
         pub inline fn push_safe(self: *Self, item: T) !void {
@@ -99,8 +117,15 @@ pub fn Stack(comptime T: type, comptime N: usize) type {
         }
 
         /// Returns `true` if the stack contains the `needle` within its initialized memory slice.
-        pub inline fn contains(self: *const Self, needle: T) bool {
-            return std.mem.indexOfScalar(T, self.items[0..self.items.len], needle) != null;
+        pub fn contains(self: *const Self, needle: T) bool {
+            const items = self.items[0..self.len];
+
+            if (comptime is_primitive_type(T)) {
+                return std.mem.indexOfScalar(T, items, needle) != null;
+            } else {
+                for (items) |item| if (std.meta.eql(item, needle)) return true;
+                return false;
+            }
         }
 
         pub fn format(self: Self, writer: *std.io.Writer) std.io.Writer.Error!void {
@@ -117,7 +142,7 @@ pub fn Stack(comptime T: type, comptime N: usize) type {
                 else => "        {any},\n",
             };
 
-            try writer.print("Stack{{\n    len = 0,\n    capacity = {d},\n    items = {{\n", .{self.capacity});
+            try writer.print("Stack{{\n    len = {d},\n    capacity = {d},\n    items = {{\n", .{ self.len, self.capacity });
             for (self.items[0..self.len]) |item| try writer.print(fmt, .{item});
             try writer.print("    }}\n}}", .{});
         }
@@ -180,7 +205,7 @@ test "stack push and pop" {
 }
 
 test "stack push to capacity" {
-    var stack = Stack(i8, 3){};
+    var stack: Stack(i8, 3) = .{};
 
     try stack.push_safe(1);
     try stack.push_safe(2);

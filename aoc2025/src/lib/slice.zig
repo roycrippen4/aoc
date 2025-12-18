@@ -2,6 +2,10 @@ const std = @import("std");
 const mem = std.mem;
 const testing = std.testing;
 
+pub fn SliceTuple(comptime T: type) type {
+    return struct { []const T, []const T };
+}
+
 /// Checks `haystack` for `needle`.
 /// Returns `true` if found, otherwise `false`;
 pub inline fn contains(comptime T: type, haystack: []const T, needle: anytype) bool {
@@ -13,7 +17,7 @@ pub inline fn contains(comptime T: type, haystack: []const T, needle: anytype) b
     }
 }
 
-pub inline fn split_once(comptime T: type, s: []const T, delim: T) struct { []const T, []const T } {
+pub inline fn split_once_scalar(comptime T: type, s: []const T, delim: T) SliceTuple(T) {
     var it = mem.splitScalar(T, s, delim);
 
     return .{
@@ -22,9 +26,29 @@ pub inline fn split_once(comptime T: type, s: []const T, delim: T) struct { []co
     };
 }
 
+pub inline fn split_once_sequence(
+    comptime T: type,
+    s: []const T,
+    delimiters: []const T,
+) SliceTuple(T) {
+    @setEvalBranchQuota(100000);
+
+    var it = mem.splitSequence(T, trim(s), delimiters);
+    return .{
+        it.next().?,
+        it.next() orelse &[0]T{},
+    };
+}
+
+test "slice split_once_by_slice" {
+    const hello, const world = split_once_sequence(u8, "hello+++world", "+++");
+    try testing.expectEqualStrings("hello", hello);
+    try testing.expectEqualStrings("world", world);
+}
+
 /// Splits an input slice in half at it's middle index.
 /// If the slice has an odd number of digits, then `snd` will contain the extra T
-pub inline fn split_evenly(comptime T: type, s: []const T) struct { []const T, []const T } {
+pub inline fn split_evenly(comptime T: type, s: []const T) SliceTuple(T) {
     const half_len = s.len / 2;
 
     return .{
@@ -56,7 +80,7 @@ test "slice split_evenly" {
 /// try std.testing.expectEqualStrings(first, "hello");
 /// try std.testing.expectEqualStrings(second, " world");
 /// ```
-pub inline fn split_once_at_inclusive(comptime T: type, s: []const T, index: usize) struct { []const T, []const T } {
+pub inline fn split_once_at_inclusive(comptime T: type, s: []const T, index: usize) SliceTuple(T) {
     if (index >= s.len) return .{ s, "" };
     return .{ s[0..index], s[index..] };
 }
@@ -95,7 +119,7 @@ test "slice split_once_at_inclusive" {
 /// try std.testing.expectEqualStrings(first, "hello");
 /// try std.testing.expectEqualStrings(second, "world");
 /// ```
-pub inline fn split_once_at_exclusive(comptime T: type, s: []const T, index: usize) struct { []const T, []const T } {
+pub inline fn split_once_at_exclusive(comptime T: type, s: []const T, index: usize) SliceTuple(T) {
     if (index >= s.len) return .{ s, "" };
     return .{ s[0..index], s[index + 1 ..] };
 }
