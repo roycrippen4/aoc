@@ -190,6 +190,25 @@ pub inline fn line_count(comptime s: []const u8) usize {
     return result;
 }
 
+/// gets the total number of bytes for the first line of a given string.
+/// The newline at the end will *NOT* be included in the count.
+/// Again, this will **only check the first line**
+pub inline fn line_len(s: []const u8) usize {
+    @setEvalBranchQuota(800000);
+    var it = lines(s);
+    return it.peek().?.len;
+}
+
+test "slice line_len" {
+    const s =
+        \\foo
+        \\bar
+        \\baz
+    ;
+
+    try testing.expectEqual(3, line_len(s));
+}
+
 /// only use on strings!
 pub inline fn trim(s: []const u8) []const u8 {
     return std.mem.trim(u8, s, &.{'\n'});

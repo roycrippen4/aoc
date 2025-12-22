@@ -5,57 +5,48 @@ const testing = std.testing;
 const aoc = @import("aoc");
 const Solution = aoc.Solution;
 
-const use_example = false;
+const input = @embedFile("data/day06/data.txt");
 
-const input = if (use_example)
-    @embedFile("data/day06/example.txt")
-else
-    @embedFile("data/day06/data.txt");
-
-fn count_cols(comptime s: []const u8) usize {
+const COLS: usize = blk: {
     @setEvalBranchQuota(80000);
-    var lines = aoc.slice.lines(s);
+    var lines = aoc.slice.lines(input);
     const first_row = lines.next().?;
     var it = std.mem.tokenizeScalar(u8, first_row, ' ');
     var cols: usize = 0;
     while (it.next()) |_| : (cols += 1) {}
-    return cols;
-}
+    break :blk cols;
+};
 
-fn count_rows(comptime s: []const u8) usize {
+const ROWS: usize = blk: {
     @setEvalBranchQuota(80000);
-    var it = aoc.slice.lines(s);
+    var it = aoc.slice.lines(input);
     var rows: usize = 0;
     while (it.next()) |_| : (rows += 1) {}
-    return rows;
-}
+    break :blk rows;
+};
 
-const COLS: usize = count_cols(input); // needed for comptime creation of matrix
-const ROWS: usize = count_rows(input); // needed for comptime creation of matrix
 const Row = aoc.Stack(usize, COLS);
-const Numbers = aoc.Stack(Row, ROWS); // last row is the results row, not the operators!
+const Numbers = aoc.Stack(Row, ROWS);
 
-// creates the matrix at comptime
-fn collect_digits(comptime s: []const u8) Numbers {
+const NUMBERS: Numbers = blk: {
     @setEvalBranchQuota(400000);
-
     var nums: Numbers = .{};
 
-    var lines_it = aoc.slice.lines(s);
+    var lines_it = aoc.slice.lines(input);
     while (lines_it.next()) |line| {
         if (lines_it.index orelse break == ROWS - 1) break;
 
         var row: Row = .{};
         var it = std.mem.tokenizeScalar(u8, line, ' ');
-        while (it.next()) |digit_str| {
-            const digit = std.fmt.parseInt(usize, digit_str, 10) catch unreachable;
-            row.push(digit);
+        while (it.next()) |n_str| {
+            const n = std.fmt.parseInt(usize, n_str, 10) catch unreachable;
+            row.push(n);
         }
         nums.push(row);
     }
 
-    return nums;
-}
+    break :blk nums;
+};
 
 const Op = enum {
     plus,
@@ -92,26 +83,38 @@ const Op = enum {
     }
 };
 
-fn collect_ops(comptime s: []const u8) [COLS]Op {
+const OPS_STR: []const u8 = blk: {
+    @setEvalBranchQuota(50000);
+    var lines = aoc.slice.lines(input);
+    var i: usize = 0;
+    while (i != ROWS - 1) : (i += 1) _ = lines.next();
+    break :blk lines.next().?;
+};
+
+const OPS: [COLS]Op = blk: {
     @setEvalBranchQuota(80000);
     var ops: [COLS]Op = undefined;
 
-    var lines = aoc.slice.lines(s);
     var i: usize = 0;
-    while (i != ROWS - 1) : (i += 1) _ = lines.next();
-
-    i = 0;
-    var it = std.mem.tokenizeScalar(u8, lines.next().?, ' ');
+    var it = std.mem.tokenizeScalar(u8, OPS_STR, ' ');
     while (it.next()) |op_str| : (i += 1) {
         const op: Op = .from_str(op_str);
         ops[i] = op;
     }
 
-    return ops;
-}
+    break :blk ops;
+};
 
-const NUMBERS: Numbers = collect_digits(input); // making this `var` is kind of naughty
-const OPS: [COLS]Op = collect_ops(input);
+const DIGITS: usize = blk: {
+    @setEvalBranchQuota(50000);
+    var most: usize = 0;
+
+    for (NUMBERS.to_slice()) |r| for (r.to_slice()) |n| {
+        const n_digits = aoc.math.digits(n);
+        most = @max(most, n_digits);
+    };
+    break :blk most;
+};
 
 fn part1(_: Allocator) !usize {
     var results: Row = .{
@@ -137,15 +140,73 @@ fn part1(_: Allocator) !usize {
     return answer;
 }
 
+const Blk = struct { index: usize, width: usize };
+const LINE_LEN = aoc.slice.line_len(input) + 1;
+const BLKS: aoc.Stack(Blk, COLS) = blk: {
+    @setEvalBranchQuota(5000);
+    var blk_widths: aoc.Stack(Blk, COLS) = .{};
+
+    var start: usize = 0;
+    for (1.., OPS_STR[1..]) |i, char| {
+        switch (char) {
+            '+', '*' => {
+                blk_widths.push(.{
+                    .index = start,
+                    .width = i - start,
+                });
+                start = i;
+            },
+            ' ' => {},
+            else => unreachable,
+        }
+    }
+
+    blk_widths.push(.{
+        .index = start,
+        .width = OPS_STR.len - start,
+    });
+
+    break :blk blk_widths;
+};
+
 fn part2(_: Allocator) !usize {
-    return 42;
+    var answer: usize = 0;
+
+    for (0..COLS) |blk_idx| {
+        const blk = BLKS.items[blk_idx];
+        const op = OPS[blk_idx];
+
+        var col_idx = blk.index + blk.width;
+        var total_cols = blk.width;
+        var blk_result: usize = 0;
+
+        while (total_cols > 0) {
+            col_idx -= 1;
+            total_cols -= 1;
+
+            var num_buf: [ROWS - 1]u8 = undefined;
+            for (0..ROWS - 1) |row_idx| {
+                const i = col_idx + (row_idx * LINE_LEN);
+                num_buf[row_idx] = input[i];
+            }
+
+            const n_str = std.mem.trim(u8, &num_buf, &.{ '\n', ' ' });
+            if (n_str.len == 0) continue;
+            const n = std.fmt.parseInt(usize, n_str, 10) catch continue;
+            blk_result = op.apply(blk_result, n);
+        }
+
+        answer += blk_result;
+    }
+
+    return answer;
 }
 
 pub fn solution() Solution {
     return .{
         .day = .@"06",
         .p1 = .{ .f = part1, .expected = 6343365546996 },
-        .p2 = .{ .f = part2, .expected = 42 },
+        .p2 = .{ .f = part2, .expected = 11136895955912 },
     };
 }
 
@@ -154,7 +215,7 @@ test "day06 part1" {
 }
 
 test "day06 part2" {
-    _ = try aoc.validate(part2, 42, .@"06", .two, testing.allocator);
+    _ = try aoc.validate(part2, 11136895955912, .@"06", .two, testing.allocator);
 }
 
 test "day06 solution" {

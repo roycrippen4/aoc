@@ -6,6 +6,27 @@ pub fn abs_diff(x: usize, y: usize) usize {
     return if (x > y) x - y else y - x;
 }
 
+/// Calculates the number of digits in a number
+pub fn digits(comptime n: usize) usize {
+    if (n == 0) {
+        return 1;
+    }
+
+    var tmp = n;
+    var count: usize = 0;
+    while (tmp != 0) : (count += 1) {
+        tmp /= 10;
+    }
+
+    return count;
+}
+test "math digits" {
+    try testing.expectEqual(9, digits(123456789));
+    try testing.expectEqual(1, digits(0));
+    try testing.expectEqual(2, digits(10));
+    try testing.expectEqual(18, digits(0xC55F7BC23038E38));
+}
+
 test "util absDiff" {
     try testing.expectEqual(2, abs_diff(3, 1));
 }
