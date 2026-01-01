@@ -104,7 +104,7 @@ pub fn Grid(comptime T: type) type {
                 height += 1;
             }
 
-            var self = try Grid(u8).new(gpa, width, height);
+            var self: Grid(u8) = try .new(gpa, width, height);
             errdefer self.deinit(gpa);
 
             lines.reset();
@@ -136,8 +136,8 @@ pub fn Grid(comptime T: type) type {
                 height += 1;
             }
 
-            var self = try Grid(T).new(gpa, width, height);
-            errdefer self.deinit();
+            var self: Grid(T) = try .new(gpa, width, height);
+            errdefer self.deinit(gpa);
 
             lines.reset();
             var y: usize = 0;
@@ -238,7 +238,7 @@ pub fn Grid(comptime T: type) type {
         }
 
         /// Searches for the first element's position that satisfies the predicate
-        pub fn find(self: *const Self, comptime predicate: fn (Point, T) bool) ?Point {
+        pub fn find(self: *Self, comptime predicate: fn (Point, T) bool) ?Point {
             for (0..self.height) |y| for (0..self.width) |x| {
                 const p = Point.init(x, y);
                 if (predicate(p, self.get(p))) return p;
@@ -283,7 +283,7 @@ pub fn Grid(comptime T: type) type {
         /// Creates a new `Grid(U)` from a `Grid(T)` by applying
         /// the function `f(Entry(U))` to each element in the input `Grid`.
         pub fn map(self: *const Self, comptime U: type, gpa: Allocator, f: fn (Point, T) U) !Grid(U) {
-            var g = try Grid(U).new(gpa, self.width, self.height);
+            var g: Grid(U) = try .new(gpa, self.width, self.height);
 
             for (0..g.height) |y| for (0..g.width) |x| {
                 const p = Point.init(x, y);
@@ -720,6 +720,103 @@ pub fn Grid(comptime T: type) type {
             self.buf = new_inner;
             self.width = new_width;
         }
+        pub fn row_iterator(self: Self) RowIterator(T) {
+            return .init(self.width, self.height, self.buf);
+        }
+
+        pub fn col_iterator(self: Self, gpa: Allocator) !ColIterator(T) {
+            return try .init(gpa, self.width, self.height, self.buf);
+        }
+    };
+}
+
+fn RowIterator(comptime T: type) type {
+    return struct {
+        const It = @This();
+
+        h: usize,
+        w: usize,
+        buf: []T,
+        row_idx: usize,
+
+        pub fn init(width: usize, height: usize, buf: []T) It {
+            return .{
+                .w = width,
+                .h = height,
+                .buf = buf,
+                .row_idx = 0,
+            };
+        }
+
+        pub fn peek(self: It) ?[]T {
+            if (self.row_idx == self.h) return null;
+            const slice_start = self.row_idx * self.w;
+            return self.buf[slice_start .. slice_start + self.w];
+        }
+
+        pub fn reset(self: *It) void {
+            self.row_idx = 0;
+        }
+
+        pub fn next(self: *It) ?[]T {
+            if (self.row_idx == self.h) return null;
+            const start = self.row_idx * self.w;
+            const slice = self.buf[start .. start + self.w];
+            self.row_idx += 1;
+            return slice;
+        }
+    };
+}
+
+fn ColIterator(comptime T: type) type {
+    return struct {
+        const It = @This();
+
+        h: usize,
+        w: usize,
+        col_idx: usize,
+        buf: []T,
+        col_buf: []T,
+        peek_buf: []T,
+
+        /// Remember to call `deinit`!
+        pub fn init(gpa: Allocator, width: usize, height: usize, buf: []T) !It {
+            return .{
+                .h = height,
+                .w = width,
+                .col_buf = try gpa.alloc(T, height),
+                .peek_buf = try gpa.alloc(T, height),
+                .buf = buf,
+                .col_idx = 0,
+            };
+        }
+        pub fn deinit(self: *It, gpa: Allocator) void {
+            gpa.free(self.col_buf);
+            gpa.free(self.peek_buf);
+        }
+
+        pub fn reset(self: *It) void {
+            self.col_idx = 0;
+        }
+
+        pub fn peek(self: *It) ?[]T {
+            if (self.col_idx == self.w) return null;
+            for (0..self.h) |i| {
+                const idx = (i * self.w) + self.col_idx;
+                self.peek_buf[i] = self.buf[idx];
+            }
+            return self.peek_buf;
+        }
+
+        pub fn next(self: *It) ?[]T {
+            if (self.col_idx == self.w) return null;
+            for (0..self.h) |i| {
+                const idx = (i * self.w) + self.col_idx;
+                self.col_buf[i] = self.buf[idx];
+            }
+            self.col_idx += 1;
+            return self.col_buf;
+        }
     };
 }
 
@@ -735,11 +832,11 @@ test "grid reverse_rows" {
         \\456
         \\789
     ;
-    var g = try Grid(u8).from_string(t.allocator, s);
-    var copy = try g.clone();
+    var g: Grid(u8) = try .from_string(t.allocator, s);
+    var copy = try g.clone(t.allocator);
 
-    defer g.deinit();
-    defer copy.deinit();
+    defer g.deinit(t.allocator);
+    defer copy.deinit(t.allocator);
 
     g.reverse_rows();
 
@@ -761,31 +858,15 @@ test "grid skew and transpose for diagonal extraction" {
         \\456
         \\789
     ;
-    var g = try Grid(u8).from_string(t.allocator, s);
-    defer g.deinit();
+    var g: Grid(u8) = try .from_string(t.allocator, s);
+    defer g.deinit(t.allocator);
 
-    var skewed = try g.skew('.');
-    defer skewed.deinit();
+    var skewed = try g.skew(t.allocator, '.');
+    defer skewed.deinit(t.allocator);
 
-    var diag_grid = try skewed.transpose();
-    defer diag_grid.deinit();
+    var diag_grid = try skewed.transpose(t.allocator);
+    defer diag_grid.deinit(t.allocator);
 
-    // Original Grid (3x3):
-    // 123
-    // 456
-    // 789
-    //
-    // Skewed Grid (5x3):
-    // 123..
-    // .456.
-    // ..789
-    //
-    // Transposed Skewed Grid (3x5):
-    // 1..
-    // 24.
-    // 357
-    // .68
-    // ..9
     const row0 = diag_grid.buf[0 * diag_grid.width .. (0 * diag_grid.width) + diag_grid.width];
     try t.expectEqualSlices(u8, "1..", row0);
 
@@ -801,11 +882,11 @@ test "grid transpose" {
         \\123
         \\456
     ;
-    var g = try Grid(u8).from_string(t.allocator, s);
-    defer g.deinit();
+    var g: Grid(u8) = try .from_string(t.allocator, s);
+    defer g.deinit(t.allocator);
 
-    var transposed = try g.transpose();
-    defer transposed.deinit();
+    var transposed = try g.transpose(t.allocator);
+    defer transposed.deinit(t.allocator);
 
     const expected_inner = .{ '1', '4', '2', '5', '3', '6' };
     try t.expectEqualSlices(u8, &expected_inner, transposed.buf);
@@ -813,8 +894,8 @@ test "grid transpose" {
     try t.expectEqual(3, transposed.height);
 
     // Test round trip
-    var round_trip = try transposed.transpose();
-    defer round_trip.deinit();
+    var round_trip = try transposed.transpose(t.allocator);
+    defer round_trip.deinit(t.allocator);
     try t.expectEqualSlices(u8, g.buf, round_trip.buf);
     try t.expectEqual(g.width, round_trip.width);
     try t.expectEqual(g.height, round_trip.height);
@@ -826,11 +907,11 @@ test "grid skew" {
         \\DEF
         \\GHI
     ;
-    var g = try Grid(u8).from_string(t.allocator, s);
-    defer g.deinit();
+    var g: Grid(u8) = try .from_string(t.allocator, s);
+    defer g.deinit(t.allocator);
 
-    var skewed = try g.skew('.');
-    defer skewed.deinit();
+    var skewed = try g.skew(t.allocator, '.');
+    defer skewed.deinit(t.allocator);
 
     const new_width = g.width + g.height - 1;
     try t.expectEqual(5, new_width);
@@ -852,8 +933,8 @@ test "grid pad_sides strip_sides" {
         \\CD
     ;
 
-    var g = try Grid(u8).from_string(t.allocator, s);
-    var copy = try g.clone();
+    var g: Grid(u8) = try .from_string(t.allocator, s);
+    var copy = try g.clone(t.allocator);
     defer g.deinit(t.allocator);
     defer copy.deinit(t.allocator);
 
@@ -869,12 +950,12 @@ test "grid pad_sides strip_sides" {
     try t.expectEqual(4, g.width);
     try t.expectEqual(4, g.height);
 
-    try g.pad_sides(0, 0);
+    try g.pad_sides(t.allocator, 0, 0);
     try t.expectEqualSlices(u8, &expected, g.buf);
     try t.expectEqual(4, g.width);
     try t.expectEqual(4, g.height);
 
-    try g.strip_sides(1);
+    try g.strip_sides(t.allocator, 1);
     try t.expectEqual(2, g.width);
     try t.expectEqual(2, g.height);
     try t.expectEqualSlices(u8, copy.buf, g.buf);
@@ -887,7 +968,7 @@ test "grid pad_vertical strip_vertical" {
         \\GHI
     ;
 
-    var g = try Grid(u8).from_string(t.allocator, s);
+    var g: Grid(u8) = try .from_string(t.allocator, s);
     var copy = try g.clone(t.allocator);
     defer g.deinit(t.allocator);
     defer copy.deinit(t.allocator);
@@ -917,12 +998,12 @@ test "grid pad_vertical strip_vertical" {
 }
 
 test "grid pad_horizontal strip_horizontal" {
-    var g = try Grid(u16).make_with(t.allocator, 3, 3, sum);
-    var copy = try g.clone();
+    var g: Grid(u16) = try .make_with(t.allocator, 3, 3, sum);
+    var copy = try g.clone(t.allocator);
     defer g.deinit(t.allocator);
     defer copy.deinit(t.allocator);
 
-    try g.pad_horizontal(1, 0);
+    try g.pad_horizontal(t.allocator, 1, 0);
 
     const expected = .{
         0, 0, 1, 2, 0,
@@ -933,25 +1014,25 @@ test "grid pad_horizontal strip_horizontal" {
     try t.expectEqual(5, g.width);
     try t.expectEqual(3, g.height);
 
-    try g.pad_horizontal(0, 0);
+    try g.pad_horizontal(t.allocator, 0, 0);
     try t.expectEqualSlices(u16, &expected, g.buf);
     try t.expectEqual(5, g.width);
     try t.expectEqual(3, g.height);
 
-    try g.strip_horizontal(1);
+    try g.strip_horizontal(t.allocator, 1);
     try t.expectEqual(3, g.width);
     try t.expectEqual(3, g.height);
     try t.expectEqualSlices(u16, copy.buf, g.buf);
 }
 
 test "grid pad_down strip_down" {
-    var g = try Grid(u16).make_with(t.allocator, 3, 3, sum);
-    var copy = try g.clone();
+    var g: Grid(u16) = try .make_with(t.allocator, 3, 3, sum);
+    var copy = try g.clone(t.allocator);
 
     defer g.deinit(t.allocator);
     defer copy.deinit(t.allocator);
 
-    try g.pad_down(1, 5);
+    try g.pad_down(t.allocator, 1, 5);
 
     const expected = .{
         0, 1, 2,
@@ -963,24 +1044,24 @@ test "grid pad_down strip_down" {
     try t.expectEqual(3, g.width);
     try t.expectEqual(4, g.height); // 3 original + 1 bottom
 
-    try g.pad_down(0, 0);
+    try g.pad_down(t.allocator, 0, 0);
     try t.expectEqualSlices(u16, &expected, g.buf);
     try t.expectEqual(3, g.width);
     try t.expectEqual(4, g.height);
 
-    try g.strip_down(1);
+    try g.strip_down(t.allocator, 1);
     try t.expectEqual(3, g.width);
     try t.expectEqual(3, g.height);
     try t.expectEqualSlices(u16, copy.buf, g.buf);
 }
 
 test "grid pad_up strip_up" {
-    var g = try Grid(u16).make_with(t.allocator, 3, 3, sum);
-    var copy = try g.clone();
+    var g: Grid(u16) = try .make_with(t.allocator, 3, 3, sum);
+    var copy = try g.clone(t.allocator);
     defer g.deinit(t.allocator);
     defer copy.deinit(t.allocator);
 
-    try g.pad_up(2, 5);
+    try g.pad_up(t.allocator, 2, 5);
     const expected = .{
         5, 5, 5,
         5, 5, 5,
@@ -992,24 +1073,24 @@ test "grid pad_up strip_up" {
     try t.expectEqual(3, g.width);
     try t.expectEqual(5, g.height);
 
-    try g.pad_up(0, 0);
+    try g.pad_up(t.allocator, 0, 0);
     try t.expectEqualSlices(u16, &expected, g.buf);
     try t.expectEqual(3, g.width);
     try t.expectEqual(5, g.height);
 
-    try g.strip_up(2);
+    try g.strip_up(t.allocator, 2);
     try t.expectEqualSlices(u16, copy.buf, g.buf);
     try t.expectEqual(3, g.width);
     try t.expectEqual(3, g.height);
 }
 
 test "grid pad_left strip_left" {
-    var g = try Grid(u16).make_with(t.allocator, 3, 3, sum);
-    var copy = try g.clone();
+    var g: Grid(u16) = try .make_with(t.allocator, 3, 3, sum);
+    var copy = try g.clone(t.allocator);
     defer g.deinit(t.allocator);
     defer copy.deinit(t.allocator);
 
-    try g.pad_left(1, 5);
+    try g.pad_left(t.allocator, 1, 5);
     const expected = .{
         5, 0, 1, 2,
         5, 1, 2, 3,
@@ -1019,24 +1100,24 @@ test "grid pad_left strip_left" {
     try t.expectEqual(4, g.width);
     try t.expectEqual(3, g.height);
 
-    try g.pad_left(0, 0);
+    try g.pad_left(t.allocator, 0, 0);
     try t.expectEqualSlices(u16, &expected, g.buf);
     try t.expectEqual(4, g.width);
     try t.expectEqual(3, g.height);
 
-    try g.strip_left(1);
+    try g.strip_left(t.allocator, 1);
     try t.expectEqualSlices(u16, copy.buf, g.buf);
     try t.expectEqual(3, g.width);
     try t.expectEqual(3, g.height);
 }
 
 test "grid pad_right strip_right" {
-    var g = try Grid(u16).make_with(t.allocator, 3, 3, sum);
-    var copy = try g.clone();
+    var g: Grid(u16) = try .make_with(t.allocator, 3, 3, sum);
+    var copy = try g.clone(t.allocator);
     defer g.deinit(t.allocator);
     defer copy.deinit(t.allocator);
 
-    try g.pad_right(1, 5);
+    try g.pad_right(t.allocator, 1, 5);
 
     const expected = .{
         0, 1, 2, 5,
@@ -1047,19 +1128,19 @@ test "grid pad_right strip_right" {
     try t.expectEqual(4, g.width);
     try t.expectEqual(3, g.height);
 
-    try g.pad_right(0, 0);
+    try g.pad_right(t.allocator, 0, 0);
     try t.expectEqualSlices(u16, &expected, g.buf);
     try t.expectEqual(4, g.width);
     try t.expectEqual(3, g.height);
 
-    try g.strip_right(1);
+    try g.strip_right(t.allocator, 1);
     try t.expectEqualSlices(u16, copy.buf, g.buf);
     try t.expectEqual(3, g.width);
     try t.expectEqual(3, g.height);
 }
 
 test "grid new" {
-    var grid = try Grid(u16).make_with(t.allocator, 5, 5, sum);
+    var grid: Grid(u16) = try .make_with(t.allocator, 5, 5, sum);
     defer grid.deinit(t.allocator);
 
     try t.expectEqual(25, grid.buf.len);
@@ -1081,7 +1162,7 @@ test "grid new argument errors" {
 }
 
 test "grid make" {
-    var grid = try Grid(usize).make(t.allocator, 420, 5, 5);
+    var grid: Grid(usize) = try .make(t.allocator, 420, 5, 5);
     defer grid.deinit(t.allocator);
     try t.expectEqual(25, grid.buf.len);
     try t.expectEqual(420, grid.buf[0]); // Check first
@@ -1091,9 +1172,8 @@ test "grid make" {
 }
 
 test "grid idx" {
-    const dummy_grid = Grid(u8){
+    const dummy_grid: Grid(u8) = .{
         .buf = &[_]u8{}, // Doesn't matter for idx
-        .gpa = undefined, // Not needed
         .width = 7,
         .height = 3,
     };
@@ -1107,9 +1187,8 @@ test "grid idx" {
 }
 
 test "grid inside function" {
-    const dummy_grid = Grid(u8){
+    const dummy_grid: Grid(u8) = .{
         .buf = &[_]u8{},
-        .gpa = undefined,
         .width = 5,
         .height = 4,
     };
@@ -1131,7 +1210,7 @@ test "grid inside function" {
 }
 
 test "grid get, get_opt, get_ptr, get_opt_ptr, set" {
-    var grid = try Grid(u16).make_with(t.allocator, 3, 2, sum);
+    var grid: Grid(u16) = try .make_with(t.allocator, 3, 2, sum);
     defer grid.deinit(t.allocator);
 
     try t.expectEqual(@as(u16, 0), grid.get(Point.init(0, 0)));
@@ -1166,7 +1245,7 @@ test "grid get, get_opt, get_ptr, get_opt_ptr, set" {
 }
 
 test "grid map (non-mutating)" {
-    var grid = try Grid(u16).make(t.allocator, 10, 3, 2);
+    var grid: Grid(u16) = try .make(t.allocator, 10, 3, 2);
     defer grid.deinit(t.allocator);
 
     const add_pos = struct {
@@ -1177,7 +1256,7 @@ test "grid map (non-mutating)" {
         }
     }.func;
 
-    var mapped_grid = try grid.map(u16, add_pos);
+    var mapped_grid = try grid.map(u16, t.allocator, add_pos);
     defer mapped_grid.deinit(t.allocator);
 
     try t.expectEqual(@as(u16, 10), grid.get(Point.init(0, 0)));
@@ -1195,7 +1274,7 @@ test "grid map (non-mutating)" {
 }
 
 test "grid map_mut" {
-    var grid = try Grid(u16).new(t.allocator, 5, 5);
+    var grid: Grid(u16) = try .new(t.allocator, 5, 5);
     defer grid.deinit(t.allocator);
     grid.map_mut(sum); // Test map_mut which uses idx internally
     try t.expectEqual(@as(usize, 25), grid.buf.len);
@@ -1207,11 +1286,11 @@ test "grid map_mut" {
 test "grid clone" {
     const width = 4;
     const height = 3;
-    var original = try Grid(u16).new(t.allocator, width, height);
+    var original: Grid(u16) = try .new(t.allocator, width, height);
     defer original.deinit(t.allocator);
     original.map_mut(sum); // Fill with initial values
 
-    var cloned = try original.clone();
+    var cloned = try original.clone(t.allocator);
     defer cloned.deinit(t.allocator);
 
     try t.expectEqual(original.width, cloned.width);
@@ -1237,7 +1316,7 @@ test "grid clone" {
 
 test "grid edge cases 1xN and Nx1" {
     // 1x5 Grid
-    var grid1x5 = try Grid(u8).make(t.allocator, 1, 1, 5);
+    var grid1x5: Grid(u8) = try .make(t.allocator, 1, 1, 5);
     defer grid1x5.deinit(t.allocator);
     try t.expectEqual(@as(usize, 1), grid1x5.width);
     try t.expectEqual(@as(usize, 5), grid1x5.height);
@@ -1250,7 +1329,7 @@ test "grid edge cases 1xN and Nx1" {
     try t.expectEqual(null, grid1x5.get_opt(Point.init(0, 5))); // Out of bounds y
 
     // 5x1 Grid
-    var grid5x1 = try Grid(u8).make(t.allocator, 2, 5, 1);
+    var grid5x1: Grid(u8) = try .make(t.allocator, 2, 5, 1);
     defer grid5x1.deinit(t.allocator);
     try t.expectEqual(@as(usize, 5), grid5x1.width);
     try t.expectEqual(@as(usize, 1), grid5x1.height);
@@ -1264,7 +1343,7 @@ test "grid edge cases 1xN and Nx1" {
 }
 
 test "grid find" {
-    var grid = try Grid(u16).make_with(t.allocator, 4, 3, sum);
+    var grid: Grid(u16) = try .make_with(t.allocator, 4, 3, sum);
     defer grid.deinit(t.allocator);
 
     const is_five = struct {
@@ -1295,7 +1374,7 @@ test "grid from_string" {
         \\789
     ;
 
-    var g = try Grid(u8).from_string(t.allocator, s);
+    var g: Grid(u8) = try .from_string(t.allocator, s);
     defer g.deinit(t.allocator);
 
     try t.expectEqual(g.get(Point.init(1, 1)), '5');
@@ -1303,12 +1382,12 @@ test "grid from_string" {
 }
 
 test "grid transpose clockwise" {
-    var expected = try Grid(u8).from_string(t.allocator,
+    var expected: Grid(u8) = try .from_string(t.allocator,
         \\741
         \\852
         \\963
     );
-    var actual = try Grid(u8).from_string(t.allocator,
+    var actual: Grid(u8) = try .from_string(t.allocator,
         \\123
         \\456
         \\789
@@ -1323,12 +1402,12 @@ test "grid transpose clockwise" {
 }
 
 test "grid transpose counter clockwise" {
-    var expected = try Grid(u8).from_string(t.allocator,
+    var expected: Grid(u8) = try .from_string(t.allocator,
         \\369
         \\258
         \\147
     );
-    var actual = try Grid(u8).from_string(t.allocator,
+    var actual: Grid(u8) = try .from_string(t.allocator,
         \\123
         \\456
         \\789
@@ -1342,14 +1421,14 @@ test "grid transpose counter clockwise" {
 }
 
 test "grid transpose round trip" {
-    var g = try Grid(u8).from_string(t.allocator,
+    var g: Grid(u8) = try .from_string(t.allocator,
         \\123
         \\456
         \\789
     );
     defer g.deinit(t.allocator);
 
-    var clone = try g.clone();
+    var clone = try g.clone(t.allocator);
     defer clone.deinit(t.allocator);
 
     // Rotate 360 should be the same as the original
@@ -1410,10 +1489,61 @@ test "grid is generic" {
         \\123
     ;
 
-    var g = try Grid(Item).from_string_generic(t.allocator, s, Item.from_char);
+    var g: Grid(Item) = try .from_string_generic(t.allocator, s, Item.from_char);
     defer g.deinit(t.allocator);
 
     try t.expectEqual(Item.x, g.buf[0]);
     try t.expectEqual(Item.o, g.buf[1]);
     try t.expectEqual(Item.other, g.buf[8]);
+}
+
+test "grid row_iterator" {
+    const s =
+        \\123
+        \\456
+        \\789
+    ;
+    var g: Grid(u8) = try .from_string(t.allocator, s);
+    defer g.deinit(t.allocator);
+    var it = g.row_iterator();
+
+    try t.expectEqualStrings("123", it.next().?);
+    try t.expectEqualStrings("456", it.next().?);
+    try t.expectEqualStrings("789", it.next().?);
+    try t.expect(it.next() == null);
+
+    it.reset();
+    try t.expectEqualStrings("123", it.next().?);
+    try t.expectEqualStrings("456", it.peek().?);
+    try t.expectEqualStrings("456", it.peek().?);
+    try t.expectEqualStrings("456", it.next().?);
+    try t.expectEqualStrings("789", it.next().?);
+    try t.expect(it.peek() == null);
+}
+
+test "grid col_iterator" {
+    const s =
+        \\123
+        \\456
+        \\789
+    ;
+    var g: Grid(u8) = try .from_string(t.allocator, s);
+    var it = try g.col_iterator(t.allocator);
+    defer {
+        g.deinit(t.allocator);
+        it.deinit(t.allocator);
+    }
+
+    try t.expectEqualStrings("147", it.next().?);
+    try t.expectEqualStrings("258", it.next().?);
+    try t.expectEqualStrings("369", it.next().?);
+    try t.expect(it.next() == null);
+
+    it.reset();
+    try t.expectEqualStrings("147", it.next().?);
+    try t.expectEqualStrings("258", it.peek().?);
+    try t.expectEqualStrings("258", it.peek().?);
+    try t.expectEqualStrings("258", it.next().?);
+    try t.expectEqualStrings("369", it.next().?);
+    try t.expect(it.peek() == null);
 }
