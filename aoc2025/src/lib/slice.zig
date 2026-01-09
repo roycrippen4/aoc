@@ -31,7 +31,7 @@ pub inline fn split_once_sequence(
     s: []const T,
     delimiters: []const T,
 ) SliceTuple(T) {
-    @setEvalBranchQuota(100000);
+    @setEvalBranchQuota(100_000);
 
     var it = mem.splitSequence(T, trim(s), delimiters);
     return .{
@@ -177,13 +177,12 @@ pub fn chunks(
 
 /// Returns an iterator over the lines in a slice
 pub inline fn lines(s: []const u8) mem.SplitIterator(u8, .scalar) {
+    @setEvalBranchQuota(500_000);
     const trimmed = mem.trim(u8, s, "\n");
     return mem.splitScalar(u8, trimmed, '\n');
 }
 
 pub inline fn line_count(comptime s: []const u8) usize {
-    @setEvalBranchQuota(100_000);
-
     var result: usize = 0;
     var it = lines(s);
     while (it.next()) |_| : (result += 1) {}
@@ -194,7 +193,6 @@ pub inline fn line_count(comptime s: []const u8) usize {
 /// The newline at the end will *NOT* be included in the count.
 /// Again, this will **only check the first line**
 pub inline fn line_len(s: []const u8) usize {
-    @setEvalBranchQuota(800000);
     var it = lines(s);
     return it.peek().?.len;
 }

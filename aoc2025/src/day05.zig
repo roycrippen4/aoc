@@ -94,7 +94,6 @@ const split_result = aoc.slice.split_once_sequence(u8, input, "\n\n");
 const ranges_str = split_result.@"0";
 const range_count = aoc.slice.line_count(ranges_str);
 const ranges: [range_count]Range = blk: {
-    @setEvalBranchQuota(400000);
     var ranges_: [range_count]Range = undefined;
 
     var it = aoc.slice.lines(ranges_str);
@@ -110,7 +109,6 @@ const ranges: [range_count]Range = blk: {
 const ids_str = split_result.@"1";
 const id_count = aoc.slice.line_count(ids_str);
 const ids: [id_count]usize = blk: {
-    @setEvalBranchQuota(400000);
     var ids_: [id_count]usize = undefined;
 
     var it = aoc.slice.lines(ids_str);

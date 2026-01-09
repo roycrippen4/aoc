@@ -8,7 +8,6 @@ const Solution = aoc.Solution;
 const input = @embedFile("data/day06/data.txt");
 
 const COLS: usize = blk: {
-    @setEvalBranchQuota(80000);
     var lines = aoc.slice.lines(input);
     const first_row = lines.next().?;
     var it = std.mem.tokenizeScalar(u8, first_row, ' ');
@@ -18,7 +17,6 @@ const COLS: usize = blk: {
 };
 
 const ROWS: usize = blk: {
-    @setEvalBranchQuota(80000);
     var it = aoc.slice.lines(input);
     var rows: usize = 0;
     while (it.next()) |_| : (rows += 1) {}
@@ -84,7 +82,6 @@ const Op = enum {
 };
 
 const OPS_STR: []const u8 = blk: {
-    @setEvalBranchQuota(50000);
     var lines = aoc.slice.lines(input);
     var i: usize = 0;
     while (i != ROWS - 1) : (i += 1) _ = lines.next();
@@ -92,7 +89,7 @@ const OPS_STR: []const u8 = blk: {
 };
 
 const OPS: [COLS]Op = blk: {
-    @setEvalBranchQuota(80000);
+    @setEvalBranchQuota(20000);
     var ops: [COLS]Op = undefined;
 
     var i: usize = 0;
@@ -103,17 +100,6 @@ const OPS: [COLS]Op = blk: {
     }
 
     break :blk ops;
-};
-
-const DIGITS: usize = blk: {
-    @setEvalBranchQuota(50000);
-    var most: usize = 0;
-
-    for (NUMBERS.to_slice()) |r| for (r.to_slice()) |n| {
-        const n_digits = aoc.math.digits(n);
-        most = @max(most, n_digits);
-    };
-    break :blk most;
 };
 
 fn part1(_: Allocator) !usize {
