@@ -15,9 +15,9 @@ pub const Unit = enum {
         if (time > 0.1) return .ms_s;
         if (time > 0.01) return .ms_m;
         if (time > 0.001) return .ms_f;
-        if (time > 0.0001) return .@"µs";
+        if (time > 0.000001) return .@"µs";
 
-        return Unit.nanos;
+        return .nanos;
     }
 };
 
