@@ -47,8 +47,17 @@ const Bot = struct {
 };
 
 const Bots = [aoc.slice.line_count(input)]Bot;
-const Offset = struct { isize, isize, isize };
-const Offsets = [HEIGHT]Offset;
+const Offset = struct {
+    step: isize,
+    vert_variance: isize,
+    hori_variance: isize,
+
+    pub const default: @This() = .{
+        .step = 0,
+        .vert_variance = 0,
+        .hori_variance = 0,
+    };
+};
 
 const BOTS: Bots = blk: {
     @setEvalBranchQuota(175_000);
@@ -79,7 +88,7 @@ const BOTS: Bots = blk: {
     break :blk bots;
 };
 
-fn part1(_: std.mem.Allocator) !usize {
+fn part1(_: Allocator) !usize {
     var northwest_count: usize = 0;
     var northeast_count: usize = 0;
     var southwest_count: usize = 0;
@@ -111,13 +120,13 @@ inline fn compute_variance(ns: []isize) isize {
     return @divFloor(x, len);
 }
 
-fn get_averages() Offsets {
-    var offsets: Offsets = .{.{ 0, 0, 0 }} ** HEIGHT;
+fn get_averages() [HEIGHT]Offset {
+    var offsets: [HEIGHT]Offset = @splat(.default);
 
     for (0..HEIGHT) |s| {
         const s_isize: isize = @intCast(s);
-        var vert_pos = [_]isize{0} ** N_BOTS;
-        var hori_pos = [_]isize{0} ** N_BOTS;
+        var vert_pos: [N_BOTS]isize = @splat(0);
+        var hori_pos: [N_BOTS]isize = @splat(0);
 
         for (BOTS[0..N_BOTS], 0..) |bot, i| {
             const dx = bot.x + bot.vx * s_isize;
@@ -130,24 +139,24 @@ fn get_averages() Offsets {
         const hori_variance = compute_variance(&hori_pos);
 
         offsets[s] = .{
-            s_isize,
-            vert_variance,
-            hori_variance,
+            .step = s_isize,
+            .vert_variance = vert_variance,
+            .hori_variance = hori_variance,
         };
     }
 
     return offsets;
 }
 
-fn get_offsets(averages: Offsets) struct { Offset, Offset } {
+fn get_offsets(averages: [HEIGHT]Offset) struct { Offset, Offset } {
     var min_x = averages[0];
     var min_y = averages[0];
 
     for (averages) |average| {
-        if (min_x.@"1" > average.@"1") {
+        if (min_x.vert_variance > average.vert_variance) {
             min_x = average;
         }
-        if (min_y.@"2" > average.@"2") {
+        if (min_y.hori_variance > average.hori_variance) {
             min_y = average;
         }
     }
@@ -155,15 +164,15 @@ fn get_offsets(averages: Offsets) struct { Offset, Offset } {
     return .{ min_x, min_y };
 }
 
-fn part2(_: std.mem.Allocator) !usize {
+fn part2(_: Allocator) !usize {
     const averages = get_averages();
     const vert_offset, const hori_offset = get_offsets(averages);
 
     for (0..HEIGHT) |i| {
         const i_: isize = @intCast(i);
-        const value = i_ * WIDTH + vert_offset.@"0";
+        const value = i_ * WIDTH + vert_offset.step;
 
-        if (@mod(value - hori_offset.@"0", HEIGHT) == 0) {
+        if (@mod(value - hori_offset.step, HEIGHT) == 0) {
             return @intCast(value);
         }
     }
