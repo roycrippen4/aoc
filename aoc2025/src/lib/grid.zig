@@ -240,7 +240,7 @@ pub fn Grid(comptime T: type) type {
         /// Searches for the first element's position that satisfies the predicate
         pub fn find(self: *Self, comptime predicate: fn (Point, T) bool) ?Point {
             for (0..self.height) |y| for (0..self.width) |x| {
-                const p = Point.init(x, y);
+                const p: Point = .{ .x = x, .y = y };
                 if (predicate(p, self.get(p))) return p;
             };
             return null;
@@ -286,7 +286,7 @@ pub fn Grid(comptime T: type) type {
             var g: Grid(U) = try .new(gpa, self.width, self.height);
 
             for (0..g.height) |y| for (0..g.width) |x| {
-                const p = Point.init(x, y);
+                const p: Point = .{ .x = x, .y = y };
                 const old_v = self.get(p);
                 const new_v = f(p, old_v);
                 g.set(p, new_v);
@@ -298,7 +298,7 @@ pub fn Grid(comptime T: type) type {
         /// Applies a function to each element of the grid, mutating it in place.
         pub fn map_mut(self: *Self, f: fn (Point, T) T) void {
             for (0..self.height) |y| for (0..self.width) |x| {
-                const p = Point.init(x, y);
+                const p: Point = .{ .x = x, .y = y };
                 const i = self.idx(p);
                 self.buf[i] = f(p, self.buf[i]);
             };
@@ -1178,12 +1178,12 @@ test "grid idx" {
         .height = 3,
     };
 
-    try t.expectEqual(0, dummy_grid.idx(Point.init(0, 0))); // Top-left
-    try t.expectEqual(6, dummy_grid.idx(Point.init(6, 0))); // Top-right
-    try t.expectEqual(7, dummy_grid.idx(Point.init(0, 1))); // Start of second row
-    try t.expectEqual(10, dummy_grid.idx(Point.init(3, 1))); // Middle
-    try t.expectEqual(14, dummy_grid.idx(Point.init(0, 2))); // Bottom-left
-    try t.expectEqual(20, dummy_grid.idx(Point.init(6, 2))); // Bottom-right
+    try t.expectEqual(0, dummy_grid.idx(.{ .x = 0, .y = 0 })); // Top-left
+    try t.expectEqual(6, dummy_grid.idx(.{ .x = 6, .y = 0 })); // Top-right
+    try t.expectEqual(7, dummy_grid.idx(.{ .x = 0, .y = 1 })); // Start of second row
+    try t.expectEqual(10, dummy_grid.idx(.{ .x = 3, .y = 1 })); // Middle
+    try t.expectEqual(14, dummy_grid.idx(.{ .x = 0, .y = 2 })); // Bottom-left
+    try t.expectEqual(20, dummy_grid.idx(.{ .x = 6, .y = 2 })); // Bottom-right
 }
 
 test "grid inside function" {
@@ -1194,14 +1194,14 @@ test "grid inside function" {
     };
 
     // Inside
-    try t.expect(dummy_grid.inside(Point.init(0, 0)));
-    try t.expect(dummy_grid.inside(Point.init(4, 3)));
-    try t.expect(dummy_grid.inside(Point.init(2, 1)));
+    try t.expect(dummy_grid.inside(.{ .x = 0, .y = 0 }));
+    try t.expect(dummy_grid.inside(.{ .x = 4, .y = 3 }));
+    try t.expect(dummy_grid.inside(.{ .x = 2, .y = 1 }));
 
     // Outside (edges)
-    try t.expect(!dummy_grid.inside(Point.init(5, 0)));
-    try t.expect(!dummy_grid.inside(Point.init(0, 4)));
-    try t.expect(!dummy_grid.inside(Point.init(5, 4)));
+    try t.expect(!dummy_grid.inside(.{ .x = 5, .y = 0 }));
+    try t.expect(!dummy_grid.inside(.{ .x = 0, .y = 4 }));
+    try t.expect(!dummy_grid.inside(.{ .x = 5, .y = 4 }));
 
     // Outside (beyond)
     try t.expect(!dummy_grid.inside(.{ .x = 10, .y = 2 }));
@@ -1213,35 +1213,35 @@ test "grid get, get_opt, get_ptr, get_opt_ptr, set" {
     var grid: Grid(u16) = try .make_with(t.allocator, 3, 2, sum);
     defer grid.deinit(t.allocator);
 
-    try t.expectEqual(@as(u16, 0), grid.get(Point.init(0, 0)));
-    try t.expectEqual(@as(u16, 2), grid.get(Point.init(2, 0)));
-    try t.expectEqual(@as(u16, 1), grid.get(Point.init(0, 1)));
-    try t.expectEqual(@as(u16, 3), grid.get(Point.init(2, 1)));
-    try t.expectEqual(@as(u16, 0), grid.get_opt(Point.init(0, 0)).?);
-    try t.expectEqual(@as(u16, 2), grid.get_opt(Point.init(2, 0)).?);
-    try t.expectEqual(@as(u16, 1), grid.get_opt(Point.init(0, 1)).?);
-    try t.expectEqual(@as(u16, 3), grid.get_opt(Point.init(2, 1)).?);
-    try t.expectEqual(null, grid.get_opt(Point.init(3, 0))); // Out of bounds X
-    try t.expectEqual(null, grid.get_opt(Point.init(0, 2))); // Out of bounds Y
-    try t.expectEqual(null, grid.get_opt(Point.init(3, 2))); // Out of bounds X and Y
+    try t.expectEqual(@as(u16, 0), grid.get(.{ .x = 0, .y = 0 }));
+    try t.expectEqual(@as(u16, 2), grid.get(.{ .x = 2, .y = 0 }));
+    try t.expectEqual(@as(u16, 1), grid.get(.{ .x = 0, .y = 1 }));
+    try t.expectEqual(@as(u16, 3), grid.get(.{ .x = 2, .y = 1 }));
+    try t.expectEqual(@as(u16, 0), grid.get_opt(.{ .x = 0, .y = 0 }).?);
+    try t.expectEqual(@as(u16, 2), grid.get_opt(.{ .x = 2, .y = 0 }).?);
+    try t.expectEqual(@as(u16, 1), grid.get_opt(.{ .x = 0, .y = 1 }).?);
+    try t.expectEqual(@as(u16, 3), grid.get_opt(.{ .x = 2, .y = 1 }).?);
+    try t.expectEqual(null, grid.get_opt(.{ .x = 3, .y = 0 })); // Out of bounds X
+    try t.expectEqual(null, grid.get_opt(.{ .x = 0, .y = 2 })); // Out of bounds Y
+    try t.expectEqual(null, grid.get_opt(.{ .x = 3, .y = 2 })); // Out of bounds X and Y
     try t.expectEqual(null, grid.get_opt(.{ .x = 99, .y = 99 })); // Far out of bounds
 
-    const ptr1 = grid.get_mut(Point.init(1, 1));
+    const ptr1 = grid.get_mut(.{ .x = 1, .y = 1 });
     try t.expectEqual(@as(u16, 2), ptr1.*);
     ptr1.* = 99;
-    try t.expectEqual(@as(u16, 99), grid.get(Point.init(1, 1)));
+    try t.expectEqual(@as(u16, 99), grid.get(.{ .x = 1, .y = 1 }));
 
-    const ptr2 = grid.get_opt_mut(Point.init(0, 0));
+    const ptr2 = grid.get_opt_mut(.{ .x = 0, .y = 0 });
     try t.expect(ptr2 != null);
     try t.expectEqual(@as(u16, 0), ptr2.?.*);
     ptr2.?.* = 111;
-    try t.expectEqual(@as(u16, 111), grid.get(Point.init(0, 0)));
+    try t.expectEqual(@as(u16, 111), grid.get(.{ .x = 0, .y = 0 }));
 
-    const ptr_null = grid.get_opt_mut(Point.init(3, 0)); // Out of bounds
+    const ptr_null = grid.get_opt_mut(.{ .x = 3, .y = 0 }); // Out of bounds
     try t.expect(ptr_null == null);
 
-    grid.set(Point.init(2, 1), 222);
-    try t.expectEqual(@as(u16, 222), grid.get(Point.init(2, 1)));
+    grid.set(.{ .x = 2, .y = 1 }, 222);
+    try t.expectEqual(@as(u16, 222), grid.get(.{ .x = 2, .y = 1 }));
 }
 
 test "grid map (non-mutating)" {
@@ -1259,14 +1259,14 @@ test "grid map (non-mutating)" {
     var mapped_grid = try grid.map(u16, t.allocator, add_pos);
     defer mapped_grid.deinit(t.allocator);
 
-    try t.expectEqual(@as(u16, 10), grid.get(Point.init(0, 0)));
-    try t.expectEqual(@as(u16, 10), grid.get(Point.init(2, 1)));
-    try t.expectEqual(@as(u16, 10), mapped_grid.get(Point.init(0, 0)));
-    try t.expectEqual(@as(u16, 11), mapped_grid.get(Point.init(1, 0)));
-    try t.expectEqual(@as(u16, 12), mapped_grid.get(Point.init(2, 0)));
-    try t.expectEqual(@as(u16, 11), mapped_grid.get(Point.init(0, 1)));
-    try t.expectEqual(@as(u16, 12), mapped_grid.get(Point.init(1, 1)));
-    try t.expectEqual(@as(u16, 13), mapped_grid.get(Point.init(2, 1)));
+    try t.expectEqual(@as(u16, 10), grid.get(.{ .x = 0, .y = 0 }));
+    try t.expectEqual(@as(u16, 10), grid.get(.{ .x = 2, .y = 1 }));
+    try t.expectEqual(@as(u16, 10), mapped_grid.get(.{ .x = 0, .y = 0 }));
+    try t.expectEqual(@as(u16, 11), mapped_grid.get(.{ .x = 1, .y = 0 }));
+    try t.expectEqual(@as(u16, 12), mapped_grid.get(.{ .x = 2, .y = 0 }));
+    try t.expectEqual(@as(u16, 11), mapped_grid.get(.{ .x = 0, .y = 1 }));
+    try t.expectEqual(@as(u16, 12), mapped_grid.get(.{ .x = 1, .y = 1 }));
+    try t.expectEqual(@as(u16, 13), mapped_grid.get(.{ .x = 2, .y = 1 }));
 
     try t.expectEqual(grid.width, mapped_grid.width);
     try t.expectEqual(grid.height, mapped_grid.height);
@@ -1278,9 +1278,9 @@ test "grid map_mut" {
     defer grid.deinit(t.allocator);
     grid.map_mut(sum); // Test map_mut which uses idx internally
     try t.expectEqual(@as(usize, 25), grid.buf.len);
-    try t.expectEqual(@as(u16, 0), grid.get(Point.init(0, 0)));
-    try t.expectEqual(@as(u16, 8), grid.get(Point.init(4, 4)));
-    try t.expectEqual(@as(u16, 4), grid.get(Point.init(1, 3)));
+    try t.expectEqual(@as(u16, 0), grid.get(.{ .x = 0, .y = 0 }));
+    try t.expectEqual(@as(u16, 8), grid.get(.{ .x = 4, .y = 4 }));
+    try t.expectEqual(@as(u16, 4), grid.get(.{ .x = 1, .y = 3 }));
 }
 
 test "grid clone" {
@@ -1300,14 +1300,14 @@ test "grid clone" {
     try t.expect(original.buf.ptr != cloned.buf.ptr);
     try t.expect(std.mem.eql(u16, original.buf, cloned.buf));
 
-    const change_pos_1 = Point.init(1, 1);
+    const change_pos_1: Point = .{ .x = 1, .y = 1 };
     const original_value_1 = original.get(change_pos_1);
     cloned.set(change_pos_1, 99);
     try t.expectEqual(original_value_1, original.get(change_pos_1));
     try t.expectEqual(@as(u16, 99), cloned.get(change_pos_1));
 
     // Modify original, check clone unchanged
-    const change_pos_2 = Point.init(0, 0);
+    const change_pos_2: Point = .{ .x = 0, .y = 0 };
     const cloned_value_2 = cloned.get(change_pos_2);
     original.set(change_pos_2, 111);
     try t.expectEqual(cloned_value_2, cloned.get(change_pos_2));
@@ -1321,12 +1321,12 @@ test "grid edge cases 1xN and Nx1" {
     try t.expectEqual(@as(usize, 1), grid1x5.width);
     try t.expectEqual(@as(usize, 5), grid1x5.height);
     try t.expectEqual(@as(usize, 5), grid1x5.width * grid1x5.height);
-    grid1x5.set(Point.init(0, 2), 99);
-    try t.expectEqual(@as(u8, 1), grid1x5.get(Point.init(0, 0)));
-    try t.expectEqual(@as(u8, 99), grid1x5.get(Point.init(0, 2)));
-    try t.expectEqual(@as(u8, 1), grid1x5.get(Point.init(0, 4)));
-    try t.expectEqual(null, grid1x5.get_opt(Point.init(1, 0))); // Out of bounds x
-    try t.expectEqual(null, grid1x5.get_opt(Point.init(0, 5))); // Out of bounds y
+    grid1x5.set(.{ .x = 0, .y = 2 }, 99);
+    try t.expectEqual(@as(u8, 1), grid1x5.get(.{ .x = 0, .y = 0 }));
+    try t.expectEqual(@as(u8, 99), grid1x5.get(.{ .x = 0, .y = 2 }));
+    try t.expectEqual(@as(u8, 1), grid1x5.get(.{ .x = 0, .y = 4 }));
+    try t.expectEqual(null, grid1x5.get_opt(.{ .x = 1, .y = 0 })); // Out of bounds x
+    try t.expectEqual(null, grid1x5.get_opt(.{ .x = 0, .y = 5 })); // Out of bounds y
 
     // 5x1 Grid
     var grid5x1: Grid(u8) = try .make(t.allocator, 2, 5, 1);
@@ -1334,12 +1334,12 @@ test "grid edge cases 1xN and Nx1" {
     try t.expectEqual(@as(usize, 5), grid5x1.width);
     try t.expectEqual(@as(usize, 1), grid5x1.height);
     try t.expectEqual(@as(usize, 5), grid5x1.width * grid5x1.height);
-    grid5x1.set(Point.init(3, 0), 88);
-    try t.expectEqual(@as(u8, 2), grid5x1.get(Point.init(0, 0)));
-    try t.expectEqual(@as(u8, 88), grid5x1.get(Point.init(3, 0)));
-    try t.expectEqual(@as(u8, 2), grid5x1.get(Point.init(4, 0)));
-    try t.expectEqual(null, grid5x1.get_opt(Point.init(5, 0))); // Out of bounds x
-    try t.expectEqual(null, grid5x1.get_opt(Point.init(0, 1))); // Out of bounds y
+    grid5x1.set(.{ .x = 3, .y = 0 }, 88);
+    try t.expectEqual(@as(u8, 2), grid5x1.get(.{ .x = 0, .y = 0 }));
+    try t.expectEqual(@as(u8, 88), grid5x1.get(.{ .x = 3, .y = 0 }));
+    try t.expectEqual(@as(u8, 2), grid5x1.get(.{ .x = 4, .y = 0 }));
+    try t.expectEqual(null, grid5x1.get_opt(.{ .x = 5, .y = 0 })); // Out of bounds x
+    try t.expectEqual(null, grid5x1.get_opt(.{ .x = 0, .y = 1 })); // Out of bounds y
 }
 
 test "grid find" {
@@ -1377,8 +1377,8 @@ test "grid from_string" {
     var g: Grid(u8) = try .from_string(t.allocator, s);
     defer g.deinit(t.allocator);
 
-    try t.expectEqual(g.get(Point.init(1, 1)), '5');
-    try t.expectEqual(g.get(Point.init(2, 2)), '9');
+    try t.expectEqual(g.get(.{ .x = 1, .y = 1 }), '5');
+    try t.expectEqual(g.get(.{ .x = 2, .y = 2 }), '9');
 }
 
 test "grid transpose clockwise" {

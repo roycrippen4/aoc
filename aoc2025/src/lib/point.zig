@@ -1,37 +1,45 @@
 const std = @import("std");
-const math = std.math;
+const testing = std.testing;
 const Writer = std.io.Writer;
 
 const Direction = @import("direction.zig").Intercardinal;
+const abs_diff = @import("math.zig").abs_diff;
 
 const Self = @This();
 
 x: usize,
 y: usize,
 
-/// Create a new point
-pub inline fn init(x: usize, y: usize) Self {
-    return Self{
-        .x = x,
-        .y = y,
-    };
-}
+/// Point at the origin of the cartesian plane `(0, 0)`
+pub const origin: Self = .{ .x = 0, .y = 0 };
 
-/// Returns a point `{ .x = 0, .y = 0 }`
-pub inline fn origin() Self {
-    return .{
-        .x = 0,
-        .y = 0,
-    };
+/// Duplicate of `origin` constant since I'll likely forget `origin` exists
+pub const default: Self = .{ .x = 0, .y = 0 };
+
+/// Point with both components (x, y) at `std.math.maxInt(usize)`
+pub const max: Self = .{
+    .x = std.math.maxInt(usize),
+    .y = std.math.maxInt(usize),
+};
+
+pub inline fn distance(self: Self, other: Self) usize {
+    const x = std.math.pow(usize, abs_diff(self.x, other.x), 2);
+    const y = std.math.pow(usize, abs_diff(self.y, other.y), 2);
+    return std.math.sqrt(x + y);
+}
+test "point distance" {
+    const p1: Self = .{ .x = 1, .y = 1 };
+    const p2: Self = .{ .x = 4, .y = 5 };
+
+    try testing.expectEqual(p1.distance(p2), 5);
 }
 
 /// Divide two points. Returns null if division by zero would occur.
 pub inline fn div(numerator: Self, denominator: Self) ?Self {
     if (denominator.x == 0 or denominator.y == 0) return null;
-    return .init(
-        numerator.x / denominator.x,
-        numerator.y / denominator.y,
-    );
+    const x = numerator.x / denominator.x;
+    const y = numerator.y / denominator.y;
+    return .{ .x = x, .y = y };
 }
 
 /// Divides numerator in-place via mutation. May cause underflow or division by 0 errors
@@ -42,35 +50,40 @@ pub inline fn mut_div(numerator: *Self, denominator: Self) void {
 
 /// Divide two points. Assumes division by 0 will not occur.
 pub inline fn unchecked_div(numerator: Self, denominator: Self) Self {
-    return .init(
-        numerator.x / denominator.x,
-        numerator.y / denominator.y,
-    );
+    return .{
+        .x = numerator.x / denominator.x,
+        .y = numerator.y / denominator.y,
+    };
 }
 
 /// Divide two points. "Saturates" on division by zero (clamps to maxInt).
 pub inline fn saturating_div(numerator: Self, denominator: Self) Self {
-    const max = std.math.maxInt(usize);
-    return .init(
-        if (denominator.x == 0) max else numerator.x / denominator.x,
-        if (denominator.y == 0) max else numerator.y / denominator.y,
-    );
+    // const max = std.math.maxInt(usize);
+    const x = if (denominator.x == 0)
+        std.math.maxInt(usize)
+    else
+        numerator.x / denominator.x;
+
+    const y = if (denominator.y == 0)
+        std.math.maxInt(usize)
+    else
+        numerator.y / denominator.y;
+
+    return .{ .x = x, .y = y };
 }
 
 /// Divide two points. "Wraps" division by zero to 0 to keep behavior defined.
 pub inline fn wrapping_div(numerator: Self, denominator: Self) Self {
-    return .init(
-        if (denominator.x == 0) 0 else numerator.x / denominator.x,
-        if (denominator.y == 0) 0 else numerator.y / denominator.y,
-    );
+    const x = if (denominator.x == 0) 0 else numerator.x / denominator.x;
+    const y = if (denominator.y == 0) 0 else numerator.y / denominator.y;
+    return .{ .x = x, .y = y };
 }
 
 /// Multiply a point by some factor. returns null if an overflow occurs
 pub inline fn times(self: Self, n: usize) ?Self {
-    return .init(
-        math.mul(usize, self.x, n) catch return null,
-        math.mul(usize, self.y, n) catch return null,
-    );
+    const x = std.math.mul(usize, self.x, n) catch return null;
+    const y = std.math.mul(usize, self.y, n) catch return null;
+    return .{ .x = x, .y = y };
 }
 
 /// Multiply self by a factor in-place via mutation.
@@ -82,36 +95,35 @@ pub inline fn mut_times(self: *Self, n: usize) void {
 
 /// Multiply two points. Assumes operation will not overflow.
 pub inline fn unchecked_times(self: Self, n: usize) Self {
-    return .init(
-        self.x * n,
-        self.y * n,
-    );
+    return .{
+        .x = self.x * n,
+        .y = self.y * n,
+    };
 }
 
 /// Multiply both parts of a point by a factor.
 /// Clamps to max value if an overflow occurs
 pub inline fn saturating_times(self: Self, n: usize) Self {
-    return .init(
-        self.x *| n,
-        self.y *| n,
-    );
+    return .{
+        .x = self.x *| n,
+        .y = self.y *| n,
+    };
 }
 
 /// Multiply both parts of a point by a factor.
 /// Will wrap when an overflow occurs
 pub inline fn wrapping_times(self: Self, n: usize) Self {
-    return .init(
-        self.x *% n,
-        self.y *% n,
-    );
+    return .{
+        .x = self.x *% n,
+        .y = self.y *% n,
+    };
 }
 
 /// Multiply two points. returns null if an overflow occurs
 pub inline fn mul(self: Self, other: Self) ?Self {
-    return .init(
-        math.mul(usize, self.x, other.x) catch return null,
-        math.mul(usize, self.y, other.y) catch return null,
-    );
+    const x = std.math.mul(usize, self.x, other.x) catch return null;
+    const y = std.math.mul(usize, self.y, other.y) catch return null;
+    return .{ .x = x, .y = y };
 }
 
 /// Multiply self with other by updating self in-place via mutation.
@@ -123,34 +135,32 @@ pub inline fn mut_mul(self: *Self, other: Self) void {
 
 /// Multiply two points. Assumes operation will not overflow.
 pub inline fn unchecked_mul(self: Self, other: Self) Self {
-    return .init(
-        self.x * other.x,
-        self.y * other.y,
-    );
+    return .{
+        .x = self.x * other.x,
+        .y = self.y * other.y,
+    };
 }
 
 /// Multiply two points. Will not overflow
 pub inline fn saturating_mul(self: Self, other: Self) Self {
-    return .init(
-        self.x *| other.x,
-        self.y *| other.y,
-    );
+    const x = self.x *| other.x;
+    const y = self.y *| other.y;
+    return .{ .x = x, .y = y };
 }
 
 /// Multiply two points. Will wrap when an overflow occurs
 pub inline fn wrapping_mul(self: Self, other: Self) Self {
-    return .init(
-        self.x *% other.x,
-        self.y *% other.y,
-    );
+    return .{
+        .x = self.x *% other.x,
+        .y = self.y *% other.y,
+    };
 }
 
 /// Sum two points. Returns null if an overflow occurs
 pub inline fn add(self: Self, other: Self) ?Self {
-    return .init(
-        math.add(usize, self.x, other.x) catch return null,
-        math.add(usize, self.y, other.y) catch return null,
-    );
+    const x = std.math.add(usize, self.x, other.x) catch return null;
+    const y = std.math.add(usize, self.y, other.y) catch return null;
+    return .{ .x = x, .y = y };
 }
 
 /// Sum two points by mutating self.
@@ -162,33 +172,32 @@ pub inline fn mut_add(self: *Self, other: Self) void {
 
 /// Sum two points. Does not check for overflow.
 pub inline fn unchecked_add(self: Self, other: Self) Self {
-    return .init(
-        self.x + other.x,
-        self.y + other.y,
-    );
+    return .{
+        .x = self.x + other.x,
+        .y = self.y + other.y,
+    };
 }
 
 /// Subtract two points. Wraps to maxInt if an underflow occurs
 pub inline fn wrapping_add(self: Self, other: Self) Self {
-    return .init(
-        self.x +% other.x,
-        self.y +% other.y,
-    );
+    return .{
+        .x = self.x +% other.x,
+        .y = self.y +% other.y,
+    };
 }
 
 pub inline fn saturating_add(self: Self, other: Self) Self {
-    return .init(
-        self.x +| other.x,
-        self.y +| other.y,
-    );
+    return .{
+        .x = self.x +| other.x,
+        .y = self.y +| other.y,
+    };
 }
 
 /// Subtract two points. Returns null if an underflow occurs
 pub inline fn sub(self: Self, other: Self) ?Self {
-    return .init(
-        math.sub(usize, self.x, other.x) catch return null,
-        math.sub(usize, self.y, other.y) catch return null,
-    );
+    const x = std.math.sub(usize, self.x, other.x) catch return null;
+    const y = std.math.sub(usize, self.y, other.y) catch return null;
+    return .{ .x = x, .y = y };
 }
 
 /// Subtract two points by mutating self.
@@ -200,29 +209,37 @@ pub inline fn mut_sub(self: *Self, other: Self) void {
 
 /// Subtract two points. Assumes underflows will not occur
 pub inline fn unchecked_sub(self: Self, other: Self) Self {
-    return .init(
-        self.x - other.x,
-        self.y - other.y,
-    );
+    return .{
+        .x = self.x - other.x,
+        .y = self.y - other.y,
+    };
 }
 
 /// Subtract two points. Wraps to maxInt if an underflow occurs
 pub inline fn wrapping_sub(self: Self, other: Self) Self {
-    return .init(
-        self.x -% other.x,
-        self.y -% other.y,
-    );
+    return .{
+        .x = self.x -% other.x,
+        .y = self.y -% other.y,
+    };
 }
 
 pub inline fn saturating_sub(self: Self, other: Self) Self {
-    return .init(
-        self.x -| other.x,
-        self.y -| other.y,
-    );
+    return .{
+        .x = self.x -| other.x,
+        .y = self.y -| other.y,
+    };
 }
 
 pub inline fn eql(self: Self, other: Self) bool {
     return self.x == other.x and self.y == other.y;
+}
+test "point eql" {
+    const p1: Self = .{ .x = 10, .y = 12 };
+    const p2: Self = .{ .x = 0, .y = 1 };
+    const p3: Self = .{ .x = 0, .y = 1 };
+
+    try testing.expect(p2.eql(p3));
+    try testing.expect(!p1.eql(p3));
 }
 
 pub fn unit_step(self: Self, d: Direction) Self {
@@ -230,14 +247,14 @@ pub fn unit_step(self: Self, d: Direction) Self {
     const y = self.y;
 
     return switch (d) {
-        .north => .init(x, y -% 1),
-        .south => .init(x, y +% 1),
-        .west => .init(x -% 1, y),
-        .east => .init(x +% 1, y),
-        .northeast => .init(x +% 1, y -% 1),
-        .northwest => .init(x -% 1, y -% 1),
-        .southeast => .init(x +% 1, y +% 1),
-        .southwest => .init(x -% 1, y +% 1),
+        .north => .{ .x = x, .y = y -% 1 },
+        .south => .{ .x = x, .y = y +% 1 },
+        .west => .{ .x = x -% 1, .y = y },
+        .east => .{ .x = x +% 1, .y = y },
+        .northeast => .{ .x = x +% 1, .y = y -% 1 },
+        .northwest => .{ .x = x -% 1, .y = y -% 1 },
+        .southeast => .{ .x = x +% 1, .y = y +% 1 },
+        .southwest => .{ .x = x -% 1, .y = y +% 1 },
     };
 }
 
@@ -253,14 +270,14 @@ pub fn unit_step_opt(self: Self, d: Direction) ?Self {
 
     // zig fmt: off
         return switch (d) {
-            .north     => return if (bad_n         ) null else .init(x, y - 1    ),
-            .south     => return if (bad_s         ) null else .init(x, y + 1    ),
-            .west      => return if (bad_w         ) null else .init(x - 1, y    ),
-            .east      => return if (bad_e         ) null else .init(x + 1, y    ),
-            .northeast => return if (bad_e or bad_n) null else .init(x + 1, y - 1),
-            .northwest => return if (bad_w or bad_n) null else .init(x - 1, y - 1),
-            .southeast => return if (bad_e or bad_s) null else .init(x + 1, y + 1),
-            .southwest => return if (bad_w or bad_s) null else .init(x - 1, y + 1),
+            .north     => return if (bad_n         ) null else .{ .x = x    , .y = y - 1 },
+            .south     => return if (bad_s         ) null else .{ .x = x    , .y = y + 1 },
+            .west      => return if (bad_w         ) null else .{ .x = x - 1, .y = y     },
+            .east      => return if (bad_e         ) null else .{ .x = x + 1, .y = y     },
+            .northeast => return if (bad_e or bad_n) null else .{ .x = x + 1, .y = y - 1 },
+            .northwest => return if (bad_w or bad_n) null else .{ .x = x - 1, .y = y - 1 },
+            .southeast => return if (bad_e or bad_s) null else .{ .x = x + 1, .y = y + 1 },
+            .southwest => return if (bad_w or bad_s) null else .{ .x = x - 1, .y = y + 1 },
         };
         // zig fmt: on
 }
@@ -475,6 +492,12 @@ pub inline fn nbor8_opt(self: Self) [8]?Self {
 pub inline fn to_string(self: Self, buf: []u8) ![]const u8 {
     return try std.fmt.bufPrint(buf, "({d}, {d})", .{ self.x, self.y });
 }
+test "point to_string" {
+    const p: Self = .{ .x = 123, .y = 456 };
+    var buf: [64]u8 = undefined;
+    const s = try p.to_string(&buf);
+    try testing.expectEqualStrings("(123, 456)", s);
+}
 
 pub inline fn format(self: Self, writer: *Writer) Writer.Error!void {
     try writer.print("Point{{ .x = {d}, .y = {d} }}", .{ self.x, self.y });
@@ -486,162 +509,148 @@ pub inline fn inside(self: Self, width: usize, height: usize) bool {
 }
 
 pub inline fn from_idx(i: usize, width: usize) Self {
-    return .init(i % width, i / width);
+    return .{
+        .x = i % width,
+        .y = i / width,
+    };
 }
 
 test "point saturating_div clamps on div-by-zero" {
-    const p: Self = .init(7, 9);
-    const z: Self = .init(0, 1); // x=0 triggers clamp on x only
+    const p: Self = .{ .x = 7, .y = 9 };
+    const z: Self = .{ .x = 0, .y = 1 }; // x=0 triggers clamp on x only
 
     const out = Self.saturating_div(p, z);
-    try std.testing.expectEqual(out.x, std.math.maxInt(usize));
-    try std.testing.expectEqual(out.y, 9 / 1);
+    try testing.expectEqual(out.x, std.math.maxInt(usize));
+    try testing.expectEqual(out.y, 9 / 1);
 }
 
 test "point wrapping_div maps div-by-zero to 0" {
-    const p: Self = .init(7, 9);
-    const z: Self = .init(0, 0);
+    const p: Self = .{ .x = 7, .y = 9 };
+    const z: Self = .{ .x = 0, .y = 0 };
 
     const out = Self.wrapping_div(p, z);
-    try std.testing.expectEqual(out.x, 0);
-    try std.testing.expectEqual(out.y, 0);
+    try testing.expectEqual(out.x, 0);
+    try testing.expectEqual(out.y, 0);
 }
 
 test "point arithmetic" {
-    const p1: Self = .init(10, 20);
-    const p2: Self = .init(2, 5);
+    const p1: Self = .{ .x = 10, .y = 20 };
+    const p2: Self = .{ .x = 2, .y = 5 };
 
     // Test addition
     const p_add = p1.add(p2).?;
-    try std.testing.expectEqual(p_add.x, 12);
-    try std.testing.expectEqual(p_add.y, 25);
+    try testing.expectEqual(p_add.x, 12);
+    try testing.expectEqual(p_add.y, 25);
 
     // Test subtraction (unwrap the optional)
     const p_sub = p1.sub(p2).?;
-    try std.testing.expectEqual(p_sub.x, 8);
-    try std.testing.expectEqual(p_sub.y, 15);
+    try testing.expectEqual(p_sub.x, 8);
+    try testing.expectEqual(p_sub.y, 15);
 
     // Test multiplication
     const p_mul = p1.saturating_mul(p2);
-    try std.testing.expectEqual(p_mul.x, 20);
-    try std.testing.expectEqual(p_mul.y, 100);
+    try testing.expectEqual(p_mul.x, 20);
+    try testing.expectEqual(p_mul.y, 100);
 
     // Test division (new static-style signature)
     const p_div = Self.div(p1, p2).?;
-    try std.testing.expectEqual(p_div.x, 5);
-    try std.testing.expectEqual(p_div.y, 4);
+    try testing.expectEqual(p_div.x, 5);
+    try testing.expectEqual(p_div.y, 4);
 }
 
 test "point mut_* arithmetic" {
-    var p: Self = .init(10, 20);
+    var p: Self = .{ .x = 10, .y = 20 };
 
-    p.mut_add(.init(2, 3));
-    try std.testing.expectEqual(Self.init(12, 23), p);
+    p.mut_add(.{ .x = 2, .y = 3 });
+    try testing.expectEqual(Self{ .x = 12, .y = 23 }, p);
 
-    p.mut_sub(.init(1, 3));
-    try std.testing.expectEqual(Self.init(11, 20), p);
+    p.mut_sub(.{ .x = 1, .y = 3 });
+    try testing.expectEqual(Self{ .x = 11, .y = 20 }, p);
 
-    p.mut_mul(.init(2, 5));
-    try std.testing.expectEqual(Self.init(22, 100), p);
+    p.mut_mul(.{ .x = 2, .y = 5 });
+    try testing.expectEqual(Self{ .x = 22, .y = 100 }, p);
 
-    p.mut_div(.init(11, 20));
-    try std.testing.expectEqual(Self.init(2, 5), p);
+    p.mut_div(.{ .x = 11, .y = 20 });
+    try testing.expectEqual(Self{ .x = 2, .y = 5 }, p);
 }
 
 test "point immutable movement" {
-    const p: Self = .init(5, 5);
-
-    // Test cardinal directions
-    try std.testing.expectEqual(Self.init(5, 4), p.north());
-    try std.testing.expectEqual(Self.init(5, 6), p.south());
-    try std.testing.expectEqual(Self.init(6, 5), p.east());
-    try std.testing.expectEqual(Self.init(4, 5), p.west());
-
-    // Test diagonal directions
-    try std.testing.expectEqual(Self.init(6, 4), p.northeast());
-    try std.testing.expectEqual(Self.init(4, 4), p.northwest());
-    try std.testing.expectEqual(Self.init(6, 6), p.southeast());
-    try std.testing.expectEqual(Self.init(4, 6), p.southwest());
-
-    // Ensure the original point was not mutated
-    try std.testing.expectEqual(p.x, 5);
-    try std.testing.expectEqual(p.y, 5);
+    const p: Self = .{ .x = 5, .y = 5 };
+    try testing.expectEqual(Self{ .x = 5, .y = 4 }, p.north());
+    try testing.expectEqual(Self{ .x = 5, .y = 6 }, p.south());
+    try testing.expectEqual(Self{ .x = 6, .y = 5 }, p.east());
+    try testing.expectEqual(Self{ .x = 4, .y = 5 }, p.west());
+    try testing.expectEqual(Self{ .x = 6, .y = 4 }, p.northeast());
+    try testing.expectEqual(Self{ .x = 4, .y = 4 }, p.northwest());
+    try testing.expectEqual(Self{ .x = 6, .y = 6 }, p.southeast());
+    try testing.expectEqual(Self{ .x = 4, .y = 6 }, p.southwest());
+    try testing.expectEqual(p.x, 5);
+    try testing.expectEqual(p.y, 5);
 }
 
 test "point mutable movement" {
-    var p: Self = .init(10, 10);
+    var p: Self = .{ .x = 10, .y = 10 };
 
     p.north_mut();
-    try std.testing.expectEqual(Self.init(10, 9), p);
+    try testing.expectEqual(Self{ .x = 10, .y = 9 }, p);
 
     p.east_mut();
-    try std.testing.expectEqual(Self.init(11, 9), p);
+    try testing.expectEqual(Self{ .x = 11, .y = 9 }, p);
 
     p.south_mut();
-    try std.testing.expectEqual(Self.init(11, 10), p);
+    try testing.expectEqual(Self{ .x = 11, .y = 10 }, p);
 
     p.west_mut();
-    try std.testing.expectEqual(Self.init(10, 10), p);
+    try testing.expectEqual(Self{ .x = 10, .y = 10 }, p);
 }
 
 test "point neighbor generation" {
-    const p = Self.init(3, 3);
-
-    // Test nbor4
+    const p: Self = .{ .x = 3, .y = 3 };
     const n4 = p.nbor4();
-    try std.testing.expectEqualSlices(Self, &.{
-        .init(3, 2), // North
-        .init(4, 3), // East
-        .init(3, 4), // South
-        .init(2, 3), // West
+    try testing.expectEqualSlices(Self, &.{
+        .{ .x = 3, .y = 2 },
+        .{ .x = 4, .y = 3 },
+        .{ .x = 3, .y = 4 },
+        .{ .x = 2, .y = 3 },
     }, &n4);
-
-    // Test nbor8
+}
+test "point nbor8" {
+    const p: Self = .{ .x = 3, .y = 3 };
     const n8 = p.nbor8();
-    try std.testing.expectEqualSlices(Self, &.{
-        .init(3, 2), // North
-        .init(4, 2), // Northeast
-        .init(4, 3), // East
-        .init(4, 4), // Southeast
-        .init(3, 4), // South
-        .init(2, 4), // Southwest
-        .init(2, 3), // West
-        .init(2, 2), // Northwest
+    try testing.expectEqualSlices(Self, &.{
+        .{ .x = 3, .y = 2 },
+        .{ .x = 4, .y = 2 },
+        .{ .x = 4, .y = 3 },
+        .{ .x = 4, .y = 4 },
+        .{ .x = 3, .y = 4 },
+        .{ .x = 2, .y = 4 },
+        .{ .x = 2, .y = 3 },
+        .{ .x = 2, .y = 2 },
     }, &n8);
 }
 
-test "point nbor opt generation" {
-    const p: Self = .init(0, 0);
-    const n4 = p.nbor4_opt();
-    const expected_n4 = .{ null, Self.init(1, 0), Self.init(0, 1), null };
-    try std.testing.expectEqualSlices(?Self, &expected_n4, &n4);
+test "point nbor4_opt" {
+    const n4 = origin.nbor4_opt();
+    const expected_n4: [4]?Self = .{
+        null,
+        .{ .x = 1, .y = 0 },
+        .{ .x = 0, .y = 1 },
+        null,
+    };
+    try testing.expectEqualSlices(?Self, &expected_n4, &n4);
+}
 
-    const n8 = p.nbor8_opt();
-    const expected_n8 = .{
+test "point nbor8_opt" {
+    const n8 = origin.nbor8_opt();
+    const expected_n8: [8]?Self = .{
         null,
         null,
-        Self.init(1, 0),
-        Self.init(1, 1),
-        Self.init(0, 1),
+        .{ .x = 1, .y = 0 },
+        .{ .x = 1, .y = 1 },
+        .{ .x = 0, .y = 1 },
         null,
         null,
         null,
     };
-    try std.testing.expectEqualSlices(?Self, &expected_n8, &n8);
-}
-
-test "point to_string" {
-    const p: Self = .init(123, 456);
-    var buf: [64]u8 = undefined;
-    const s = try p.to_string(&buf);
-    try std.testing.expectEqualStrings("(123, 456)", s);
-}
-
-test "point eql" {
-    const p1: Self = .init(10, 12);
-    const p2: Self = .init(0, 1);
-    const p3: Self = .init(0, 1);
-
-    try std.testing.expect(p2.eql(p3));
-    try std.testing.expect(!p1.eql(p3));
+    try testing.expectEqualSlices(?Self, &expected_n8, &n8);
 }
