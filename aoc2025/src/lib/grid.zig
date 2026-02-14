@@ -210,7 +210,7 @@ pub fn Grid(comptime T: type) type {
         /// Convert an index into a coordinate
         pub inline fn index_to_point(self: Self, index: usize) Point {
             std.debug.assert(index < self.buf.len);
-            return .init(index % self.width, index / self.width);
+            return .{ .x = index % self.width, .y = index / self.width };
         }
 
         pub inline fn entry_by_index(self: Self, index: usize) Entry {
