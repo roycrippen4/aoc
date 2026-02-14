@@ -42,5 +42,6 @@ fn get_solutions() -> Vec<aoc::Solution> {
         aoc::day16::solution(),
         aoc::day17::solution(),
         aoc::day18::solution(),
+        aoc::day19::solution(),
     ]
 }
