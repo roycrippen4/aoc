@@ -1,8 +1,8 @@
 const std = @import("std");
 const testing = std.testing;
 
-/// Calculates the absolute difference between two usize values
-pub fn abs_diff(x: usize, y: usize) usize {
+/// Calculates the absolute difference between two values
+pub fn abs_diff(comptime T: type, x: T, y: T) T {
     return if (x > y) x - y else y - x;
 }
 
@@ -28,7 +28,7 @@ test "math digits" {
 }
 
 test "util absDiff" {
-    try testing.expectEqual(2, abs_diff(3, 1));
+    try testing.expectEqual(2, abs_diff(usize, 3, 1));
 }
 
 pub fn int(comptime T: type) type {

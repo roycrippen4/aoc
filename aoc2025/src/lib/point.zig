@@ -23,8 +23,8 @@ pub const max: Self = .{
 };
 
 pub inline fn distance(self: Self, other: Self) usize {
-    const x = std.math.pow(usize, abs_diff(self.x, other.x), 2);
-    const y = std.math.pow(usize, abs_diff(self.y, other.y), 2);
+    const x = std.math.pow(usize, abs_diff(usize, self.x, other.x), 2);
+    const y = std.math.pow(usize, abs_diff(usize, self.y, other.y), 2);
     return std.math.sqrt(x + y);
 }
 test "point distance" {
@@ -32,6 +32,13 @@ test "point distance" {
     const p2: Self = .{ .x = 4, .y = 5 };
 
     try testing.expectEqual(p1.distance(p2), 5);
+}
+
+/// Euclidean distance without applying the final square-root
+pub inline fn distance_squared(self: Self, other: Self) usize {
+    const x = std.math.pow(usize, abs_diff(usize, self.x, other.x), 2);
+    const y = std.math.pow(usize, abs_diff(usize, self.y, other.y), 2);
+    return x + y;
 }
 
 /// Divide two points. Returns null if division by zero would occur.
