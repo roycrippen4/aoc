@@ -170,13 +170,11 @@ fn part2(_: Allocator) !usize {
     return sum;
 }
 
-pub fn solution() Solution {
-    return .{
-        .day = .@"02",
-        .p1 = .{ .f = part1, .expected = 18893502033 },
-        .p2 = .{ .f = part2, .expected = 26202168557 },
-    };
-}
+pub const solution: Solution = .{
+    .day = .@"02",
+    .p1 = .{ .f = part1, .expected = 18893502033 },
+    .p2 = .{ .f = part2, .expected = 26202168557 },
+};
 
 test "day02 part 1 example" {
     var sum: usize = 0;
@@ -209,7 +207,7 @@ test "day02 part2" {
 }
 
 test "day02 solution" {
-    _ = try solution().solve(testing.allocator);
+    _ = try solution.solve(testing.allocator);
 }
 
 test "day02 into_id" {

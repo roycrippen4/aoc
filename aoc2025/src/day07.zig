@@ -39,14 +39,12 @@ fn part2(_: Allocator) !usize {
     return result;
 }
 
-pub fn solution() Solution {
-    return .{
-        .day = .@"07",
-        .p1 = .{ .f = part1, .expected = 1609 },
-        .p2 = .{ .f = part2, .expected = 12472142047197 },
-    };
-}
+pub const solution: Solution = .{
+    .day = .@"07",
+    .p1 = .{ .f = part1, .expected = 1609 },
+    .p2 = .{ .f = part2, .expected = 12472142047197 },
+};
 
 test "day07 solution" {
-    _ = try solution().solve(testing.allocator);
+    _ = try solution.solve(testing.allocator);
 }

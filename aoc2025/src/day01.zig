@@ -49,13 +49,11 @@ fn part2(_: Allocator) !usize {
     return @intCast(count);
 }
 
-pub fn solution() Solution {
-    return .{
-        .day = .@"01",
-        .p1 = .{ .f = part1, .expected = 1097 },
-        .p2 = .{ .f = part2, .expected = 7101 },
-    };
-}
+pub const solution: Solution = .{
+    .day = .@"01",
+    .p1 = .{ .f = part1, .expected = 1097 },
+    .p2 = .{ .f = part2, .expected = 7101 },
+};
 
 test "day01 part1" {
     _ = try aoc.validate(part1, 1097, .@"01", .one, testing.allocator);
@@ -66,5 +64,5 @@ test "day01 part2" {
 }
 
 test "day01 solution" {
-    _ = try solution().solve(testing.allocator);
+    _ = try solution.solve(testing.allocator);
 }
