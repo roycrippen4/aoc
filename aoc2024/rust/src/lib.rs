@@ -1,3 +1,6 @@
+#![feature(const_index)]
+#![feature(const_trait_impl)]
+
 pub mod day01;
 pub mod day02;
 pub mod day03;
@@ -16,6 +19,7 @@ pub mod day15;
 pub mod day16;
 pub mod day17;
 pub mod day18;
+pub mod day19;
 
 pub const DIRECTIONS: [(isize, isize); 4] = [(1, 0), (-1, 0), (0, 1), (0, -1)];
 
