@@ -3,10 +3,10 @@ const Allocator = std.mem.Allocator;
 const testing = std.testing;
 
 pub fn is_primitive_type(comptime T: type) bool {
-    switch (@typeInfo(T)) {
-        .int, .float, .bool, .void, .noreturn, .@"opaque", .type => return true,
-        else => return false,
-    }
+    return switch (@typeInfo(T)) {
+        .int, .float, .bool, .void, .noreturn, .@"opaque", .type => true,
+        else => false,
+    };
 }
 
 test "stack is_primitive_type" {
