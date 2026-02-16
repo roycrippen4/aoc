@@ -1,20 +1,23 @@
 const std = @import("std");
+const bprint = std.fmt.bufPrint;
 
 pub const Unit = enum {
-    sec,
-    milli_slow,
-    milli_med,
-    milli_fast,
-    micros,
+    secs,
+    ms_s,
+    ms_m,
+    ms_f,
+    @"µs",
+    nanos,
 
     pub fn from_ns(ns: u64) Unit {
         const time = as_secs(ns);
-        if (time > 1.0) return Unit.sec;
-        if (time > 0.1) return Unit.milli_slow;
-        if (time > 0.01) return Unit.milli_med;
-        if (time > 0.001) return Unit.milli_fast;
+        if (time > 1.0) return .secs;
+        if (time > 0.1) return .ms_s;
+        if (time > 0.01) return .ms_m;
+        if (time > 0.001) return .ms_f;
+        if (time > 0.000001) return .@"µs";
 
-        return Unit.micros;
+        return .nanos;
     }
 };
 
@@ -76,47 +79,20 @@ pub const Stopwatch = struct {
 };
 
 pub fn color(ns: u64, buf: []u8) ![]u8 {
-    return switch (Unit.from_ns(ns)) {
-        .sec => {
-            return try std.fmt.bufPrint(
-                buf,
-                "\x1b[38;2;{d};{d};{d}m{d:.3}s\x1b[0m",
-                .{ 255, 0, 0, as_secs(ns) },
-            );
-        },
-        .milli_slow => {
-            return try std.fmt.bufPrint(
-                buf,
-                "\x1b[38;2;{d};{d};{d}m{d:.3}ms\x1b[0m",
-                .{ 255, 82, 0, as_millis(ns) },
-            );
-        },
-        .milli_med => {
-            return try std.fmt.bufPrint(
-                buf,
-                "\x1b[38;2;{d};{d};{d}m{d:.3}ms\x1b[0m",
-                .{ 255, 165, 0, as_millis(ns) },
-            );
-        },
-        .milli_fast => {
-            return try std.fmt.bufPrint(
-                buf,
-                "\x1b[38;2;{d};{d};{d}m{d:.3}ms\x1b[0m",
-                .{ 127, 210, 0, as_millis(ns) },
-            );
-        },
-        .micros => {
-            return try std.fmt.bufPrint(
-                buf,
-                "\x1b[38;2;{d};{d};{d}m{d:.3}µs\x1b[0m",
-                .{ 0, 255, 0, as_micros(ns) },
-            );
-        },
+    // zig fmt: off
+    return try switch (Unit.from_ns(ns)) {
+        .secs  => bprint(buf, "\x1b[38;2;255;0;0m{d:.3}s\x1b[0m"   , .{as_secs(ns)}),
+        .ms_s  => bprint(buf, "\x1b[38;2;255;82;0m{d:.3}ms\x1b[0m" , .{as_millis(ns)}),
+        .ms_m  => bprint(buf, "\x1b[38;2;255;165;0m{d:.3}ms\x1b[0m", .{as_millis(ns)}),
+        .ms_f  => bprint(buf, "\x1b[38;2;127;210;0m{d:.3}ms\x1b[0m", .{as_millis(ns)}),
+        .@"µs" => bprint(buf, "\x1b[38;2;0;255;0m{d:.3}µs\x1b[0m"  , .{as_micros(ns)}),
+        .nanos => bprint(buf, "\x1b[38;2;0;255;0m{d:.3}ns\x1b[0m"  , .{ns}),
     };
+    // zig fmt: on
 }
 
 fn rgb(r: u8, g: u8, b: u8, s: []const u8, buf: []u8) ![]u8 {
-    return try std.fmt.bufPrint(
+    return try bprint(
         &buf,
         "\x1b[38;2;{d};{d};{d}m{s}\x1b[0m",
         .{ r, g, b, s },

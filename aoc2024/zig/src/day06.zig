@@ -62,7 +62,7 @@ fn parse(gpa: Allocator, comptime s: []const u8) !struct { Grid, usize, Point } 
 
     while (lines.next()) |line| : (y += 1) {
         for (line, 0..) |ch, x| {
-            const p: Point = .init(x, y);
+            const p: Point = .{ .x = x, .y = y };
             const key = point_to_key(p, size + 2);
             grid.putAssumeCapacityNoClobber(key, ch);
 
@@ -130,7 +130,7 @@ fn find_jumps(gpa: Allocator, grid: Grid, size: usize) !JumpMap {
 
     const v_width = size + 2;
     const OFF_MAP: State = .{
-        .pos = .origin(),
+        .pos = .origin,
         .direction = .off,
     };
 
@@ -140,16 +140,16 @@ fn find_jumps(gpa: Allocator, grid: Grid, size: usize) !JumpMap {
 
         for (0..size) |j| {
             const h_fwd_state: State = .{
-                .pos = .init(j, i),
+                .pos = .{ .x = j, .y = i },
                 .direction = .west,
             };
             const h_fwd_key = state_to_key(h_fwd_state, v_width);
             jump_map.putAssumeCapacityNoClobber(h_fwd_key, h_fwd);
 
-            const h_fwd_grid_key = point_to_key(.init(j, i), v_width);
+            const h_fwd_grid_key = point_to_key(.{ .x = j, .y = i }, v_width);
             if (grid.get(h_fwd_grid_key) == '#') {
                 h_fwd = .{
-                    .pos = .init(j + 1, i),
+                    .pos = .{ .x = j + 1, .y = i },
                     .direction = .north,
                 };
             }
@@ -357,10 +357,10 @@ test "day06 solution" {
 test "day06 key_to_pos and pos_to_key" {
     const width = 132;
     const point = key_to_point(16046, width);
-    const key = point_to_key(Point.init(73, 120), width);
+    const key = point_to_key(.{ .x = 73, .y = 120 }, width);
 
     const expected_key = 16046;
-    const expected_point = Point.init(73, 120);
+    const expected_point: Point = .{ .x = 73, .y = 120 };
 
     try testing.expectEqual(expected_key, key);
     try testing.expect(expected_point.eql(point));
@@ -370,6 +370,6 @@ test "day06 key_to_pos and pos_to_key" {
 }
 
 test "day06 state_to_key" {
-    const result = state_to_key(.{ .pos = .init(54, 108), .direction = .south }, 132);
+    const result = state_to_key(.{ .pos = .{ .x = 54, .y = 108 }, .direction = .south }, 132);
     try testing.expectEqual(57774, result);
 }

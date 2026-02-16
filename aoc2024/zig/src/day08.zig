@@ -30,7 +30,7 @@ fn parse() Stacks {
     while (lines.next()) |line| : (y += 1) {
         for (line, 0..) |c, x| {
             const index = get_index(c) orelse continue;
-            stacks[index].push(.init(x, y));
+            stacks[index].push(.{ .x = x, .y = y });
         }
     }
 

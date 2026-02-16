@@ -45,13 +45,13 @@ inline fn southeast(g: Grid, a: u32, x: usize, y: usize) u32 {
 
 fn part1(gpa: Allocator) anyerror!usize {
     var g: Grid = try .from_string(gpa, input);
-    try g.pad_sides(4, '.');
+    try g.pad_sides(gpa, 4, '.');
 
-    var rot = try g.clone();
+    var rot = try g.clone(gpa);
     rot.transpose_clockwise();
 
-    defer rot.deinit();
-    defer g.deinit();
+    defer rot.deinit(gpa);
+    defer g.deinit(gpa);
 
     const XMAS = mem.readInt(u32, "XMAS", .little);
     const SAMX = mem.readInt(u32, "SAMX", .little);
@@ -87,8 +87,8 @@ inline fn is_sam_or_mas(slice: []const u8) bool {
 
 fn part2(gpa: Allocator) anyerror!usize {
     var g: Grid = try .from_string(gpa, input);
-    try g.pad_sides(4, '.');
-    defer g.deinit();
+    try g.pad_sides(gpa, 4, '.');
+    defer g.deinit(gpa);
 
     var count: usize = 0;
 

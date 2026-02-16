@@ -14,10 +14,10 @@ const input = @embedFile("data/day13/data.txt");
 fn parse_prize(s: []const u8) Point {
     const stripped = mem.trimStart(u8, s, "Prize: X=");
     var it = mem.splitSequence(u8, stripped, ", Y=");
-    return .init(
-        fmt.parseInt(usize, it.next().?, 10) catch unreachable,
-        fmt.parseInt(usize, it.next().?, 10) catch unreachable,
-    );
+    return .{
+        .x = fmt.parseInt(usize, it.next().?, 10) catch unreachable,
+        .y = fmt.parseInt(usize, it.next().?, 10) catch unreachable,
+    };
 }
 
 const Button = struct {
@@ -155,7 +155,7 @@ test "day13 is_positive_int" {
 
 test "day13 parse_prize" {
     const s = "Prize: X=8400, Y=5400";
-    const expected: Point = .init(8400, 5400);
+    const expected: Point = .{ .x = 8400, .y = 5400 };
     try testing.expect(expected.eql(parse_prize(s)));
 }
 

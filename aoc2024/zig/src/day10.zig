@@ -17,7 +17,7 @@ var start_buf: [256]Entry = undefined;
 fn find_starting_points(grid: Terrain) []Entry {
     var i: usize = 0;
     for (0..grid.height) |y| for (0..grid.width) |x| {
-        if (grid.get(.init(x, y)) == 0) {
+        if (grid.get(.{ .x = x, .y = y }) == 0) {
             start_buf[i] = .{
                 .x = x,
                 .y = y,
@@ -80,7 +80,7 @@ fn score_path_loop(start: Entry, grid: Terrain, visited: *Visited) usize {
 
     if (x >= grid.width or y >= grid.height) return 0;
 
-    visited.set(.init(x, y), true);
+    visited.set(.{ .x = x, .y = y }, true);
     if (v == 9) return 1;
 
     var sum: usize = 0;
@@ -94,14 +94,14 @@ fn score_path_loop(start: Entry, grid: Terrain, visited: *Visited) usize {
 
 fn score_path_part1(gpa: Allocator, start: Entry, grid: Terrain) usize {
     var visited = Visited.make(gpa, false, grid.width, grid.height) catch unreachable;
-    defer visited.deinit();
+    defer visited.deinit(gpa);
 
     return score_path_loop(start, grid, &visited);
 }
 
 fn part1(gpa: Allocator) !usize {
-    var grid = try Grid(usize).from_string_generic(gpa, aoc.slice.trim(input), aoc.char.as_usize);
-    defer grid.deinit();
+    var grid: Grid(usize) = try .from_string_generic(gpa, aoc.slice.trim(input), aoc.char.as_usize);
+    defer grid.deinit(gpa);
 
     const starts = find_starting_points(grid);
 
@@ -162,8 +162,8 @@ fn score_path_part2(start: ?Entry, grid: Terrain) usize {
 }
 
 fn part2(gpa: Allocator) !usize {
-    var grid = try Grid(usize).from_string_generic(gpa, aoc.slice.trim(input), aoc.char.as_usize);
-    defer grid.deinit();
+    var grid: Grid(usize) = try .from_string_generic(gpa, aoc.slice.trim(input), aoc.char.as_usize);
+    defer grid.deinit(gpa);
 
     var result: usize = 0;
     for (find_starting_points(grid)) |p| {
@@ -199,7 +199,7 @@ test "day10 find_starting_points" {
         \\406
         \\780
     , aoc.char.as_usize);
-    defer g.deinit();
+    defer g.deinit(testing.allocator);
 
     const starts = find_starting_points(g);
     try testing.expectEqualDeep(Entry{ .x = 0, .y = 0, .v = 0 }, starts[0]);
@@ -213,10 +213,10 @@ test "day10 neighbors_part1" {
         \\101
         \\790
     , aoc.char.as_usize);
-    defer g.deinit();
+    defer g.deinit(testing.allocator);
 
     var visited: Visited = try .make(testing.allocator, false, g.width, g.height);
-    defer visited.deinit();
+    defer visited.deinit(testing.allocator);
 
     const p: Entry = .{ .x = 1, .y = 1, .v = 0 };
     const nbors = neighbors_part1(p, g, &visited);
