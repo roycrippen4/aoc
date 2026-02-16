@@ -1,18 +1,59 @@
 const std = @import("std");
 const Allocator = std.mem.Allocator;
+const Writer = std.io.Writer;
 
 pub const char = @import("char.zig");
+pub const Deque = @import("deque.zig").Deque;
 pub const direction = @import("direction.zig");
+pub const Grid = @import("grid.zig").Grid;
 pub const math = @import("math.zig");
+pub const Point = @import("point.zig");
 pub const slice = @import("slice.zig");
+pub const Stack = @import("stack.zig").Stack;
 pub const time = @import("time.zig");
 
-pub const Day = @import("day.zig").Day;
-pub const Grid = @import("grid.zig").Grid;
-pub const Part = @import("part.zig").Part;
-pub const Point = @import("point.zig");
-pub const Stack = @import("stack.zig").Stack;
-pub const Deque = @import("deque.zig").Deque;
+/// An enum representing days for Advent of Code problems (1-25).
+/// Each variant corresponds to a day number in the challenge.
+pub const Day = enum {
+    @"01",
+    @"02",
+    @"03",
+    @"04",
+    @"05",
+    @"06",
+    @"07",
+    @"08",
+    @"09",
+    @"10",
+    @"11",
+    @"12",
+    @"13",
+    @"14",
+    @"15",
+    @"16",
+    @"17",
+    @"18",
+    @"19",
+    @"20",
+    @"21",
+    @"22",
+    @"23",
+    @"24",
+    @"25",
+
+    pub inline fn format(self: @This(), writer: *Writer) !void {
+        try writer.print("Day {s}", .{@tagName(self)});
+    }
+};
+
+pub const Part = enum {
+    one,
+    two,
+
+    pub inline fn format(self: Part, writer: *Writer) Writer.Error!void {
+        try writer.print("Part {s}", .{@tagName(self)});
+    }
+};
 
 pub const Solver = struct {
     f: fn (Allocator) anyerror!usize,
