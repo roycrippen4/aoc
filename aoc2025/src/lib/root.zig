@@ -6,7 +6,6 @@ pub const direction = @import("direction.zig");
 pub const math = @import("math.zig");
 pub const slice = @import("slice.zig");
 pub const time = @import("time.zig");
-pub const types = @import("types.zig");
 
 pub const Day = @import("day.zig").Day;
 pub const Grid = @import("grid.zig").Grid;
