@@ -1,9 +1,6 @@
 const std = @import("std");
-const mem = std.mem;
-const math = std.math;
-const Allocator = mem.Allocator;
-const assert = std.debug.assert;
 const testing = std.testing;
+const Allocator = std.mem.Allocator;
 
 /// A double-ended queue (deque) container, available in two variants:
 ///
@@ -55,7 +52,7 @@ fn DequeStatic(comptime T: type, comptime N: usize) type {
     return struct {
         const Self = @This();
         comptime {
-            assert(math.isPowerOfTwo(N) and N > 0);
+            std.debug.assert(std.math.isPowerOfTwo(N) and N > 0);
         }
 
         /// tail and head are pointers into the buffer. Tail always points
@@ -121,7 +118,7 @@ fn DequeStatic(comptime T: type, comptime N: usize) type {
 
         /// Gets a pointer to the last element, if any.
         pub inline fn back(self: *const Self) ?*const T {
-            const last_idx = math.sub(usize, self.len(), 1) catch return null;
+            const last_idx = std.math.sub(usize, self.len(), 1) catch return null;
             return self.get(last_idx);
         }
 
@@ -254,8 +251,8 @@ fn DequeDynamic(comptime T: type) type {
         /// Deinitialize with `deinit`.
         pub fn init_capacity(gpa: Allocator, capacity: usize) Allocator.Error!Self {
             const effective_cap =
-                math.ceilPowerOfTwo(usize, @max(capacity +| 1, MINIMUM_CAPACITY + 1)) catch
-                    math.ceilPowerOfTwoAssert(usize, INITIAL_CAPACITY + 1);
+                std.math.ceilPowerOfTwo(usize, @max(capacity +| 1, MINIMUM_CAPACITY + 1)) catch
+                    std.math.ceilPowerOfTwoAssert(usize, INITIAL_CAPACITY + 1);
             const buf = try gpa.alloc(T, effective_cap);
             return .{
                 .tail = 0,
@@ -303,14 +300,14 @@ fn DequeDynamic(comptime T: type) type {
 
         /// Gets the pointer to the last element, if any.
         pub inline fn back(self: Self) ?*T {
-            const last_idx = math.sub(usize, self.len(), 1) catch return null;
+            const last_idx = std.math.sub(usize, self.len(), 1) catch return null;
             return self.get(last_idx);
         }
 
         /// Adds the given element to the back of the deque.
         pub inline fn push_back(self: *Self, gpa: Allocator, item: T) Allocator.Error!void {
             if (self.cap() == 0) {
-                const new_cap = math.ceilPowerOfTwoAssert(usize, INITIAL_CAPACITY + 1);
+                const new_cap = std.math.ceilPowerOfTwoAssert(usize, INITIAL_CAPACITY + 1);
                 self.buf = try gpa.alloc(T, new_cap);
                 self.head = 0;
                 self.tail = 0;
@@ -326,7 +323,7 @@ fn DequeDynamic(comptime T: type) type {
         /// Adds the given element to the front of the deque.
         pub inline fn push_front(self: *Self, gpa: Allocator, item: T) Allocator.Error!void {
             if (self.cap() == 0) {
-                const new_cap = math.ceilPowerOfTwoAssert(usize, INITIAL_CAPACITY + 1);
+                const new_cap = std.math.ceilPowerOfTwoAssert(usize, INITIAL_CAPACITY + 1);
                 self.buf = try gpa.alloc(T, new_cap);
                 self.head = 0;
                 self.tail = 0;
@@ -432,7 +429,7 @@ fn DequeDynamic(comptime T: type) type {
         }
 
         fn grow(self: *Self, gpa: Allocator) Allocator.Error!void {
-            assert(self.is_full());
+            std.debug.assert(self.is_full());
             const old_cap = self.cap();
             const new_cap = old_cap * 2;
 
@@ -442,8 +439,8 @@ fn DequeDynamic(comptime T: type) type {
             // Update `tail` and `head` pointers accordingly
             self.handle_capacity_increase(old_cap);
 
-            assert(self.cap() >= new_cap);
-            assert(!self.is_full());
+            std.debug.assert(self.cap() >= new_cap);
+            std.debug.assert(!self.is_full());
         }
 
         /// Updates `tail` and `head` values to handle the fact that we just reallocated the internal buffer.
@@ -454,20 +451,20 @@ fn DequeDynamic(comptime T: type) type {
             } else if (self.head < old_capacity - self.tail) {
                 self.copy_non_overlapping(old_capacity, 0, self.head);
                 self.head += old_capacity;
-                assert(self.head > self.tail);
+                std.debug.assert(self.head > self.tail);
             } else {
                 const new_tail = new_capacity - (old_capacity - self.tail);
                 self.copy_non_overlapping(new_tail, self.tail, old_capacity - self.tail);
                 self.tail = new_tail;
-                assert(self.head < self.tail);
+                std.debug.assert(self.head < self.tail);
             }
-            assert(self.head < self.cap());
-            assert(self.tail < self.cap());
+            std.debug.assert(self.head < self.cap());
+            std.debug.assert(self.tail < self.cap());
         }
 
         fn copy_non_overlapping(self: *Self, dest: usize, src: usize, length: usize) void {
-            assert(dest + length <= self.cap());
-            assert(src + length <= self.cap());
+            std.debug.assert(dest + length <= self.cap());
+            std.debug.assert(src + length <= self.cap());
             @memcpy(self.buf[dest .. dest + length], self.buf[src .. src + length]);
         }
 
@@ -482,33 +479,14 @@ fn DequeDynamic(comptime T: type) type {
 }
 
 fn count(tail: usize, head: usize, size: usize) usize {
-    assert(math.isPowerOfTwo(size));
+    std.debug.assert(std.math.isPowerOfTwo(size));
     return (head -% tail) & (size - 1);
 }
 
 fn wrap_index(index: usize, size: usize) usize {
-    assert(math.isPowerOfTwo(size));
+    std.debug.assert(std.math.isPowerOfTwo(size));
     return index & (size - 1);
 }
-
-// TODO: rework this to write to a buffer for comparison
-// test "format" {
-//     var deque: Deque(usize).Dynamic = .empty;
-//     defer deque.deinit(testing.allocator);
-//
-//     try deque.push_back(testing.allocator, 69);
-//     try deque.push_back(testing.allocator, 420);
-//
-//     std.debug.print("{f}\n", .{deque});
-//
-//     var dq: Deque(bool).Dynamic = try .init_capacity(testing.allocator, 2);
-//     defer dq.deinit(testing.allocator);
-//
-//     try dq.push_back(testing.allocator, true);
-//     try dq.push_back(testing.allocator, false);
-//
-//     std.debug.print("{f}\n", .{dq});
-// }
 
 test "DequeDynamic works" {
     var deque: Deque(usize).Dynamic = .empty;
@@ -570,11 +548,11 @@ test "DequeDynamic works" {
 }
 
 test "init_capacity with too large capacity" {
-    var deque: Deque(i32).Dynamic = try .init_capacity(testing.allocator, math.maxInt(usize));
+    var deque: Deque(i32).Dynamic = try .init_capacity(
+        testing.allocator,
+        std.math.maxInt(usize),
+    );
     defer deque.deinit(testing.allocator);
-
-    // The specified capacity `math.maxInt(usize)` was too large.
-    // Internally this is just ignored, and the default capacity is used instead.
     try testing.expectEqual(@as(usize, 8), deque.buf.len);
 }
 
@@ -587,11 +565,9 @@ test "append_slice and prepend_slice" {
     try deque.prepend_slice(testing.allocator, &[_]usize{0});
     try deque.append_slice(testing.allocator, &[_]usize{ 10, 11, 12, 13, 14 });
 
-    {
-        var i: usize = 0;
-        while (i <= 14) : (i += 1) {
-            try testing.expectEqual(i, deque.get(i).?.*);
-        }
+    var i: usize = 0;
+    while (i <= 14) : (i += 1) {
+        try testing.expectEqual(i, deque.get(i).?.*);
     }
 }
 
@@ -635,9 +611,8 @@ test "code sample in README" {
 }
 
 test "DequeStatic works" {
-    var deque: Deque(u8).Static(8) = .{}; // Capacity is 8, so it can hold 7 items.
+    var deque: Deque(u8).Static(8) = .{};
 
-    // empty deque
     try testing.expectEqual(@as(usize, 8), deque.cap);
     try testing.expectEqual(@as(usize, 0), deque.len());
     try testing.expect(deque.is_empty());
@@ -645,30 +620,25 @@ test "DequeStatic works" {
     try testing.expect(deque.get(0) == null);
     try testing.expect(deque.pop_front() == null);
 
-    // push_back
     try deque.push_back(10);
     try testing.expectEqual(@as(usize, 1), deque.len());
     try testing.expectEqual(@as(u8, 10), deque.back().?.*);
     try testing.expectEqual(@as(u8, 10), deque.front().?.*);
 
-    // push_front
     try deque.push_front(9);
     try testing.expectEqual(@as(usize, 2), deque.len());
     try testing.expectEqual(@as(u8, 9), deque.get(0).?.*);
     try testing.expectEqual(@as(u8, 10), deque.get(1).?.*);
 
-    // pop_back
     try testing.expectEqual(@as(u8, 10), deque.pop_back().?);
     try testing.expectEqual(@as(usize, 1), deque.len());
-
-    // pop_front
     try testing.expectEqual(@as(u8, 9), deque.pop_front().?);
     try testing.expectEqual(@as(usize, 0), deque.len());
     try testing.expect(deque.is_empty());
 }
 
 test "DequeStatic is_full" {
-    var deque = Deque(i32).Static(4){}; // Capacity is 4, can hold 3 items.
+    var deque = Deque(i32).Static(4){};
 
     try deque.push_back(1);
     try deque.push_back(2);
@@ -677,38 +647,27 @@ test "DequeStatic is_full" {
     try deque.push_back(3);
     try testing.expect(deque.is_full());
     try testing.expectEqual(@as(usize, 3), deque.len());
-
-    // Pushing to a full deque returns an error
-    const err = deque.push_back(4);
-    try testing.expectError(error.DequeFull, err);
-
-    // Popping an item makes it not full again
+    try testing.expectError(error.DequeFull, deque.push_back(4));
     _ = deque.pop_front();
     try testing.expect(!deque.is_full());
 }
 
 test "DequeStatic wrapping" {
-    var deque = Deque(usize).Static(4){}; // Capacity 4, holds 3 items
+    var deque = Deque(usize).Static(4){};
 
     try deque.push_back(1);
     try deque.push_back(2);
     try deque.push_back(3);
     try testing.expect(deque.is_full());
 
-    // tail=0, head=3
-    // [1, 2, 3, _]
     try testing.expectEqual(@as(usize, 1), deque.pop_front().?);
-    // tail=1, head=3
-    // [_, 2, 3, _]
     try testing.expectEqual(@as(usize, 2), deque.len());
 
     try deque.push_back(4);
-    // tail=1, head=0
-    // [4, 2, 3, _]
     try testing.expect(deque.is_full());
-    try testing.expectEqual(@as(usize, 2), deque.get(0).?.*); // val=2 @ physical idx=1
-    try testing.expectEqual(@as(usize, 3), deque.get(1).?.*); // val=3 @ physical idx=2
-    try testing.expectEqual(@as(usize, 4), deque.get(2).?.*); // val=4 @ physical idx=0
+    try testing.expectEqual(@as(usize, 2), deque.get(0).?.*);
+    try testing.expectEqual(@as(usize, 3), deque.get(1).?.*);
+    try testing.expectEqual(@as(usize, 4), deque.get(2).?.*);
 }
 
 test "DequeStatic slice operations" {
@@ -726,6 +685,6 @@ test "DequeStatic slice operations" {
     try testing.expectEqual(@as(u16, 8), deque.get(1).?.*);
     try testing.expectEqual(@as(u16, 10), deque.get(2).?.*);
 
-    const err = deque.append_slice(&[_]u16{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }); // 5 + 11 = 16, which is > cap-1 (15)
+    const err = deque.append_slice(&[_]u16{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
     try testing.expectError(error.DequeFull, err);
 }
