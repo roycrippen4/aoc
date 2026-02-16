@@ -25,22 +25,23 @@ pub const Solution = struct {
     day: Day,
 
     pub fn solve(self: @This(), allocator: Allocator) !u64 {
-        const p1_time = try validate(self.p1.f, self.p1.expected, self.day, .one, allocator);
-        const p2_time = try validate(self.p2.f, self.p2.expected, self.day, .two, allocator);
+        const p1_time = try validate(allocator, self.p1.f, self.p1.expected, self.day, .one);
+        const p2_time = try validate(allocator, self.p2.f, self.p2.expected, self.day, .two);
         return p1_time + p2_time;
     }
 };
 
 pub fn validate(
+    allocator: Allocator,
     f: fn (Allocator) anyerror!usize,
     expected: usize,
     d: Day,
     p: Part,
-    allocator: Allocator,
 ) !u64 {
-    const start = try std.time.Instant.now();
+    const start: std.time.Instant = try .now();
     const result = try f(allocator);
-    const elapsed = (try std.time.Instant.now()).since(start);
+    const end: std.time.Instant = try .now();
+    const elapsed = end.since(start);
 
     if (result != expected) {
         std.debug.print(

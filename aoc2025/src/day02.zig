@@ -199,11 +199,11 @@ test "day02 part 2 example" {
 }
 
 test "day02 part1" {
-    _ = try aoc.validate(part1, 18893502033, .@"02", .one, testing.allocator);
+    _ = try aoc.validate(testing.allocator, part1, 18893502033, .@"02", .one);
 }
 
 test "day02 part2" {
-    _ = try aoc.validate(part2, 26202168557, .@"02", .two, testing.allocator);
+    _ = try aoc.validate(testing.allocator, part2, 26202168557, .@"02", .two);
 }
 
 test "day02 solution" {

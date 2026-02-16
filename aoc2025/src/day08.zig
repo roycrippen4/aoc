@@ -187,11 +187,11 @@ pub const solution: Solution = .{
 };
 
 test "day08 part1" {
-    _ = try aoc.validate(part1, 352584, .@"08", .one, testing.allocator);
+    _ = try aoc.validate(testing.allocator, part1, 352584, .@"08", .one);
 }
 
 test "day08 part2" {
-    _ = try aoc.validate(part2, 9617397716, .@"08", .two, testing.allocator);
+    _ = try aoc.validate(testing.allocator, part2, 9617397716, .@"08", .two);
 }
 
 test "day08 solution" {

@@ -74,11 +74,11 @@ pub const solution: Solution = .{
 };
 
 test "day04 part1" {
-    _ = try aoc.validate(part1, 1549, .@"04", .one, testing.allocator);
+    _ = try aoc.validate(testing.allocator, part1, 1549, .@"04", .one);
 }
 
 test "day04 part2" {
-    _ = try aoc.validate(part2, 8887, .@"04", .two, testing.allocator);
+    _ = try aoc.validate(testing.allocator, part2, 8887, .@"04", .two);
 }
 
 test "day04 solution" {

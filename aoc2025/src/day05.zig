@@ -194,11 +194,11 @@ pub const solution: Solution = .{
 };
 
 test "day05 part1" {
-    _ = try aoc.validate(part1, 611, .@"05", .one, testing.allocator);
+    _ = try aoc.validate(testing.allocator, part1, 611, .@"05", .one);
 }
 
 test "day05 part2" {
-    _ = try aoc.validate(part2, 345995423801866, .@"05", .two, testing.allocator);
+    _ = try aoc.validate(testing.allocator, part2, 345995423801866, .@"05", .two);
 }
 
 test "day05 solution" {
