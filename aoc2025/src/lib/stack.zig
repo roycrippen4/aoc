@@ -183,7 +183,7 @@ fn StackIterator(comptime T: type) type {
 }
 
 test "stack push and pop" {
-    var stack = Stack(u32, 5){};
+    var stack: Stack(u32, 5) = .{};
     try testing.expectEqual(@as(usize, 0), stack.len);
     try testing.expect(stack.is_empty());
 
@@ -220,14 +220,14 @@ test "stack push to capacity" {
 }
 
 test "stack pop from empty" {
-    var stack = Stack(bool, 5){};
+    var stack: Stack(bool, 5) = .{};
     const result = stack.pop();
     try testing.expectEqual(null, result);
     try testing.expectEqual(@as(usize, 0), stack.len);
 }
 
 test "stack peek" {
-    var stack = Stack(u16, 4){};
+    var stack: Stack(u16, 4) = .{};
 
     stack.push(100);
     stack.push(200);
@@ -244,13 +244,13 @@ test "stack peek" {
 }
 
 test "stack peek on empty stack" {
-    const stack = Stack(f32, 3){};
+    const stack: Stack(f32, 3) = .{};
     const result = stack.peek();
     try testing.expectEqual(null, result);
 }
 
 test "stack idx access" {
-    var stack = Stack(u8, 10){};
+    var stack: Stack(u8, 10) = .{};
     stack.push(5);
     stack.push(10);
     stack.push(15);
@@ -265,7 +265,7 @@ test "stack idx access" {
 test "stack copy" {
     const gpa = testing.allocator;
 
-    var stack = Stack(usize, 4){};
+    var stack: Stack(usize, 4) = .{};
     stack.push(11);
     stack.push(22);
 
