@@ -3,19 +3,17 @@ use crate::{Day, Runner, Solution};
 mod part1;
 mod part2;
 
-pub fn solution() -> Solution {
-    Solution {
-        day: Day::Day17,
-        p1: Runner {
-            expected: 657457310,
-            f: part1::solve,
-        },
-        p2: Runner {
-            expected: 105875099912602,
-            f: part2::solve,
-        },
-    }
-}
+pub const SOLUTION: Solution = Solution {
+    day: Day::Day17,
+    p1: Runner {
+        expected: 657457310,
+        f: part1::solve,
+    },
+    p2: Runner {
+        expected: 105875099912602,
+        f: part2::solve,
+    },
+};
 
 const A: usize = 59590048;
 const B: usize = 0;

@@ -7,19 +7,17 @@ use crate::{Day, Runner, Solution};
 mod part1;
 mod part2;
 
-pub fn solution() -> Solution {
-    Solution {
-        day: Day::Day16,
-        p1: Runner {
-            expected: 133584,
-            f: part1::solve,
-        },
-        p2: Runner {
-            expected: 622,
-            f: part2::solve,
-        },
-    }
-}
+pub const SOLUTION: Solution = Solution {
+    day: Day::Day16,
+    p1: Runner {
+        expected: 133584,
+        f: part1::solve,
+    },
+    p2: Runner {
+        expected: 622,
+        f: part2::solve,
+    },
+};
 
 #[inline(always)]
 const fn index(p: Point) -> usize {

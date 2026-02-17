@@ -4,13 +4,13 @@ mod part1;
 mod part2;
 
 pub const SOLUTION: Solution = Solution {
-    day: Day::Day13,
+    day: Day::Day20,
     p1: Runner {
-        expected: 29436,
+        expected: 42,
         f: part1::solve,
     },
     p2: Runner {
-        expected: 103729094227877,
+        expected: 42,
         f: part2::solve,
     },
 };

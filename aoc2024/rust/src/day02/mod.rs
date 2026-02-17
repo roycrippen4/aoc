@@ -9,16 +9,14 @@ fn into_isize_vec(line: &str) -> Vec<isize> {
 mod part1;
 mod part2;
 
-pub fn solution() -> Solution {
-    Solution {
-        day: Day::Day02,
-        p1: Runner {
-            expected: 202,
-            f: part1::solve,
-        },
-        p2: Runner {
-            expected: 271,
-            f: part2::solve,
-        },
-    }
-}
+pub const SOLUTION: Solution = Solution {
+    day: Day::Day02,
+    p1: Runner {
+        expected: 202,
+        f: part1::solve,
+    },
+    p2: Runner {
+        expected: 271,
+        f: part2::solve,
+    },
+};

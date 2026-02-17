@@ -149,16 +149,14 @@ fn count(design: &[u8]) -> usize {
     d[d.len() - 1]
 }
 
-pub fn solution() -> Solution {
-    Solution {
-        day: Day::Day19,
-        p1: Runner {
-            expected: 287,
-            f: part1::solve,
-        },
-        p2: Runner {
-            expected: 571894474468161,
-            f: part2::solve,
-        },
-    }
-}
+pub const SOLUTION: Solution = Solution {
+    day: Day::Day19,
+    p1: Runner {
+        expected: 287,
+        f: part1::solve,
+    },
+    p2: Runner {
+        expected: 571894474468161,
+        f: part2::solve,
+    },
+};

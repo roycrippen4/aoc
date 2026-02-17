@@ -63,16 +63,14 @@ fn make_grid() -> Grid<Kind> {
 const START: Point = Point::new(0, 0);
 const END: Point = Point::new(70, 70);
 
-pub fn solution() -> Solution {
-    Solution {
-        day: Day::Day18,
-        p1: Runner {
-            expected: 506,
-            f: part1::solve,
-        },
-        p2: Runner {
-            expected: 372,
-            f: part2::solve,
-        },
-    }
-}
+pub const SOLUTION: Solution = Solution {
+    day: Day::Day18,
+    p1: Runner {
+        expected: 506,
+        f: part1::solve,
+    },
+    p2: Runner {
+        expected: 372,
+        f: part2::solve,
+    },
+};

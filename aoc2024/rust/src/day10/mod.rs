@@ -22,16 +22,14 @@ fn make_grid(data: &str) -> crate::util::Grid<usize> {
 mod part1;
 mod part2;
 
-pub fn solution() -> Solution {
-    Solution {
-        day: Day::Day10,
-        p1: Runner {
-            expected: 517,
-            f: part1::solve,
-        },
-        p2: Runner {
-            expected: 1116,
-            f: part2::solve,
-        },
-    }
-}
+pub const SOLUTION: Solution = Solution {
+    day: Day::Day10,
+    p1: Runner {
+        expected: 517,
+        f: part1::solve,
+    },
+    p2: Runner {
+        expected: 1116,
+        f: part2::solve,
+    },
+};
