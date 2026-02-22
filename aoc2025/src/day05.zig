@@ -21,17 +21,6 @@ const Range = struct {
             .hi = @max(lo, hi),
         };
     }
-    test "day05 Range.from_str" {
-        try testing.expectEqualDeep(
-            Range{ .lo = 2, .hi = 10 },
-            Range.from_str("2-10"),
-        );
-
-        try testing.expectEqualDeep(
-            Range{ .lo = 2, .hi = 10 },
-            Range.from_str("10-2"),
-        );
-    }
 
     fn merge(self: Self, other: Self) ?Self {
         const lo = if (self.lo >= other.lo and self.lo <= other.hi)
@@ -48,35 +37,9 @@ const Range = struct {
             .hi = hi,
         };
     }
-    test "day05 Range.merge" {
-        const r1: Range = .{ .lo = 3, .hi = 5 };
-        const r2: Range = .{ .lo = 12, .hi = 18 };
-        const r3: Range = .{ .lo = 16, .hi = 20 };
-
-        try testing.expect(r1.merge(r2) == null);
-        try testing.expect(r1.merge(r3) == null);
-        try testing.expectEqualDeep(r2.merge(r3), r3.merge(r2));
-        try testing.expectEqualDeep(
-            Range{ .lo = 12, .hi = 20 },
-            r2.merge(r3),
-        );
-
-        const r4: Range = .{ .lo = 16, .hi = 20 };
-        const r5: Range = .{ .lo = 16, .hi = 20 };
-        try testing.expectEqualDeep(r4.merge(r5), r5.merge(r4));
-    }
 
     fn includes(self: Self, n: usize) bool {
         return self.lo <= n and n <= self.hi;
-    }
-    test "day05 Range.includes" {
-        const r = Range.from_str("1-3");
-        try testing.expect(r.includes(1));
-        try testing.expect(r.includes(2));
-        try testing.expect(r.includes(3));
-
-        try testing.expect(!r.includes(0));
-        try testing.expect(!r.includes(4));
     }
 
     inline fn count(self: Self) usize {
@@ -203,4 +166,42 @@ test "day05 part2" {
 
 test "day05 solution" {
     _ = try solution.solve(testing.allocator);
+}
+
+test "day05 Range.includes" {
+    const r = Range.from_str("1-3");
+    try testing.expect(r.includes(1));
+    try testing.expect(r.includes(2));
+    try testing.expect(r.includes(3));
+
+    try testing.expect(!r.includes(0));
+    try testing.expect(!r.includes(4));
+}
+test "day05 Range.merge" {
+    const r1: Range = .{ .lo = 3, .hi = 5 };
+    const r2: Range = .{ .lo = 12, .hi = 18 };
+    const r3: Range = .{ .lo = 16, .hi = 20 };
+
+    try testing.expect(r1.merge(r2) == null);
+    try testing.expect(r1.merge(r3) == null);
+    try testing.expectEqualDeep(r2.merge(r3), r3.merge(r2));
+    try testing.expectEqualDeep(
+        Range{ .lo = 12, .hi = 20 },
+        r2.merge(r3),
+    );
+
+    const r4: Range = .{ .lo = 16, .hi = 20 };
+    const r5: Range = .{ .lo = 16, .hi = 20 };
+    try testing.expectEqualDeep(r4.merge(r5), r5.merge(r4));
+}
+test "day05 Range.from_str" {
+    try testing.expectEqualDeep(
+        Range{ .lo = 2, .hi = 10 },
+        Range.from_str("2-10"),
+    );
+
+    try testing.expectEqualDeep(
+        Range{ .lo = 2, .hi = 10 },
+        Range.from_str("10-2"),
+    );
 }
