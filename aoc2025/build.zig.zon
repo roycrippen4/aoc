@@ -5,8 +5,8 @@
     .minimum_zig_version = "0.15.1",
     .dependencies = .{
         .aoc = .{
-            .url = "https://github.com/roycrippen4/aoc_zlib/archive/refs/tags/v0.1.1.tar.gz",
-            .hash = "aoc-0.1.1-59KVaGQyAgDjfosD6UbARXL62nCRlcZhUZI08lu56HR2",
+            .url = "https://github.com/roycrippen4/aoc_zlib/archive/refs/tags/v0.1.2.tar.gz",
+            .hash = "aoc-0.1.2-59KVaLEyAgCQc1D9H5XeaD9g8Rm9_BB2-XwigAK3fh23",
         },
     },
     .paths = .{
