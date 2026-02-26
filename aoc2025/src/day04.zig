@@ -5,7 +5,7 @@ const testing = std.testing;
 const aoc = @import("aoc");
 const Solution = aoc.Solution;
 
-const input = @embedFile("data/day04/data.txt");
+const input = @embedFile("data/day04.txt");
 const SIZE: usize = aoc.slice.line_count(input);
 
 const Grid = aoc.Grid(u8);

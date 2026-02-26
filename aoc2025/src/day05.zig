@@ -51,7 +51,7 @@ const Range = struct {
     }
 };
 
-const input = @embedFile("data/day05/data.txt");
+const input = @embedFile("data/day05.txt");
 const split_result = aoc.slice.split_once_sequence(u8, input, "\n\n");
 
 const ranges_str = split_result.@"0";

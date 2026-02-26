@@ -7,7 +7,8 @@ const Solution = aoc.Solution;
 const Point = aoc.Point;
 
 const abs_diff = aoc.math.abs_diff;
-const input = aoc.slice.trim(@embedFile("data/day09/data.txt"));
+const input_raw = @embedFile("data/day09.txt");
+const input = aoc.slice.trim(input_raw);
 
 const COUNT: usize = aoc.slice.line_count(input);
 const COORDS: [COUNT]Point = blk: {

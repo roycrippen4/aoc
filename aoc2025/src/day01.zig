@@ -6,7 +6,7 @@ const testing = std.testing;
 const aoc = @import("aoc");
 const Solution = aoc.Solution;
 
-const input = @embedFile("data/day01/data.txt");
+const input = @embedFile("data/day01.txt");
 
 inline fn parse_value(line: []const u8) !isize {
     const sign: isize = if (line[0] == 'L') @as(isize, -1) else 1;

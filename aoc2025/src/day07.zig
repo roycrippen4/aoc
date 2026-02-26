@@ -6,7 +6,7 @@ const testing = std.testing;
 const aoc = @import("aoc");
 const Solution = aoc.Solution;
 
-const input = @embedFile("data/day07/data.txt");
+const input = @embedFile("data/day07.txt");
 
 const WIDTH: usize = aoc.slice.line_len(input);
 const SPLITTER_CHAR: u8 = '^';

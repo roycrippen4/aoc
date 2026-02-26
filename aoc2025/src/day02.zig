@@ -9,7 +9,8 @@ const aoc = @import("aoc");
 const split_once = aoc.slice.split_once_scalar;
 const Solution = aoc.Solution;
 
-const input = aoc.slice.trim(@embedFile("data/day02/data.txt"));
+const input_raw = @embedFile("data/day02.txt");
+const input = aoc.slice.trim(input_raw);
 
 inline fn quantize_hi(hi: []const u8) usize {
     return switch (hi.len) {

@@ -1,19 +1,17 @@
 const std = @import("std");
 const mem = std.mem;
 const fmt = std.fmt;
+const math = std.math;
 const Allocator = mem.Allocator;
 const testing = std.testing;
 
 const aoc = @import("aoc");
 const Stack = aoc.Stack;
 const Solution = aoc.Solution;
-const BitSet = std.bit_set.IntegerBitSet(10);
+const BitSet = std.bit_set.StaticBitSet;
 
 const use_example = false;
-const input = if (use_example)
-    example
-else
-    @embedFile("data/day10/data.txt");
+const input = if (use_example) example else @embedFile("data/day10.txt");
 
 const example =
     \\[.##.] (3) (1,3) (2) (2,3) (0,2) (0,1) {3,5,4,7}
@@ -22,7 +20,7 @@ const example =
 ;
 
 fn parse_lights(string: []const u8) u10 {
-    var lights: BitSet = .initEmpty();
+    var lights: BitSet(10) = .initEmpty();
 
     for (string, 0..) |ch, i| if (ch == '#') {
         lights.set(9 - i);
@@ -47,7 +45,7 @@ test "day10 parse_lights" {
 
 fn parse_button(string: []const u8) u10 {
     var i: usize = 0;
-    var button: BitSet = .initEmpty();
+    var button: BitSet(10) = .initEmpty();
 
     while (i < string.len) : (i += 2) {
         button.set(9 - (string[i] - '0'));
@@ -134,104 +132,31 @@ const Machine = struct {
     const Self = @This();
 
     pub fn min_presses(self: Self) usize {
-        for (self.buttons.to_slice()) |button| {
-            if (button == self.lights) return 1;
-        }
+        const combinations: usize = math.pow(usize, 2, self.buttons.len);
+        var min_pressed: usize = math.maxInt(usize);
+        var current_lights: u10 = 0;
 
-        for (0..self.buttons.len - 1) |i| {
-            for (i..self.buttons.len) |j| {
-                const b1 = self.buttons.items[i];
-                const b2 = self.buttons.items[j];
-                if (b1 ^ b2 == self.lights) return 2;
+        for (1..combinations) |i| {
+            current_lights ^= self.buttons.items[@ctz(i)];
+            if (current_lights == self.lights) {
+                const combo = i ^ (i >> 1);
+                min_pressed = @min(min_pressed, @popCount(combo));
             }
         }
 
-        for (0..self.buttons.len - 2) |i| {
-            for (i..self.buttons.len - 1) |j| {
-                for (j..self.buttons.len) |k| {
-                    const b1 = self.buttons.items[i];
-                    const b2 = self.buttons.items[j];
-                    const b3 = self.buttons.items[k];
-                    if (b1 ^ b2 ^ b3 == self.lights) return 3;
-                }
-            }
+        return min_pressed;
+    }
+    test "day10 Machine.min_presses" {
+        {
+            const machine: Machine = .from_string("[.##.] (3) (1,3) (2) (2,3) (0,2) (0,1) {3,5,4,7}");
+            const result = machine.min_presses();
+            try testing.expectEqual(2, result);
         }
-
-        for (0..self.buttons.len - 3) |i| {
-            for (i..self.buttons.len - 2) |j| {
-                for (j..self.buttons.len - 1) |k| {
-                    for (k..self.buttons.len) |l| {
-                        const b1 = self.buttons.items[i];
-                        const b2 = self.buttons.items[j];
-                        const b3 = self.buttons.items[k];
-                        const b4 = self.buttons.items[l];
-                        if (b1 ^ b2 ^ b3 ^ b4 == self.lights) return 4;
-                    }
-                }
-            }
+        {
+            const machine: Machine = .from_string("[...#.] (0,2,3,4) (2,3) (0,4) (0,1,2) (1,2,3,4) {7,5,12,7,2}");
+            const result = machine.min_presses();
+            try testing.expectEqual(3, result);
         }
-
-        for (0..self.buttons.len - 4) |i| {
-            for (i..self.buttons.len - 3) |j| {
-                for (j..self.buttons.len - 2) |k| {
-                    for (k..self.buttons.len - 1) |l| {
-                        for (l..self.buttons.len) |m| {
-                            const b1 = self.buttons.items[i];
-                            const b2 = self.buttons.items[j];
-                            const b3 = self.buttons.items[k];
-                            const b4 = self.buttons.items[l];
-                            const b5 = self.buttons.items[m];
-                            if (b1 ^ b2 ^ b3 ^ b4 ^ b5 == self.lights) return 5;
-                        }
-                    }
-                }
-            }
-        }
-
-        for (0..self.buttons.len - 5) |i| {
-            for (i..self.buttons.len - 4) |j| {
-                for (j..self.buttons.len - 3) |k| {
-                    for (k..self.buttons.len - 2) |l| {
-                        for (l..self.buttons.len - 1) |m| {
-                            for (m..self.buttons.len) |n| {
-                                const b1 = self.buttons.items[i];
-                                const b2 = self.buttons.items[j];
-                                const b3 = self.buttons.items[k];
-                                const b4 = self.buttons.items[l];
-                                const b5 = self.buttons.items[m];
-                                const b6 = self.buttons.items[n];
-                                if (b1 ^ b2 ^ b3 ^ b4 ^ b5 ^ b6 == self.lights) return 6;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        for (0..self.buttons.len - 6) |i| {
-            for (i..self.buttons.len - 5) |j| {
-                for (j..self.buttons.len - 4) |k| {
-                    for (k..self.buttons.len - 3) |l| {
-                        for (l..self.buttons.len - 2) |m| {
-                            for (m..self.buttons.len - 1) |n| {
-                                for (n..self.buttons.len) |o| {
-                                    const b1 = self.buttons.items[i];
-                                    const b2 = self.buttons.items[j];
-                                    const b3 = self.buttons.items[k];
-                                    const b4 = self.buttons.items[l];
-                                    const b5 = self.buttons.items[m];
-                                    const b6 = self.buttons.items[n];
-                                    const b7 = self.buttons.items[o];
-                                    if (b1 ^ b2 ^ b3 ^ b4 ^ b5 ^ b6 ^ b7 == self.lights) return 7;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        unreachable;
     }
 
     pub fn from_string(string: []const u8) Self {
@@ -290,8 +215,7 @@ fn part1(_: Allocator) !usize {
     for (MACHINES) |machine| {
         result += machine.min_presses();
     }
-    std.debug.print("{d}\n", .{result});
-    return 42;
+    return result;
 }
 
 fn part2(_: Allocator) !usize {
@@ -300,12 +224,12 @@ fn part2(_: Allocator) !usize {
 
 pub const solution: Solution = .{
     .day = .@"10",
-    .p1 = .{ .f = part1, .expected = 42 },
+    .p1 = .{ .f = part1, .expected = 547 },
     .p2 = .{ .f = part2, .expected = 42 },
 };
 
 test "day10 part1" {
-    _ = try aoc.validate(testing.allocator, part1, 42, .@"10", .one);
+    _ = try aoc.validate(testing.allocator, part1, 547, .@"10", .one);
 }
 
 test "day10 part2" {

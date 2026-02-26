@@ -5,7 +5,7 @@ const testing = std.testing;
 const aoc = @import("aoc");
 const Solution = aoc.Solution;
 
-const input = @embedFile("data/day06/data.txt");
+const input = @embedFile("data/day06.txt");
 
 const COLS: usize = blk: {
     var lines = aoc.slice.lines(input);

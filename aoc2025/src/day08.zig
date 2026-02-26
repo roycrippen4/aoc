@@ -5,7 +5,7 @@ const testing = std.testing;
 const aoc = @import("aoc");
 const Solution = aoc.Solution;
 
-const input = @embedFile("data/day08/data.txt");
+const input = @embedFile("data/day08.txt");
 
 const LEN: usize = 1000;
 

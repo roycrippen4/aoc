@@ -5,7 +5,7 @@ const testing = std.testing;
 const aoc = @import("aoc");
 const Solution = aoc.Solution;
 
-const input = @embedFile("data/day03/data.txt");
+const input = @embedFile("data/day03.txt");
 
 fn find_max_joltage(line: []const u8) usize {
     var a: isize = -1;
