@@ -10,7 +10,6 @@ const split_once = aoc.slice.split_once_scalar;
 const Solution = aoc.Solution;
 
 const input = aoc.slice.trim(@embedFile("data/day02/data.txt"));
-const example = aoc.slice.trim(@embedFile("data/day02/example.txt"));
 
 inline fn quantize_hi(hi: []const u8) usize {
     return switch (hi.len) {
@@ -176,6 +175,7 @@ pub const solution: Solution = .{
     .p2 = .{ .f = part2, .expected = 26202168557 },
 };
 
+const example = "11-22,95-115,998-1012,1188511880-1188511890,222220-222224,1698522-1698528,446443-446449,38593856-38593862,565653-565659,824824821-824824827,2121212118-2121212124";
 test "day02 part 1 example" {
     var sum: usize = 0;
 

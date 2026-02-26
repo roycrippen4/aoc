@@ -99,8 +99,12 @@ test "day03 solution" {
     _ = try solution.solve(testing.allocator);
 }
 
-const example = if (@import("builtin").is_test)
-    @embedFile("data/day03/example.txt");
+const example =
+    \\987654321111111
+    \\811111111111119
+    \\234234234234278
+    \\818181911112111
+;
 
 test "day03 find_max_joltage" {
     try testing.expectEqual(98, find_max_joltage("987654321111111"));
