@@ -4,7 +4,7 @@ pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
-    const aoc_zlib_dependency = b.dependency("aoc", .{
+    const libaoc_dependency = b.dependency("libaoc", .{
         .target = target,
         .optimize = optimize,
     });
@@ -16,8 +16,8 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
         .imports = &.{
             .{
-                .name = "aoc",
-                .module = aoc_zlib_dependency.module("aoc"),
+                .name = "libaoc",
+                .module = libaoc_dependency.module("libaoc"),
             },
         },
     });
@@ -39,8 +39,8 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
         .imports = &.{
             .{
-                .name = "aoc",
-                .module = aoc_zlib_dependency.module("aoc"),
+                .name = "libaoc",
+                .module = libaoc_dependency.module("libaoc"),
             },
             .{
                 .name = "util",

@@ -5,7 +5,7 @@ const parseInt = std.fmt.parseInt;
 const Allocator = std.mem.Allocator;
 const testing = std.testing;
 
-const aoc = @import("aoc");
+const aoc = @import("libaoc");
 const split_once = aoc.slice.split_once_scalar;
 const Solution = aoc.Solution;
 

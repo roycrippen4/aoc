@@ -8,7 +8,7 @@ const Client = std.http.Client;
 const Writer = std.io.Writer;
 const Reader = std.io.Reader;
 
-const aoc = @import("aoc");
+const aoc = @import("libaoc");
 const Day = aoc.Day;
 
 pub fn main() !void {

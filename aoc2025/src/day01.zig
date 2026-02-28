@@ -3,7 +3,7 @@ const parseInt = std.fmt.parseInt;
 const Allocator = std.mem.Allocator;
 const testing = std.testing;
 
-const aoc = @import("aoc");
+const aoc = @import("libaoc");
 const Solution = aoc.Solution;
 
 const input = @embedFile("data/day01.txt");

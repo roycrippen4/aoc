@@ -4,9 +4,9 @@
     .fingerprint = 0x3a7cfe5a3abe500c, // Changing this has security and trust implications.
     .minimum_zig_version = "0.15.1",
     .dependencies = .{
-        .aoc = .{
-            .url = "https://github.com/roycrippen4/aoc_zlib/archive/refs/tags/v0.1.4.tar.gz",
-            .hash = "aoc-0.1.4-59KVaCZBAgCfQVrf74rOOYJYv1E8GaqxRvtMIjKdYcMy",
+        .libaoc = .{
+            .url = "https://github.com/roycrippen4/libaoc/archive/refs/tags/v0.2.0.tar.gz",
+            .hash = "libaoc-0.2.0-lwXEKy9BAgAVRDpKa4tD9xKpOW-S7Pf86tAKU_vnDIIH",
         },
     },
     .paths = .{

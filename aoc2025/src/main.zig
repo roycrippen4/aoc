@@ -1,7 +1,7 @@
 const std = @import("std");
 const builtin = @import("builtin");
 
-const aoc = @import("aoc");
+const aoc = @import("libaoc");
 
 var debug_allocator: std.heap.DebugAllocator(.{}) = .init;
 
@@ -18,15 +18,15 @@ pub fn main() !void {
 
     var total_time: u64 = 0;
 
-    total_time += try @import("day01.zig").solution.solve(gpa);
-    total_time += try @import("day02.zig").solution.solve(gpa);
-    total_time += try @import("day03.zig").solution.solve(gpa);
-    total_time += try @import("day04.zig").solution.solve(gpa);
-    total_time += try @import("day05.zig").solution.solve(gpa);
-    total_time += try @import("day06.zig").solution.solve(gpa);
-    total_time += try @import("day07.zig").solution.solve(gpa);
-    total_time += try @import("day08.zig").solution.solve(gpa);
-    total_time += try @import("day09.zig").solution.solve(gpa);
+    // total_time += try @import("day01.zig").solution.solve(gpa);
+    // total_time += try @import("day02.zig").solution.solve(gpa);
+    // total_time += try @import("day03.zig").solution.solve(gpa);
+    // total_time += try @import("day04.zig").solution.solve(gpa);
+    // total_time += try @import("day05.zig").solution.solve(gpa);
+    // total_time += try @import("day06.zig").solution.solve(gpa);
+    // total_time += try @import("day07.zig").solution.solve(gpa);
+    // total_time += try @import("day08.zig").solution.solve(gpa);
+    // total_time += try @import("day09.zig").solution.solve(gpa);
     total_time += try @import("day10.zig").solution.solve(gpa);
 
     var buf: [64]u8 = undefined;
