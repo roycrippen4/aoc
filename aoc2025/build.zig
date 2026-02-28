@@ -27,6 +27,12 @@ pub fn build(b: *std.Build) void {
     });
     const setup = b.addRunArtifact(setup_exe);
 
+    const util_mod = b.createModule(.{
+        .root_source_file = b.path("src/util/root.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
     const exe_mod = b.createModule(.{
         .root_source_file = b.path("src/main.zig"),
         .target = target,
@@ -35,6 +41,10 @@ pub fn build(b: *std.Build) void {
             .{
                 .name = "aoc",
                 .module = aoc_zlib_dependency.module("aoc"),
+            },
+            .{
+                .name = "util",
+                .module = util_mod,
             },
         },
     });
@@ -57,27 +67,37 @@ pub fn build(b: *std.Build) void {
     const run_step = b.step("run", "Run the app");
     run_step.dependOn(&run_cmd.step);
 
-    const test_filters = b.option(
-        []const []const u8,
-        "test-filter",
-        "Skip tests that do not match any filter",
-    ) orelse &.{};
+    // Unit tests
+    {
+        const test_filters = b.option(
+            []const []const u8,
+            "test-filter",
+            "Skip tests that do not match any filter",
+        ) orelse &.{};
 
-    const exe_unit_tests = b.addTest(.{ .root_module = exe_mod, .filters = test_filters });
-    const run_exe_unit_tests = b.addRunArtifact(exe_unit_tests);
+        const exe_unit_tests = b.addTest(.{ .root_module = exe_mod, .filters = test_filters });
+        const run_exe_unit_tests = b.addRunArtifact(exe_unit_tests);
 
-    const setup_unit_tests = b.addTest(.{ .root_module = setup_mod, .filters = test_filters });
-    const run_setup_unit_tests = b.addRunArtifact(setup_unit_tests);
+        const setup_unit_tests = b.addTest(.{ .root_module = setup_mod, .filters = test_filters });
+        const run_setup_unit_tests = b.addRunArtifact(setup_unit_tests);
 
-    const test_step = b.step("test", "Run unit tests");
-    test_step.dependOn(&run_exe_unit_tests.step);
-    test_step.dependOn(&run_setup_unit_tests.step);
+        const util_unit_tests = b.addTest(.{ .root_module = util_mod, .filters = test_filters });
+        const run_util_unit_tests = b.addRunArtifact(util_unit_tests);
 
-    const exe_check = b.addExecutable(.{ .name = "aoc2024", .root_module = exe_mod });
-    const setup_check = b.addExecutable(.{ .name = "setup", .root_module = setup_mod });
+        const test_step = b.step("test", "Run unit tests");
+        test_step.dependOn(&run_exe_unit_tests.step);
+        test_step.dependOn(&run_util_unit_tests.step);
+        test_step.dependOn(&run_setup_unit_tests.step);
+    }
 
-    const check = b.step("check", "Check if it compiles");
-    check.dependOn(&exe_check.step);
-    check.dependOn(&run_exe_unit_tests.step);
-    check.dependOn(&setup_check.step);
+    // Lsp stuff
+    {
+        const exe_check = b.addExecutable(.{ .name = "aoc2024", .root_module = exe_mod });
+        const setup_check = b.addExecutable(.{ .name = "setup", .root_module = setup_mod });
+        const util_check = b.addExecutable(.{ .name = "util", .root_module = util_mod });
+        const check = b.step("check", "Check if it compiles");
+        check.dependOn(&exe_check.step);
+        check.dependOn(&util_check.step);
+        check.dependOn(&setup_check.step);
+    }
 }
