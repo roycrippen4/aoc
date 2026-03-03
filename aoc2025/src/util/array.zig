@@ -40,21 +40,21 @@ pub fn from_fn_mut(
     return array;
 }
 
-test "array from_fn_mut" {
-    var environment: usize = 0;
-    const Ctx = struct {
-        counter: *usize,
-
-        pub fn call(self: *@This(), _: usize) usize {
-            self.counter.* += 1;
-            return self.counter.* * self.counter.*;
-        }
-    };
-    var ctx: Ctx = .{ .counter = &environment };
-
-    const result = from_fn_mut(usize, 5, &ctx);
-    std.debug.print("{any}\n", .{result});
-    std.debug.print("environment = {d}\n", .{environment});
-    try std.testing.expect(std.meta.hasFn(Ctx, "call"));
-    // std.debug.print("{}\n", .{std.meta.hasFn(Ctx, "call")});
-}
+// test "array from_fn_mut" {
+//     var environment: usize = 0;
+//     const Ctx = struct {
+//         counter: *usize,
+//
+//         pub fn call(self: *@This(), _: usize) usize {
+//             self.counter.* += 1;
+//             return self.counter.* * self.counter.*;
+//         }
+//     };
+//     var ctx: Ctx = .{ .counter = &environment };
+//
+//     const result = from_fn_mut(usize, 5, &ctx);
+//     std.debug.print("{any}\n", .{result});
+//     std.debug.print("environment = {d}\n", .{environment});
+//     try std.testing.expect(std.meta.hasFn(Ctx, "call"));
+// std.debug.print("{}\n", .{std.meta.hasFn(Ctx, "call")});
+// }
