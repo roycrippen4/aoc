@@ -28,13 +28,13 @@ const Numbers = aoc.Stack(Row, ROWS);
 
 const NUMBERS: Numbers = blk: {
     @setEvalBranchQuota(400000);
-    var nums: Numbers = .{};
+    var nums: Numbers = .empty;
 
     var lines_it = aoc.slice.lines(input);
     while (lines_it.next()) |line| {
         if (lines_it.index orelse break == ROWS - 1) break;
 
-        var row: Row = .{};
+        var row: Row = .empty;
         var it = std.mem.tokenizeScalar(u8, line, ' ');
         while (it.next()) |n_str| {
             const n = std.fmt.parseInt(usize, n_str, 10) catch unreachable;
@@ -130,7 +130,7 @@ const Blk = struct { index: usize, width: usize };
 const LINE_LEN = aoc.slice.line_len(input) + 1;
 const BLKS: aoc.Stack(Blk, COLS) = blk: {
     @setEvalBranchQuota(5000);
-    var blk_widths: aoc.Stack(Blk, COLS) = .{};
+    var blk_widths: aoc.Stack(Blk, COLS) = .empty;
 
     var start: usize = 0;
     for (1.., OPS_STR[1..]) |i, char| {

@@ -102,8 +102,8 @@ const RangeStack = aoc.Stack(Range, range_count);
 
 fn merge_ranges_inner(rs: []const Range) struct { RangeStack, bool } {
     var did_merge = false;
-    var merged: RangeStack = .{};
-    var skip_idxs: aoc.Stack(usize, range_count) = .{};
+    var merged: RangeStack = .empty;
+    var skip_idxs: aoc.Stack(usize, range_count) = .empty;
 
     for (0.., rs[0 .. rs.len - 1]) |i, r1| {
         for (i + 1.., rs[i + 1 ..]) |j, r2| {

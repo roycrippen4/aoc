@@ -33,7 +33,7 @@ const Machine = struct {
         };
 
         const joltages = blk: {
-            var joltages: Stack(i16, 10) = .{};
+            var joltages: Stack(i16, 10) = .empty;
             var it = mem.tokenizeScalar(u8, string[joltage_start + 1 .. string.len - 1], ',');
             while (it.next()) |joltage_slice| {
                 const joltage = fmt.parseInt(i16, joltage_slice, 10) catch unreachable;
@@ -44,7 +44,7 @@ const Machine = struct {
         };
 
         const buttons = blk: {
-            var buttons: Stack(u16, 13) = .{};
+            var buttons: Stack(u16, 13) = .empty;
             var it = mem.tokenizeScalar(u8, string[lights_end + 2 .. joltage_start - 1], ' ');
             while (it.next()) |button_string| {
                 const button = inner: {
@@ -232,7 +232,7 @@ const Subspace = struct {
             break :blk rhs;
         };
 
-        var bases: Stack(Basis, 4) = .{};
+        var bases: Stack(Basis, 4) = .empty;
         for (0..nullity) |col| {
             const limit = equations[height][col + rank];
             const vs = blk: {

@@ -25,7 +25,7 @@ const Edges = struct {
     const Self = @This();
 
     pub const init: Self = .{
-        .edges = .{},
+        .edges = .empty,
         .paths = -1,
     };
 

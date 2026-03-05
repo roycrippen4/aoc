@@ -97,7 +97,7 @@ fn repeat(n_str: []const u8, len: usize) !usize {
 }
 
 fn sum_invalid_ids2(range_str: []const u8) !usize {
-    var s: aoc.Stack(usize, 1000) = .{};
+    var s: aoc.Stack(usize, 1000) = .empty;
     var sum: usize = 0;
 
     const lo_str, const hi_str = split_once(u8, range_str, '-');
