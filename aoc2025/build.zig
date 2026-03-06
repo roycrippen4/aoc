@@ -40,7 +40,7 @@ pub fn build(b: *std.Build) void {
     });
 
     const exe = b.addExecutable(.{
-        .name = "aoc2025",
+        .name = "aoc",
         .root_module = exe_mod,
     });
     exe.step.dependOn(&setup.step);

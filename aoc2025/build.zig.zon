@@ -5,8 +5,8 @@
     .minimum_zig_version = "0.15.1",
     .dependencies = .{
         .libaoc = .{
-            .url = "https://github.com/roycrippen4/libaoc/archive/refs/tags/v0.2.2.tar.gz",
-            .hash = "libaoc-0.2.2-lwXEK1RCAgCnHfAnt_OtlE-3xDctxh_CX9EIMjPgeJHZ",
+            .url = "https://github.com/roycrippen4/libaoc/archive/refs/tags/v0.3.0.tar.gz",
+            .hash = "libaoc-0.3.0-lwXEK2JCAgB_KCD4nomnjYFkzhvWgeyh5KnlYs8MohkF",
         },
     },
     .paths = .{
